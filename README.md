@@ -17,7 +17,7 @@ Open `/health` to see service and credential-presence status. Then open the app,
 
 ## Models
 
-Defaults in this deployment are `gpt-6.1-sol` and `claude-sonnet-5-5`; override them if those models are not enabled for your API accounts. See the [OpenAI model catalog](https://developers.openai.com/api/docs/models) and [Anthropic model overview](https://platform.claude.com/docs/en/models/overview).
+Defaults in this deployment are `gpt-4.1` and `claude-sonnet-4-5-20250929`; override them if those models are not enabled for your API accounts. See the [OpenAI model catalog](https://developers.openai.com/api/docs/models) and [Anthropic model overview](https://platform.claude.com/docs/en/models/overview).
 
 ## Security
 

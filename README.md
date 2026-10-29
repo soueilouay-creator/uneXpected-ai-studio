@@ -22,3 +22,8 @@ Defaults in this deployment are `gpt-4.1` and `claude-sonnet-4-5-20250929`; over
 ## Security
 
 No API keys are committed. The app's private endpoints require a bearer access token, requests are size-limited, and the app does not persist prompts or responses. Rotate any key that has previously been exposed.
+
+
+## Optional free-model fallback
+
+If the OpenAI or Anthropic API account runs out of credits, uneXpected can optionally fall back to OpenRouter's free-model router. Create an OpenRouter account and API key, then set `OPENROUTER_API_KEY` in the Render service's environment variables. The default model is `openrouter/free`; free models are rate-limited and availability can vary. This fallback does not make OpenAI/Anthropic credit-restricted calls available again, and the fallback model is not ChatGPT or Claude. Check OpenRouter's current model, rate-limit, and data policies before sending sensitive prompts.

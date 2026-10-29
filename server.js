@@ -8,11 +8,13 @@ const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const PORT = Number(process.env.PORT || 3000);
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4.1';
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-5-20250929';
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'openrouter/free';
+const OPENROUTER_KEY = String(process.env.OPENROUTER_API_KEY || '').trim();
 const ACCESS_TOKEN = process.env.UNEXPECTED_ACCESS_TOKEN || '';
 const ANTHROPIC_WORKSPACE_ID = String(process.env.ANTHROPIC_WORKSPACE_ID || '').trim();
 const OPENAI_KEY_NAMES = ['OPENAI_API_KEY', 'OPENAI_SECRET_KEY', 'OPENAI_API_TOKEN', 'OPENAI_KEY'];
 const ANTHROPIC_KEY_NAMES = ['ANTHROPIC_API_KEY', 'ANTHROPIC_SECRET_KEY', 'ANTHROPIC_API_TOKEN', 'ANTHROPIC_KEY', 'CLAUDE_API_KEY'];
-const providerVerified = { openai: false, anthropic: false };
+const providerVerified = { openai: false, anthropic: false, openrouter: false };
 const rateBuckets = new Map();
 const RATE_WINDOW_MS = 60_000;
 const RATE_LIMIT = 30;
@@ -99,7 +101,7 @@ async function parseProvider(res, name) {
   return data;
 }
 async function callOpenAI(task, system = 'You are ChatGPT, one model in the uneXpected orchestration workspace. Give a direct, useful, well-structured answer.') {
-  if (!OPENAI_SECRET.value) throw new Error('No usable OpenAI API secret is visible to the server. Checked: ' + OPENAI_KEY_NAMES.join(', ') + '. An OpenAI key ID (key_...) is not the secret value.');
+  if (!OPENAI_SECRET.value) throw new Error('OPENAI_API_KEY is not configured on the server. Checked: ' + OPENAI_KEY_NAMES.join(', ') + '. An OpenAI key ID (key_...) is not the secret value.');
   const start = Date.now();
   const res = await fetchTimed('https://api.openai.com/v1/responses', {
     method: 'POST',
@@ -112,7 +114,7 @@ async function callOpenAI(task, system = 'You are ChatGPT, one model in the uneX
   return { text, latencyMs: Date.now() - start, model: data.model || OPENAI_MODEL };
 }
 async function callClaude(task, system = 'You are Claude, one model in the uneXpected orchestration workspace. Give a direct, useful, well-structured answer.') {
-  if (!ANTHROPIC_SECRET.value) throw new Error('No usable Anthropic API secret is visible to the server. Checked: ' + ANTHROPIC_KEY_NAMES.join(', ') + '. A workspace ID (wrkspc_...) is not the secret value.');
+  if (!ANTHROPIC_SECRET.value) throw new Error('ANTHROPIC_API_KEY is not configured on the server. Checked: ' + ANTHROPIC_KEY_NAMES.join(', ') + '. A workspace ID (wrkspc_...) is not the secret value.');
   const start = Date.now();
   const headers = { 'x-api-key': ANTHROPIC_SECRET.value, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' };
   if (ANTHROPIC_WORKSPACE_ID) headers['anthropic-workspace-id'] = ANTHROPIC_WORKSPACE_ID;
@@ -125,6 +127,29 @@ async function callClaude(task, system = 'You are Claude, one model in the uneXp
   const text = (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n');
   if (!text) throw new Error('Claude returned no text output.');
   return { text, latencyMs: Date.now() - start, model: data.model || ANTHROPIC_MODEL };
+}
+async function callOpenRouter(task, system = 'You are the uneXpected free-model fallback. Be accurate, direct, and explicit about uncertainty.') {
+  if (!OPENROUTER_KEY) throw new Error('OPENROUTER_API_KEY is not configured. Add a free OpenRouter API key to enable the free-model fallback.');
+  const start = Date.now();
+  const res = await fetchTimed('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      authorization: 'Bearer ' + OPENROUTER_KEY,
+      'content-type': 'application/json',
+      'HTTP-Referer': 'https://unexpected-ai-studio.onrender.com',
+      'X-Title': 'uneXpected AI Studio'
+    },
+    body: JSON.stringify({
+      model: OPENROUTER_MODEL,
+      messages: [{ role: 'system', content: system }, { role: 'user', content: task }],
+      max_tokens: 3000
+    })
+  });
+  const data = await parseProvider(res, 'OpenRouter');
+  const raw = data.choices?.[0]?.message?.content;
+  const text = typeof raw === 'string' ? raw : Array.isArray(raw) ? raw.map(part => typeof part?.text === 'string' ? part.text : '').filter(Boolean).join('\\n') : '';
+  if (!text) throw new Error('OpenRouter returned no text output.');
+  return { text, latencyMs: Date.now() - start, model: data.model || OPENROUTER_MODEL };
 }
 function present(result, label) {
   return result.ok ? { label, status: 'LIVE · verified response', text: result.value.text, latencyMs: result.value.latencyMs, model: result.value.model } : { label, status: 'FAILED', error: safeError(result.error) };
@@ -157,7 +182,24 @@ async function orchestrate({ task, mode }) {
       results.synthesis = { label: 'uneXpected synthesis', status: 'NOT RUN', error: 'Neither provider returned a successful answer; synthesis was skipped.' };
     }
   }
-  return { ok: Boolean(results.openai?.text || results.anthropic?.text), mode, results, completedAt: new Date().toISOString() };
+  // If all requested paid providers failed (for example, because their API balances are empty),
+  // try the configured free-model fallback once. Never substitute a simulated answer.
+  const hasPrimaryText = Boolean(results.openai?.text || results.anthropic?.text);
+  const hasAnyText = Boolean(hasPrimaryText || results.synthesis?.text);
+  if (!hasAnyText) {
+    if (OPENROUTER_KEY) {
+      const fallback = await attempt(() => callOpenRouter(task));
+      providerVerified.openrouter = fallback.ok;
+      results.synthesis = present(fallback, 'Free fallback (OpenRouter)');
+    } else {
+      results.synthesis = {
+        label: 'Free fallback (OpenRouter)',
+        status: 'NOT CONFIGURED',
+        error: 'Both primary providers failed. Add OPENROUTER_API_KEY in Render to enable a free-model fallback. Free models have provider-defined rate limits.'
+      };
+    }
+  }
+  return { ok: Boolean(results.openai?.text || results.anthropic?.text || results.synthesis?.text), mode, results, completedAt: new Date().toISOString() };
 }
 
 const server = http.createServer(async (req, res) => {
@@ -171,9 +213,10 @@ const server = http.createServer(async (req, res) => {
         authConfigured: Boolean(ACCESS_TOKEN),
         providers: {
           openai: { configured: Boolean(OPENAI_SECRET.value), verified: providerVerified.openai, model: OPENAI_MODEL, credentialSource: OPENAI_SECRET.name, candidates: candidateStatus(OPENAI_KEY_NAMES, 'openai') },
-          anthropic: { configured: Boolean(ANTHROPIC_SECRET.value), verified: providerVerified.anthropic, model: ANTHROPIC_MODEL, credentialSource: ANTHROPIC_SECRET.name, candidates: candidateStatus(ANTHROPIC_KEY_NAMES, 'anthropic'), workspaceConfigured: Boolean(ANTHROPIC_WORKSPACE_ID) }
+          anthropic: { configured: Boolean(ANTHROPIC_SECRET.value), verified: providerVerified.anthropic, model: ANTHROPIC_MODEL, credentialSource: ANTHROPIC_SECRET.name, candidates: candidateStatus(ANTHROPIC_KEY_NAMES, 'anthropic'), workspaceConfigured: Boolean(ANTHROPIC_WORKSPACE_ID) },
+          openrouter: { configured: Boolean(OPENROUTER_KEY), verified: providerVerified.openrouter, model: OPENROUTER_MODEL }
         },
-        relatedProviderVariables: Object.keys(process.env).filter(name => /OPENAI|ANTHROPIC|CLAUDE|API_KEY/i.test(name)).sort().map(name => ({ name, present: Boolean(String(process.env[name] || '').trim()) })),
+        relatedProviderVariables: Object.keys(process.env).filter(name => /OPENAI|ANTHROPIC|CLAUDE|OPENROUTER|API_KEY/i.test(name)).sort().map(name => ({ name, present: Boolean(String(process.env[name] || '').trim()) })),
         metadataVariables: { openaiKeyIdPresent: Boolean(process.env.OPENAI_API_KEY_ID), anthropicWorkspaceIdPresent: Boolean(ANTHROPIC_WORKSPACE_ID || process.env.ANTHROPIC_WORKSPACE_ID) },
         note: 'No secret values are returned. Configured means a usable-looking secret value is present; verified becomes true only after a real provider request.'
       });
@@ -207,7 +250,12 @@ const server = http.createServer(async (req, res) => {
           providerVerified.anthropic = r.ok;
           return json(res, r.ok ? 200 : 502, r.ok ? { ok: true, provider, model: r.value.model, latencyMs: r.value.latencyMs, text: r.value.text } : { ok: false, provider, error: safeError(r.error) });
         }
-        return json(res, 400, { error: 'provider must be openai or anthropic.' });
+        if (provider === 'openrouter') {
+          const r = await attempt(() => callOpenRouter('Reply with exactly: Free fallback connection verified.'));
+          providerVerified.openrouter = r.ok;
+          return json(res, r.ok ? 200 : 502, r.ok ? { ok: true, provider, model: r.value.model, latencyMs: r.value.latencyMs, text: r.value.text } : { ok: false, provider, error: safeError(r.error) });
+        }
+        return json(res, 400, { error: 'provider must be openai, anthropic, or openrouter.' });
       }
       const task = typeof body.task === 'string' ? body.task.trim() : '';
       const mode = body.mode || 'both';

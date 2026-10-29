@@ -147,7 +147,7 @@ async function callOpenRouter(task, system = 'You are the uneXpected free-model 
   });
   const data = await parseProvider(res, 'OpenRouter');
   const raw = data.choices?.[0]?.message?.content;
-  const text = typeof raw === 'string' ? raw : Array.isArray(raw) ? raw.map(part => typeof part?.text === 'string' ? part.text : '').filter(Boolean).join('\\n') : '';
+  const text = typeof raw === 'string' ? raw : Array.isArray(raw) ? raw.map(part => typeof part?.text === 'string' ? part.text : '').filter(Boolean).join('\n') : '';
   if (!text) throw new Error('OpenRouter returned no text output.');
   return { text, latencyMs: Date.now() - start, model: data.model || OPENROUTER_MODEL };
 }

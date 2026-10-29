@@ -173,6 +173,7 @@ const server = http.createServer(async (req, res) => {
           openai: { configured: Boolean(OPENAI_SECRET.value), verified: providerVerified.openai, model: OPENAI_MODEL, credentialSource: OPENAI_SECRET.name, candidates: candidateStatus(OPENAI_KEY_NAMES, 'openai') },
           anthropic: { configured: Boolean(ANTHROPIC_SECRET.value), verified: providerVerified.anthropic, model: ANTHROPIC_MODEL, credentialSource: ANTHROPIC_SECRET.name, candidates: candidateStatus(ANTHROPIC_KEY_NAMES, 'anthropic'), workspaceConfigured: Boolean(ANTHROPIC_WORKSPACE_ID) }
         },
+        relatedProviderVariables: Object.keys(process.env).filter(name => /OPENAI|ANTHROPIC|CLAUDE|API_KEY/i.test(name)).sort().map(name => ({ name, present: Boolean(String(process.env[name] || '').trim()) })),
         metadataVariables: { openaiKeyIdPresent: Boolean(process.env.OPENAI_API_KEY_ID), anthropicWorkspaceIdPresent: Boolean(ANTHROPIC_WORKSPACE_ID || process.env.ANTHROPIC_WORKSPACE_ID) },
         note: 'No secret values are returned. Configured means a usable-looking secret value is present; verified becomes true only after a real provider request.'
       });

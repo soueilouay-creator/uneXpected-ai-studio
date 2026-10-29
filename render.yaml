@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: unexpected-ai-studio
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: UNEXPECTED_ACCESS_TOKEN
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-6.1-sol
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-5-5

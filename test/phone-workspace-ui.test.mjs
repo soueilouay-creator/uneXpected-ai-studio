@@ -71,21 +71,24 @@ test('mobile navigation is hidden from focus when closed and manages keyboard fo
 
 
 
-test('phone composer keeps the three primary providers separate from secondary modes and tools', async () => {
+test('phone composer exposes one readable model picker and keeps secondary modes in More options', async () => {
   const html = await read('mobile/index.html');
-  const primary = html.match(/<div class="provider-switcher"[\s\S]*?<\/div>/)?.[0] || '';
+  const app = await read('mobile/app.js');
+  const picker = html.match(/<label class="model-route-picker"[\s\S]*?<\/label>/)?.[0] || '';
   const advanced = html.match(/<details class="composer-advanced"[\s\S]*?<\/details>/)?.[0] || '';
+  assert.match(picker, /id="modelMode"/);
+  assert.doesNotMatch(picker, /visually-hidden/);
   for (const provider of ['openai', 'claude', 'openrouter']) {
-    assert.match(primary, new RegExp('data-model="' + provider + '"'));
+    assert.match(picker, new RegExp('<option value="' + provider + '"'));
   }
-  assert.doesNotMatch(primary, /compareBtn|localModeBtn/);
+  assert.match(app, /mode:\\s*selectedModel/);
+  assert.doesNotMatch(html, /data-model=/);
   assert.match(advanced, /id="compareBtn"/);
   assert.match(advanced, /id="localModeBtn"/);
   assert.match(advanced, /id="shareContext"/);
   assert.match(advanced, /id="voiceModeBtn"/);
   assert.match(advanced, /id="speakLastBtn"/);
 });
-
 test('phone source contains no literal newline escapes and uses readable app-scale typography', async () => {
   const html = await read('mobile/index.html');
   const css = await read('mobile/styles.css');

@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { timingSafeEqual } from 'node:crypto';
+import { TAAFT_MCP_URL, TAAFT_MCP_BETA, TAAFT_ALLOWED_TOOLS, buildOpenAITaaftTool, buildAnthropicTaaftConfig, withTaaftGuidance } from './taaft-integration.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const PORT = Number(process.env.PORT || 3000);
@@ -100,35 +101,57 @@ async function parseProvider(res, name) {
   }
   return data;
 }
-async function callOpenAI(task, system = 'You are ChatGPT, one model in the uneXpected orchestration workspace. Give a direct, useful, well-structured answer.') {
+async function callOpenAI(task, system = 'You are ChatGPT, one model in the uneXpected orchestration workspace. Give a direct, useful, well-structured answer.', options = {}) {
+  const enableTaaft = options.enableTaaft !== false;
   if (!OPENAI_SECRET.value) throw new Error('OPENAI_API_KEY is not configured on the server. Checked: ' + OPENAI_KEY_NAMES.join(', ') + '. An OpenAI key ID (key_...) is not the secret value.');
   const start = Date.now();
+  const requestBody = {
+    model: OPENAI_MODEL,
+    instructions: enableTaaft ? withTaaftGuidance(system) : system,
+    input: task,
+    store: false,
+    max_output_tokens: 3000
+  };
+  if (enableTaaft) requestBody.tools = [buildOpenAITaaftTool()];
   const res = await fetchTimed('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: { authorization: 'Bearer ' + OPENAI_SECRET.value, 'content-type': 'application/json' },
-    body: JSON.stringify({ model: OPENAI_MODEL, instructions: system, input: task, store: false, max_output_tokens: 3000 })
+    body: JSON.stringify(requestBody)
   });
   const data = await parseProvider(res, 'OpenAI');
   const text = data.output?.flatMap(item => item.content || []).filter(c => c.type === 'output_text').map(c => c.text).join('\n') || '';
   if (!text) throw new Error('OpenAI returned no text output.');
   return { text, latencyMs: Date.now() - start, model: data.model || OPENAI_MODEL };
 }
-async function callClaude(task, system = 'You are Claude, one model in the uneXpected orchestration workspace. Give a direct, useful, well-structured answer.') {
+async function callClaude(task, system = 'You are Claude, one model in the uneXpected orchestration workspace. Give a direct, useful, well-structured answer.', options = {}) {
+  const enableTaaft = options.enableTaaft !== false;
   if (!ANTHROPIC_SECRET.value) throw new Error('ANTHROPIC_API_KEY is not configured on the server. Checked: ' + ANTHROPIC_KEY_NAMES.join(', ') + '. A workspace ID (wrkspc_...) is not the secret value.');
   const start = Date.now();
   const headers = { 'x-api-key': ANTHROPIC_SECRET.value, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' };
+  let mcpConfig = {};
+  if (enableTaaft) {
+    headers['anthropic-beta'] = TAAFT_MCP_BETA;
+    mcpConfig = buildAnthropicTaaftConfig();
+  }
   if (ANTHROPIC_WORKSPACE_ID) headers['anthropic-workspace-id'] = ANTHROPIC_WORKSPACE_ID;
+  const body = {
+    model: ANTHROPIC_MODEL,
+    max_tokens: 3000,
+    system: enableTaaft ? withTaaftGuidance(system) : system,
+    messages: [{ role: 'user', content: task }],
+    ...mcpConfig
+  };
   const res = await fetchTimed('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers,
-    body: JSON.stringify({ model: ANTHROPIC_MODEL, max_tokens: 3000, system, messages: [{ role: 'user', content: task }] })
+    body: JSON.stringify(body)
   });
   const data = await parseProvider(res, 'Anthropic');
   const text = (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n');
   if (!text) throw new Error('Claude returned no text output.');
   return { text, latencyMs: Date.now() - start, model: data.model || ANTHROPIC_MODEL };
 }
-async function callOpenRouter(task, system = 'You are the uneXpected free-model fallback. Be accurate, direct, and explicit about uncertainty.') {
+async function callOpenRouter(task, system = 'You are the uneXpected free-model fallback. Be accurate, direct, and explicit about uncertainty. This fallback is not connected to TAAFT; never claim to have searched its catalog.') {
   if (!OPENROUTER_KEY) throw new Error('OPENROUTER_API_KEY is not configured. Add a free OpenRouter API key to enable the free-model fallback.');
   const start = Date.now();
   const res = await fetchTimed('https://openrouter.ai/api/v1/chat/completions', {
@@ -176,7 +199,7 @@ async function orchestrate({ task, mode }) {
         c.ok ? 'CLAUDE RESPONSE:\n' + c.value.text : 'CLAUDE FAILED: ' + safeError(c.error)
       ].join('\n\n---\n\n');
       const synthesisPrompt = 'User task:\n' + task + '\n\nTwo model results follow. Compare them, reconcile differences, retain important caveats, and give one actionable synthesis. Do not claim a model succeeded if its section says FAILED.\n\n' + evidence;
-      const s = await attempt(() => callOpenAI(synthesisPrompt, 'You are the uneXpected synthesis layer. Combine independent model answers into a clear, accurate, actionable result. State uncertainty and disagreements. Never invent agreement.'));
+      const s = await attempt(() => callOpenAI(synthesisPrompt, 'You are the uneXpected synthesis layer. Combine independent model answers into a clear, accurate, actionable result. State uncertainty and disagreements. Never invent agreement.', { enableTaaft: false }));
       results.synthesis = present(s, 'uneXpected synthesis (ChatGPT)');
     } else {
       results.synthesis = { label: 'uneXpected synthesis', status: 'NOT RUN', error: 'Neither provider returned a successful answer; synthesis was skipped.' };
@@ -218,7 +241,17 @@ const server = http.createServer(async (req, res) => {
         },
         relatedProviderVariables: Object.keys(process.env).filter(name => /OPENAI|ANTHROPIC|CLAUDE|OPENROUTER|API_KEY/i.test(name)).sort().map(name => ({ name, present: Boolean(String(process.env[name] || '').trim()) })),
         metadataVariables: { openaiKeyIdPresent: Boolean(process.env.OPENAI_API_KEY_ID), anthropicWorkspaceIdPresent: Boolean(ANTHROPIC_WORKSPACE_ID || process.env.ANTHROPIC_WORKSPACE_ID) },
-        note: 'No secret values are returned. Configured means a usable-looking secret value is present; verified becomes true only after a real provider request.'
+        note: 'No secret values are returned. Configured means a usable-looking secret value is present; verified becomes true only after a real provider request.',
+        integrations: {
+          taaft: {
+            enabled: true,
+            endpoint: TAAFT_MCP_URL,
+            access: 'public read-only catalog; no TAAFT account login or API key',
+            allowlistedTools: TAAFT_ALLOWED_TOOLS.length,
+            connectedProviders: ['openai', 'anthropic'],
+            liveVerified: false
+          }
+        }
       });
     }
     if (req.method === 'GET' && url.pathname === '/') {
@@ -241,12 +274,12 @@ const server = http.createServer(async (req, res) => {
       if (url.pathname === '/test-provider') {
         const provider = body.provider;
         if (provider === 'openai') {
-          const r = await attempt(() => callOpenAI('Reply with exactly: OpenAI connection verified.'));
+          const r = await attempt(() => callOpenAI('Reply with exactly: OpenAI connection verified.', undefined, { enableTaaft: false }));
           providerVerified.openai = r.ok;
           return json(res, r.ok ? 200 : 502, r.ok ? { ok: true, provider, model: r.value.model, latencyMs: r.value.latencyMs, text: r.value.text } : { ok: false, provider, error: safeError(r.error) });
         }
         if (provider === 'anthropic') {
-          const r = await attempt(() => callClaude('Reply with exactly: Claude connection verified.'));
+          const r = await attempt(() => callClaude('Reply with exactly: Claude connection verified.', undefined, { enableTaaft: false }));
           providerVerified.anthropic = r.ok;
           return json(res, r.ok ? 200 : 502, r.ok ? { ok: true, provider, model: r.value.model, latencyMs: r.value.latencyMs, text: r.value.text } : { ok: false, provider, error: safeError(r.error) });
         }

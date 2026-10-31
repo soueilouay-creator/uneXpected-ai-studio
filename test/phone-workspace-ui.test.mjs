@@ -80,7 +80,7 @@ test('phone composer exposes one readable model picker and keeps secondary modes
   for (const provider of ['openai', 'claude', 'openrouter']) {
     assert.match(picker, new RegExp('<option value="' + provider + '"'));
   }
-  assert.match(app, /mode:\\s*selectedModel/);
+  assert.match(app, /const mode = selectedModel;/)
   assert.doesNotMatch(html, /data-model=/);
   assert.match(advanced, /id="compareBtn"/);
   assert.match(advanced, /id="localModeBtn"/);

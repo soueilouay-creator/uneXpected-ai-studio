@@ -228,7 +228,7 @@ async function refreshHome() {
   ].sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).slice(0, 5);
   const recent = $('#recentList');
   if (!items.length) {
-    recent.innerHTML = '<div class="empty-inline"><span>◌</span><strong>Nothing here yet</strong><p>Start a conversation and your recent work will appear here.</p></div>';
+    recent.innerHTML = '<div class="empty-inline"><span>◌</span><strong>No recent work</strong><p>Start a chat to see it here.</p></div>';
     return;
   }
   recent.innerHTML = items.map(item => `
@@ -341,13 +341,11 @@ async function renderConversation() {
     pane.innerHTML = `
       <div class="chat-welcome">
         <div class="welcome-symbol"><span>u</span><i></i></div>
-        <div class="eyebrow">A CLEARER WAY TO THINK</div>
         <h2>What are we working on?</h2>
-        <p>Start with an idea, a question or a problem. Choose who answers each time you send a message.</p>
+        <p>Pick a model and send your first message.</p>
         <div class="prompt-suggestions">
-          <button class="prompt-card" data-prompt="Help me turn an idea into a practical project plan with milestones." type="button"><span class="prompt-icon">↗</span><span><strong>Plan a project</strong><small>From first idea to next milestone</small></span><span class="prompt-arrow">→</span></button>
-          <button class="prompt-card" data-prompt="A 24 VDC sensor is counting intermittently. Help me troubleshoot it safely, step by step." type="button"><span class="prompt-icon">⌁</span><span><strong>Solve a technical problem</strong><small>Investigate with a clear method</small></span><span class="prompt-arrow">→</span></button>
-          <button class="prompt-card" data-prompt="Help me prioritize my sales pipeline and choose the next follow-up actions." type="button"><span class="prompt-icon">◫</span><span><strong>Organize sales work</strong><small>Focus on the next useful action</small></span><span class="prompt-arrow">→</span></button>
+          <button class="prompt-card" data-prompt="Help me turn an idea into a practical project plan with milestones." type="button"><span class="prompt-icon">↗</span><span><strong>Plan a project</strong></span><span class="prompt-arrow">→</span></button>
+          <button class="prompt-card" data-prompt="A 24 VDC sensor is counting intermittently. Help me troubleshoot it safely, step by step." type="button"><span class="prompt-icon">⌁</span><span><strong>Troubleshoot</strong></span><span class="prompt-arrow">→</span></button>
         </div>
       </div>`;
     pane.querySelectorAll('[data-prompt]').forEach(button => button.addEventListener('click', () => {

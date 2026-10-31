@@ -467,7 +467,8 @@ p { color: var(--muted); }
   .provider-option { flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; text-align: center; }
   .provider-option > span:nth-child(2) { justify-items: center; }
   .provider-check { position: absolute; margin: -33px -34px 0 0; }
-  .compare-option { flex: 0 0 auto; max-width: 53px; white-space: normal; line-height: 1.2; }\n  .local-option { min-width: 39px; padding: 0 6px; }
+  .compare-option { flex: 0 0 auto; max-width: 53px; white-space: normal; line-height: 1.2; }
+  .local-option { min-width: 39px; padding: 0 6px; }
   .composer-tools { gap: 5px; }
   .context-consent { font-size: 7px; }
   .profile-chip { max-width: 96px; font-size: 7px; }
@@ -501,3 +502,268 @@ body.drawer-open { overflow: hidden; }
   .composer-icon-button { min-width: 2.5rem; min-height: 2.75rem; }
   .send-button { min-width: 2.75rem; min-height: 2.75rem; }
 }
+
+
+/* Phone workspace refinement: readable type, one clear primary path, quieter tools. */
+body {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.sidebar-brand { padding-bottom: 1.25rem; }
+.brand-copy strong { font-size: 1rem; }
+.new-chat-button { min-height: 2.9rem; font-size: .9rem; }
+.nav-label { padding-bottom: .65rem; font-size: .72rem; letter-spacing: .04em; }
+.nav-item { min-height: 2.8rem; gap: .75rem; font-size: .9rem; }
+.nav-icon { font-size: 1.1rem; }
+.history-heading { font-size: .78rem; letter-spacing: .02em; }
+.history-search { min-height: 2.55rem; }
+.history-search input, .chat-list button, .sidebar-empty { font-size: .86rem; }
+.connection-row strong, .profile-copy strong { font-size: .84rem; }
+.connection-row small, .profile-copy small { font-size: .76rem; }
+
+.view-heading h1, .chat-page-heading h1 { font-size: 1.55rem; letter-spacing: -.045em; }
+.view-heading p, .chat-title-group p { font-size: .9rem; line-height: 1.5; }
+.button { min-height: 2.75rem; padding-inline: 1rem; font-size: .88rem; }
+.button-small { min-height: 2.35rem; font-size: .82rem; }
+.text-link { font-size: .84rem; }
+.home-hero { min-height: 260px; padding: 2rem 2.25rem; }
+.home-hero h2 { font-size: clamp(1.9rem, 3vw, 2.35rem); }
+.home-hero p { font-size: .95rem; line-height: 1.6; }
+.overview-stat > strong { font-size: 1.65rem; }
+.overview-stat > span { font-size: .82rem; }
+.section-heading h2 { font-size: 1.15rem; }
+.recent-copy strong { font-size: .92rem; }
+.recent-copy p { font-size: .82rem; line-height: 1.5; }
+
+.chat-page-heading { padding-bottom: 1rem; }
+.chat-page-heading h1 { font-size: 1.5rem; }
+.chat-title-group p { font-size: .86rem; }
+.message-list { padding-block: 1.5rem; }
+.chat-welcome { max-width: 620px; padding-block: 1.5rem; }
+.chat-welcome h2 { font-size: 1.6rem; letter-spacing: -.04em; }
+.chat-welcome > p { font-size: .95rem; line-height: 1.55; }
+.prompt-suggestions { gap: .7rem; margin-top: 1.25rem; }
+.prompt-card { min-height: 3.5rem; gap: .75rem; padding: .8rem .9rem; }
+.prompt-card strong { font-size: .9rem; }
+.prompt-card small { font-size: .8rem; }
+.prompt-icon { width: 2rem; height: 2rem; font-size: .95rem; }
+.message-bubble { font-size: 1rem; line-height: 1.7; }
+.message-meta { font-size: .76rem; }
+.provider-result-body { padding: .9rem 1rem; font-size: .98rem; line-height: 1.7; }
+.provider-result-meta { font-size: .76rem; }
+.fallback-notice { font-size: .84rem; }
+
+.composer-dock { max-width: 900px; padding-bottom: .6rem; }
+.composer-shell { padding: .9rem 1rem .85rem; border-radius: 1.15rem; }
+.composer-topline { align-items: center; margin-bottom: .8rem; }
+.model-picker-label { font-size: .9rem; font-weight: 650; letter-spacing: 0; }
+.provider-switcher {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .55rem;
+  margin-bottom: .8rem;
+}
+.provider-option {
+  position: relative;
+  min-height: 3.25rem;
+  gap: .55rem;
+  padding: .65rem .8rem;
+  border: 1px solid var(--line);
+  border-radius: .8rem;
+  background: var(--surface-input);
+}
+.provider-option strong { font-size: .9rem; font-weight: 650; }
+.provider-option small { font-size: .76rem; }
+.provider-symbol { width: 1.8rem; height: 1.8rem; border-radius: .6rem; font-size: 1rem; }
+.provider-check { font-size: .82rem; }
+.composer-advanced { position: relative; flex: 0 0 auto; }
+.composer-advanced > summary {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  gap: .45rem;
+  padding: .35rem .7rem;
+  border: 1px solid var(--line);
+  border-radius: .7rem;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: .82rem;
+  list-style: none;
+}
+.composer-advanced > summary::-webkit-details-marker { display: none; }
+.composer-advanced > summary::after { color: var(--muted); content: "+"; font-size: 1rem; }
+.composer-advanced[open] > summary::after { content: "−"; }
+.advanced-panel {
+  display: grid;
+  gap: .85rem;
+  margin-top: .7rem;
+  padding: .9rem;
+  border: 1px solid var(--line);
+  border-radius: .85rem;
+  background: var(--surface);
+}
+.advanced-mode-row, .advanced-preferences, .advanced-voice-row {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+}
+.advanced-mode-row .compare-option,
+.advanced-mode-row .local-option,
+.advanced-voice-button {
+  min-height: 2.65rem;
+  padding: .55rem .8rem;
+  border: 1px solid var(--line);
+  border-radius: .7rem;
+  background: var(--surface-raised);
+  color: var(--ink-soft);
+  font-size: .84rem;
+}
+.advanced-mode-row .compare-option.active,
+.advanced-mode-row .local-option.active,
+.advanced-voice-button[aria-pressed="true"] {
+  border-color: rgba(169,154,255,.35);
+  background: var(--brand-wash);
+  color: var(--ink);
+}
+.context-consent { gap: .5rem; color: var(--muted); font-size: .82rem; white-space: normal; }
+.context-consent input { width: 1rem; height: 1rem; }
+.profile-chip { max-width: min(100%, 15rem); padding: .35rem .65rem; font-size: .78rem; }
+.advanced-voice-button { min-height: 2.55rem; }
+.message-composer textarea {
+  min-height: 3.5rem;
+  max-height: 12rem;
+  padding: .75rem .25rem .6rem;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+.message-composer textarea::placeholder { color: var(--muted); }
+.composer-footer { align-items: center; gap: .8rem; padding-top: .5rem; }
+.composer-hints { max-width: 70%; }
+.composer-hint { font-size: .8rem; line-height: 1.4; }
+.composer-icon-button {
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: .75rem;
+  font-size: 1.15rem;
+}
+.send-button { width: 2.85rem; height: 2.85rem; border-radius: .8rem; }
+.send-button span { font-size: 1.35rem; }
+.composer-actions { gap: .4rem; }
+.composer-disclaimer { margin-top: .5rem; font-size: .76rem; }
+
+.settings-section { padding: 1.25rem; }
+.settings-section-head h2 { font-size: 1rem; }
+.form-field { gap: .45rem; font-size: .84rem; }
+.form-field input, .form-field select { min-height: 2.8rem; font-size: .9rem; }
+.field-note { font-size: .82rem; line-height: 1.55; }
+.status-tag { font-size: .76rem; }
+.provider-health-list { font-size: .78rem; }
+.data-status-row, .data-status-row strong { font-size: .84rem; }
+.agent-card strong { font-size: .92rem; }
+.agent-card p { font-size: .84rem; line-height: 1.55; }
+.agent-card small { font-size: .78rem; }
+.project-card strong, .memory-card strong { font-size: .95rem; }
+.dialog-field { font-size: .86rem; }
+.dialog-field input, .dialog-field textarea { font-size: .95rem; }
+
+@media (max-width: 760px) {
+  .main-content { padding: 0 1rem max(.75rem, env(safe-area-inset-bottom)); }
+  .mobile-topbar {
+    height: 4rem;
+    flex-basis: 4rem;
+    margin: 0 -1rem .8rem;
+    padding-inline: 1rem;
+  }
+  .mobile-brand { gap: .55rem; font-size: 1rem; }
+  .brand-mark.small { width: 2rem; height: 2rem; border-radius: .6rem; }
+  .view-heading { margin-bottom: 1.1rem; }
+  .view-heading h1 { font-size: 1.55rem; }
+  .view-heading p { font-size: .88rem; }
+  .home-hero { padding: 1.4rem 1.25rem; border-radius: 1rem; }
+  .home-hero h2 { font-size: 1.9rem; line-height: 1.15; }
+  .home-hero p { font-size: .9rem; }
+  .hero-art { opacity: .12; }
+  .hero-actions { gap: .55rem; }
+  .hero-actions .button { min-height: 2.75rem; padding-inline: .85rem; font-size: .82rem; }
+  .overview-stat > strong { font-size: 1.45rem; }
+  .overview-stat > span { font-size: .78rem; }
+  .section-heading { margin-top: 1.4rem; }
+  .section-heading h2 { font-size: 1.1rem; }
+  .chat-page-heading { align-items: center; padding-bottom: .8rem; }
+  .chat-page-heading h1 { font-size: 1.3rem; }
+  .chat-title-group p { margin-top: .25rem; font-size: .8rem; }
+  .chat-view { height: calc(100svh - 4.8rem - env(safe-area-inset-bottom)); }
+  .chat-workspace { min-height: 0; }
+  .message-list { min-height: 8rem; padding: .9rem 0 1rem; }
+  .chat-welcome {
+    max-width: 100%;
+    margin-block: auto;
+    padding: 1.25rem .25rem 1rem;
+    text-align: left;
+  }
+  .welcome-symbol { width: 2.6rem; height: 2.6rem; margin: 0 0 1rem; border-radius: .85rem; }
+  .welcome-symbol > span { font-size: 1.65rem; }
+  .chat-welcome h2 { font-size: 1.5rem; line-height: 1.2; }
+  .chat-welcome > p { margin: .5rem 0 0; font-size: .9rem; }
+  .prompt-suggestions { grid-template-columns: 1fr; max-width: 100%; gap: .55rem; margin-top: 1.1rem; }
+  .prompt-card { min-height: 3.2rem; padding: .7rem .8rem; border-radius: .8rem; }
+  .prompt-card strong { font-size: .88rem; }
+  .composer-dock { padding-bottom: .4rem; }
+  .composer-shell { padding: .85rem; border-radius: 1rem; }
+  .composer-topline { margin-bottom: .7rem; }
+  .model-picker-label { font-size: .9rem; }
+  .provider-switcher { gap: .45rem; margin-bottom: .7rem; }
+  .provider-option {
+    min-width: 0;
+    min-height: 4rem;
+    flex-direction: column;
+    justify-content: center;
+    gap: .25rem;
+    padding: .45rem .25rem;
+    border-radius: .75rem;
+    text-align: center;
+  }
+  .provider-option > span:nth-child(2) { justify-items: center; }
+  .provider-option strong { font-size: .78rem; }
+  .provider-option small { font-size: .72rem; }
+  .provider-symbol { width: 1.35rem; height: 1.35rem; border-radius: .45rem; font-size: .82rem; }
+  .provider-check { position: absolute; top: .25rem; right: .45rem; margin: 0; font-size: .68rem; }
+  .composer-advanced > summary { min-height: 2.45rem; padding: .35rem .6rem; font-size: .8rem; }
+  .advanced-panel { gap: .7rem; padding: .75rem; }
+  .advanced-mode-row .compare-option,
+  .advanced-mode-row .local-option,
+  .advanced-voice-button { min-height: 2.75rem; font-size: .82rem; }
+  .advanced-preferences { justify-content: space-between; }
+  .message-composer textarea { min-height: 3.5rem; padding: .7rem .25rem; font-size: 1rem; }
+  .composer-footer { align-items: center; gap: .5rem; }
+  .composer-hints { max-width: 60%; }
+  .composer-hint { font-size: .75rem; }
+  .composer-actions { gap: .3rem; }
+  .composer-icon-button, .send-button { width: 2.8rem; height: 2.8rem; min-width: 2.8rem; min-height: 2.8rem; }
+  .composer-disclaimer { font-size: .72rem; }
+  .message-content { max-width: 94%; }
+  .message-bubble { padding: .8rem .9rem; font-size: .96rem; }
+  .provider-result-body { font-size: .95rem; }
+  .settings-section { padding: 1rem; }
+  .settings-section-head h2 { font-size: .98rem; }
+  .form-field, .field-note { font-size: .84rem; }
+  .form-field input, .form-field select { font-size: .9rem; }
+  .agent-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 390px) {
+  .main-content { padding-right: .8rem; padding-left: .8rem; }
+  .mobile-topbar { margin-right: -.8rem; margin-left: -.8rem; padding-right: .8rem; padding-left: .8rem; }
+  .home-hero { padding: 1.2rem 1rem; }
+  .home-hero h2 { font-size: 1.75rem; }
+  .hero-actions .button { padding-inline: .7rem; font-size: .8rem; }
+  .overview-stat { padding-right: .5rem; }
+  .overview-stat + .overview-stat { padding-left: .5rem; }
+  .provider-option strong { font-size: .74rem; }
+  .composer-hints { max-width: 56%; }
+}
+

@@ -56,3 +56,5 @@ jobs:
           node --check mobile-assets.mjs
       - name: Mobile and authenticated gateway HTTP tests
         run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/openrouter-ui.test.mjs
+      - name: Build the production Docker image
+        run: docker build --tag unexpected-ai-studio:openrouter-test .

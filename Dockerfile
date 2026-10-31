@@ -8,6 +8,7 @@ RUN base64 -d /tmp/source.tar.gz.b64 > /tmp/source.tar.gz \
  && cp -R /tmp/ue-extracted/uneXpected-ai-studio-v1.0.1/. /app/ \
  && rm -rf /tmp/ue-source /tmp/ue-extracted /tmp/source.tar.gz /tmp/source.tar.gz.b64
 WORKDIR /app
+COPY app.js /app/public/app.js
 COPY server.js /app/server.js
 COPY openrouter-ui.js /app/openrouter-ui.js
 COPY taaft-integration.mjs /app/taaft-integration.mjs

@@ -175,8 +175,11 @@ async function callOpenRouter(task, system = 'You are the uneXpected free-model 
   if (!text) throw new Error('OpenRouter returned no text output.');
   return { text, latencyMs: Date.now() - start, model: data.model || OPENROUTER_MODEL };
 }
-function present(result, label) {
-  return result.ok ? { label, status: 'LIVE · verified response', text: result.value.text, latencyMs: result.value.latencyMs, model: result.value.model } : { label, status: 'FAILED', error: safeError(result.error) };
+function present(result, label, provider, requestedModel) {
+  const base = { provider, label, requestedModel };
+  return result.ok
+    ? { ...base, status: 'LIVE · verified response', text: result.value.text, latencyMs: result.value.latencyMs, model: result.value.model }
+    : { ...base, status: 'FAILED', error: safeError(result.error) };
 }
 async function attempt(fn) {
   try { return { ok: true, value: await fn() }; }
@@ -186,14 +189,18 @@ async function orchestrate({ task, mode }) {
   const results = {};
   if (mode === 'openai') {
     const r = await attempt(() => callOpenAI(task));
-    results.openai = present(r, 'ChatGPT');
+    providerVerified.openai = r.ok;
+    results.openai = present(r, 'ChatGPT', 'openai', OPENAI_MODEL);
   } else if (mode === 'claude') {
     const r = await attempt(() => callClaude(task));
-    results.anthropic = present(r, 'Claude');
+    providerVerified.anthropic = r.ok;
+    results.anthropic = present(r, 'Claude', 'anthropic', ANTHROPIC_MODEL);
   } else {
     const [o, c] = await Promise.all([attempt(() => callOpenAI(task)), attempt(() => callClaude(task))]);
-    results.openai = present(o, 'ChatGPT');
-    results.anthropic = present(c, 'Claude');
+    providerVerified.openai = o.ok;
+    providerVerified.anthropic = c.ok;
+    results.openai = present(o, 'ChatGPT', 'openai', OPENAI_MODEL);
+    results.anthropic = present(c, 'Claude', 'anthropic', ANTHROPIC_MODEL);
     if (o.ok || c.ok) {
       const evidence = [
         o.ok ? 'CHATGPT RESPONSE:\n' + o.value.text : 'CHATGPT FAILED: ' + safeError(o.error),
@@ -201,29 +208,68 @@ async function orchestrate({ task, mode }) {
       ].join('\n\n---\n\n');
       const synthesisPrompt = 'User task:\n' + task + '\n\nTwo model results follow. Compare them, reconcile differences, retain important caveats, and give one actionable synthesis. Do not claim a model succeeded if its section says FAILED.\n\n' + evidence;
       const s = await attempt(() => callOpenAI(synthesisPrompt, 'You are the uneXpected synthesis layer. Combine independent model answers into a clear, accurate, actionable result. State uncertainty and disagreements. Never invent agreement.', { enableTaaft: false }));
-      results.synthesis = present(s, 'uneXpected synthesis (ChatGPT)');
-    } else {
-      results.synthesis = { label: 'uneXpected synthesis', status: 'NOT RUN', error: 'Neither provider returned a successful answer; synthesis was skipped.' };
+      providerVerified.openai = s.ok;
+      results.synthesis = present(s, 'uneXpected synthesis (ChatGPT)', 'openai', OPENAI_MODEL);
     }
   }
-  // If all requested paid providers failed (for example, because their API balances are empty),
-  // try the configured free-model fallback once. Never substitute a simulated answer.
+
+  // Run exactly one free-model fallback only when none of the requested primary
+  // providers produced usable text. Never label the router response as synthesis.
   const hasPrimaryText = Boolean(results.openai?.text || results.anthropic?.text);
-  const hasAnyText = Boolean(hasPrimaryText || results.synthesis?.text);
-  if (!hasAnyText) {
+  let fallback = {
+    attempted: false,
+    provider: 'openrouter',
+    status: 'not_attempted',
+    requestedModel: OPENROUTER_MODEL,
+    reason: 'At least one requested primary provider returned a usable response.'
+  };
+
+  if (!hasPrimaryText) {
     if (OPENROUTER_KEY) {
-      const fallback = await attempt(() => callOpenRouter(task));
-      providerVerified.openrouter = fallback.ok;
-      results.synthesis = present(fallback, 'Free fallback (OpenRouter)');
+      const r = await attempt(() => callOpenRouter(task));
+      providerVerified.openrouter = r.ok;
+      results.openrouter = present(r, 'OpenRouter fallback', 'openrouter', OPENROUTER_MODEL);
+      if (r.ok) {
+        results.openrouter.status = 'LIVE · fallback response';
+        fallback = {
+          attempted: true,
+          provider: 'openrouter',
+          status: 'succeeded',
+          requestedModel: OPENROUTER_MODEL,
+          model: r.value.model,
+          reason: 'All requested primary providers failed.'
+        };
+      } else {
+        fallback = {
+          attempted: true,
+          provider: 'openrouter',
+          status: 'failed',
+          requestedModel: OPENROUTER_MODEL,
+          model: null,
+          reason: 'All requested primary providers failed; the OpenRouter fallback also failed.'
+        };
+      }
     } else {
-      results.synthesis = {
-        label: 'Free fallback (OpenRouter)',
+      providerVerified.openrouter = false;
+      results.openrouter = {
+        provider: 'openrouter',
+        label: 'OpenRouter fallback',
         status: 'NOT CONFIGURED',
-        error: 'Both primary providers failed. Add OPENROUTER_API_KEY in Render to enable a free-model fallback. Free models have provider-defined rate limits.'
+        requestedModel: OPENROUTER_MODEL,
+        error: 'All requested primary providers failed. OPENROUTER_API_KEY is not configured on the server; no fallback request was sent.'
+      };
+      fallback = {
+        attempted: false,
+        provider: 'openrouter',
+        status: 'not_configured',
+        requestedModel: OPENROUTER_MODEL,
+        reason: 'All requested primary providers failed, but OPENROUTER_API_KEY is not configured.'
       };
     }
   }
-  return { ok: Boolean(results.openai?.text || results.anthropic?.text || results.synthesis?.text), mode, results, completedAt: new Date().toISOString() };
+
+  const ok = Boolean(results.openai?.text || results.anthropic?.text || results.openrouter?.text || results.synthesis?.text);
+  return { ok, mode, results, fallback, completedAt: new Date().toISOString() };
 }
 
 const server = http.createServer(async (req, res) => {

@@ -10,6 +10,8 @@ on:
       - 'source.tar.gz.b64'
       - 'test/mobile*.test.mjs'
       - 'test/openrouter-ui.test.mjs'
+      - 'test/orchestrator.test.mjs'
+      - 'test/provider-fetch-stub.mjs'
       - 'openrouter-ui.js'
       - 'README.md'
       - 'render.yaml'
@@ -23,6 +25,8 @@ on:
       - 'mobile-assets.parts/**'
       - 'source.tar.gz.b64'
       - 'test/mobile*.test.mjs'
+      - 'test/orchestrator.test.mjs'
+      - 'test/provider-fetch-stub.mjs'
       - '.github/workflows/mobile-integration.yml'
 jobs:
   mobile-integration:
@@ -39,6 +43,7 @@ jobs:
           base64 -d source.tar.gz.b64 > /tmp/ue-source/source.tar.gz
           tar -xzf /tmp/ue-source/source.tar.gz -C /tmp/ue-extracted
           cp -R /tmp/ue-extracted/uneXpected-ai-studio-v1.0.1/public ./public
+          cp app.js public/app.js
           cat mobile-assets.parts/part-*.b64 > /tmp/mobile-assets.tar.gz.b64
           printf '%s  %s\n' 'd9316477b654ea04bc842a2f7ae158b2fffe3eab85f057d7bc3aa7a749f9f55e' /tmp/mobile-assets.tar.gz.b64 | sha256sum -c -
           base64 -d /tmp/mobile-assets.tar.gz.b64 | tar -xz -C .
@@ -51,10 +56,13 @@ jobs:
       - name: Syntax checks
         run: |
           node --check server.js
+          node --check app.js
           node --check openrouter-ui.js
           node --check test/openrouter-ui.test.mjs
+          node --check test/orchestrator.test.mjs
+          node --check test/provider-fetch-stub.mjs
           node --check mobile-assets.mjs
       - name: Mobile and authenticated gateway HTTP tests
-        run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/openrouter-ui.test.mjs
+        run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/openrouter-ui.test.mjs test/orchestrator.test.mjs
       - name: Build the production Docker image
         run: docker build --tag unexpected-ai-studio:openrouter-test .

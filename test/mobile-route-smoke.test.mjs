@@ -18,7 +18,7 @@ async function freePort(){
 }
 const hasGateway=await import('node:fs/promises').then(({access})=>access(resolve(root,'server.js')).then(()=>true,()=>false));
 
-test('gateway serves the Phone 0.3.0 PWA without weakening existing authorization',{skip:!hasGateway&&'server.js is supplied by the host repository; HTTP smoke test runs in GitHub Actions'},async t=>{
+test('gateway serves the Phone 0.4.0 PWA without weakening existing authorization',{skip:!hasGateway&&'server.js is supplied by the host repository; HTTP smoke test runs in GitHub Actions'},async t=>{
  const port=await freePort(),token='test-only-token-not-a-production-secret';
  const child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,PORT:String(port),NODE_ENV:'test',UNEXPECTED_ACCESS_TOKEN:token},stdio:['ignore','pipe','pipe']});
  let stderr='';
@@ -48,6 +48,7 @@ test('gateway serves the Phone 0.3.0 PWA without weakening existing authorizatio
   ['/mobile/manifest.webmanifest',/manifest\+json/],
   ['/mobile/styles.css',/text\/css/],
   ['/mobile/app.js',/(javascript|ecmascript)/],
+  ['/mobile/providers.js',/(javascript|ecmascript)/],
   ['/mobile/core.js',/(javascript|ecmascript)/],
   ['/mobile/db.js',/(javascript|ecmascript)/],
   ['/mobile/voice.js',/(javascript|ecmascript)/],
@@ -69,7 +70,7 @@ test('gateway serves the Phone 0.3.0 PWA without weakening existing authorizatio
  const skills=await (await fetch(base+'/mobile/skills.json')).json();
  assert.equal(skills.skills.length,2);
  const worker=await (await fetch(base+'/mobile/sw.js')).text();
- assert.match(worker,/unexpected-mobile-v0\.3\.0/);
+ assert.match(worker,/unexpected-mobile-v0\.4\.0/);
  assert.doesNotMatch(worker,/\/orchestrate|\/test-provider|\/health/);
 
  const noSlash=await fetch(base+'/mobile');

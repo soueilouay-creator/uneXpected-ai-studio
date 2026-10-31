@@ -42,3 +42,9 @@ The Studio health display distinguishes **not configured**, **configured but not
 The default model is `openrouter/free`. OpenRouter currently documents a free-model limit of 20 requests per minute and 50 requests per day; failed attempts count toward the daily cap. Availability and provider capacity can change. Check the [current free-model guidance](https://openrouter.ai/collections/free-models/) before relying on the fallback for production workloads.
 
 OpenRouter sends requests to third-party model providers. Review the selected model/provider's data handling terms before sending confidential or sensitive prompts. The fallback does not restore OpenAI or Anthropic API credits and does not make their models available.
+
+## Normal task fallback and result provenance
+
+The `POST /orchestrate` response keeps provider results separate: `results.openai`, `results.anthropic`, `results.openrouter`, and (when primary answers exist) `results.synthesis`. Each successful provider result identifies its `provider`, configured `requestedModel`, actual returned `model`, latency, status, and text. OpenRouter is never stored in the synthesis slot.
+
+The top-level `fallback` object reports `not_attempted`, `not_configured`, `succeeded`, or `failed`, including the provider and requested route. The gateway makes at most one OpenRouter request, and only if all providers selected by the task mode fail to return usable text. It does not spend free-model requests when a requested primary provider succeeds. A failed or unconfigured fallback returns an error/status entry, never a simulated answer.

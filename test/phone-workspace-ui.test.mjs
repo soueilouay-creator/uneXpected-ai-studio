@@ -24,12 +24,11 @@ test('phone conversation exposes ChatGPT, Claude and OpenRouter as selectable ne
   const html = await read('mobile/index.html');
   const app = await read('mobile/app.js');
   for (const provider of ['openai', 'claude', 'openrouter']) {
-    assert.match(html, new RegExp('data-model="' + provider + '"'));
-    assert.match(app, new RegExp("['\u0022]" + provider + "['\u0022]"));
+    assert.match(html, new RegExp('<option value="' + provider + '"'));
   }
   assert.match(html, /id="modelMode"/);
   assert.match(app, /selectedModel/);
-  assert.match(app, /mode:\s*selectedModel/);
+  assert.match(app, /const mode = selectedModel;/);
   assert.match(app, /results\.openrouter/);
 });
 
@@ -67,4 +66,48 @@ test('mobile navigation is hidden from focus when closed and manages keyboard fo
   assert.match(app, /event\.shiftKey[\s\S]*last\.focus\(\)/);
   assert.match(css, /\.nav-item\s*\{\s*min-height:\s*2\.75rem/);
   assert.match(css, /\.composer-icon-button\s*\{\s*min-width:\s*2\.5rem;\s*min-height:\s*2\.75rem/);
+});
+
+
+
+test('phone composer exposes one readable model picker and keeps secondary modes in More options', async () => {
+  const html = await read('mobile/index.html');
+  const app = await read('mobile/app.js');
+  const picker = html.match(/<label class="model-route-picker"[\s\S]*?<\/label>/)?.[0] || '';
+  const advanced = html.match(/<details class="composer-advanced"[\s\S]*?<\/details>/)?.[0] || '';
+  assert.match(picker, /id="modelMode"/);
+  assert.doesNotMatch(picker, /visually-hidden/);
+  for (const provider of ['openai', 'claude', 'openrouter']) {
+    assert.match(picker, new RegExp('<option value="' + provider + '"'));
+  }
+  assert.match(app, /const mode = selectedModel;/)
+  assert.doesNotMatch(html, /data-model=/);
+  assert.match(advanced, /id="compareBtn"/);
+  assert.match(advanced, /id="localModeBtn"/);
+  assert.match(advanced, /id="shareContext"/);
+  assert.match(advanced, /id="voiceModeBtn"/);
+  assert.match(advanced, /id="speakLastBtn"/);
+});
+test('phone source contains no literal newline escapes and uses readable app-scale typography', async () => {
+  const html = await read('mobile/index.html');
+  const css = await read('mobile/styles.css');
+  assert.doesNotMatch(html, /\\n/);
+  assert.doesNotMatch(css, /\\n/);
+  assert.match(css, /body\s*\{[^}]*font-size:\s*1rem/s);
+  assert.match(css, /@media\s*\(max-width:\s*760px\)/);
+  assert.match(css, /message-composer textarea[^}]*font-size:\s*1rem/s);
+  assert.match(css, /send-button[^}]*min-width:\s*2\.75rem/s);
+});
+
+
+test('empty phone conversation has one clear next step without unused delete or prompt-card clutter', async () => {
+  const html = await read('mobile/index.html');
+  const app = await read('mobile/app.js');
+  assert.doesNotMatch(html, /data-prompt=/);
+  assert.doesNotMatch(app, /data-prompt=/);
+  assert.match(app, /deleteChatBtn'\)\?\.classList\.toggle\('hidden', !conversation\?\.messages\?\.length\)/);
+  assert.match(app, /Start a conversation/);
+  assert.match(app, /Type a message\./);
+  assert.match(html, /class="icon-button hidden" id="deleteChatBtn"/);
+  assert.match(html, /<summary>More options<\/summary>/);
 });

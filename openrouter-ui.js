@@ -3,24 +3,32 @@
   function addControl() {
     const testRow = document.getElementById('testClaude')?.parentElement;
     const accessInput = document.getElementById('accessToken');
-    if (!testRow || !accessInput || document.getElementById('testOpenRouter')) return;
+    if (!testRow || !accessInput) return;
 
-    const button = document.createElement('button');
-    button.id = 'testOpenRouter';
-    button.type = 'button';
-    button.className = 'secondary';
-    button.textContent = 'Test OpenRouter API';
-    button.setAttribute('aria-label', 'Test OpenRouter free fallback API');
-    testRow.append(button);
+    // The production page may render this control in its HTML already. Reuse it
+    // and always attach the handler; only create a button when one is absent.
+    let button = document.getElementById('testOpenRouter');
+    if (!button) {
+      button = document.createElement('button');
+      button.id = 'testOpenRouter';
+      button.type = 'button';
+      button.className = 'secondary';
+      button.textContent = 'Test OpenRouter API';
+      button.setAttribute('aria-label', 'Test OpenRouter free fallback API');
+      testRow.append(button);
+    }
 
-    const message = document.createElement('p');
-    message.id = 'openrouterTestMessage';
-    message.className = 'hint';
-    message.setAttribute('aria-live', 'polite');
-    message.textContent = 'Free fallback test is separate from ChatGPT and Claude.';
-    const existingMessage = document.getElementById('providerTestMessage');
-    if (existingMessage) existingMessage.after(message);
-    else testRow.after(message);
+    let message = document.getElementById('openrouterTestMessage');
+    if (!message) {
+      message = document.createElement('p');
+      message.id = 'openrouterTestMessage';
+      message.className = 'hint';
+      message.setAttribute('aria-live', 'polite');
+      message.textContent = 'Free fallback test is separate from ChatGPT and Claude.';
+      const existingMessage = document.getElementById('providerTestMessage');
+      if (existingMessage) existingMessage.after(message);
+      else testRow.after(message);
+    }
 
     const claudeStep = document.getElementById('claudeStatus')?.closest('.step');
     if (claudeStep && !document.getElementById('openrouterStatus')) {
@@ -43,7 +51,10 @@
     }
 
     button.style.flex = '1 1 160px';
-    button.addEventListener('click', runTest);
+    if (!button.__openrouterHandlerAttached) {
+      button.addEventListener('click', runTest);
+      button.__openrouterHandlerAttached = true;
+    }
     refreshStatus();
   }
 

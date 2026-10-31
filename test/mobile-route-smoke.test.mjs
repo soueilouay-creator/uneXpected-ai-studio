@@ -74,7 +74,7 @@ test('gateway serves the Phone 0.3.0 PWA without weakening existing authorizatio
 
  const noSlash=await fetch(base+'/mobile');
  assert.equal(noSlash.status,200);
- assert.match(noSlash.headers.get('content-type')||'',/text\\/html/);
+ assert.ok((noSlash.headers.get('content-type')||'').includes('text/html'));
  assert.equal((await fetch(base+'/mobile/%2e%2e/server.js')).status,404);
  const unauthorized=await fetch(base+'/orchestrate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({task:'must not be executed',mode:'openai'})});
  assert.equal(unauthorized.status,401);

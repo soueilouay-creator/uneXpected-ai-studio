@@ -51,6 +51,8 @@ jobs:
       - name: Syntax checks
         run: |
           node --check server.js
+          node --check openrouter-ui.js
+          node --check test/openrouter-ui.test.mjs
           node --check mobile-assets.mjs
       - name: Mobile and authenticated gateway HTTP tests
         run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/openrouter-ui.test.mjs

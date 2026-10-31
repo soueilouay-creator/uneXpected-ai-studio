@@ -1,7 +1,5 @@
 (() => {
   'use strict';
-  const TOKEN_CACHE_KEY = 'unexpected_openrouter_ui_access_token';
-
   function addControl() {
     const testRow = document.getElementById('testClaude')?.parentElement;
     const accessInput = document.getElementById('accessToken');
@@ -45,13 +43,6 @@
     }
 
     button.style.flex = '1 1 160px';
-    document.getElementById('saveToken')?.addEventListener('click', () => {
-      const value = accessInput.value.trim();
-      if (value) {
-        try { sessionStorage.setItem(TOKEN_CACHE_KEY, value); } catch {}
-      }
-    });
-
     button.addEventListener('click', runTest);
     refreshStatus();
   }
@@ -81,10 +72,8 @@
     const button = document.getElementById('testOpenRouter');
     const input = document.getElementById('accessToken');
     let token = input?.value?.trim() || '';
-    if (token) {
-      try { sessionStorage.setItem(TOKEN_CACHE_KEY, token); } catch {}
-    } else {
-      try { token = sessionStorage.getItem(TOKEN_CACHE_KEY) || ''; } catch {}
+    if (!token) {
+      try { token = window.__UX_ACCESS_TOKEN || sessionStorage.getItem('ux_access_token') || ''; } catch {}
     }
     if (!token) {
       setMessage('Enter your Render UNEXPECTED_ACCESS_TOKEN in Access settings and click “Use token for this tab” first. It is not an OpenRouter API key.');

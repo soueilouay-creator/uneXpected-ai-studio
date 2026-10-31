@@ -58,7 +58,7 @@
 
       <section class="view home-view" id="view-home">
         <div class="view-heading">
-          <div><div class="eyebrow">YOUR PRIVATE WORKSPACE</div><h1>Good to have you back.</h1><p>Think clearly. Build deliberately. Keep your work in one place.</p></div>
+          <div><div class="eyebrow">YOUR PRIVATE WORKSPACE</div><h1>Good to have you back.</h1><span class="visually-hidden">Your work.</span><p>Think clearly. Build deliberately. Keep your work in one place.</p></div>
           <div class="date-label" id="todayLabel"></div>
         </div>
         <div class="home-hero">
@@ -119,6 +119,7 @@
                 <button class="provider-option" data-model="claude" type="button" aria-pressed="false"><span class="provider-symbol claude-symbol">◈</span><span><strong>Claude</strong><small>Anthropic</small></span><span class="provider-check">✓</span></button>
                 <button class="provider-option" data-model="openrouter" type="button" aria-pressed="false"><span class="provider-symbol router-symbol">⌘</span><span><strong>OpenRouter</strong><small>Free model route</small></span><span class="provider-check">✓</span></button>
                 <button class="compare-option" id="compareBtn" type="button" aria-pressed="false" title="Ask ChatGPT and Claude, then request a synthesis">Compare <span>⇄</span></button>
+                <button class="local-option" id="localModeBtn" type="button" aria-pressed="false" title="Use local workspace tools without a model request">Local</button>
                 <label class="sr-only" for="modelMode">Model route</label>
                 <select id="modelMode" class="visually-hidden" tabindex="-1" aria-hidden="true">
                   <option value="openai">ChatGPT</option><option value="claude">Claude</option><option value="openrouter">OpenRouter</option><option value="both">Compare ChatGPT + Claude</option><option value="local">Local tools only</option>

@@ -12,6 +12,7 @@ on:
       - 'test/openrouter-ui.test.mjs'
       - 'test/orchestrator.test.mjs'
       - 'test/provider-fetch-stub.mjs'
+      - 'test/phone-workspace-ui.test.mjs'
       - 'openrouter-ui.js'
       - 'README.md'
       - 'render.yaml'
@@ -63,6 +64,6 @@ jobs:
           node --check test/provider-fetch-stub.mjs
           node --check mobile-assets.mjs
       - name: Mobile and authenticated gateway HTTP tests
-        run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/openrouter-ui.test.mjs test/orchestrator.test.mjs
+        run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/openrouter-ui.test.mjs test/orchestrator.test.mjs test/phone-workspace-ui.test.mjs
       - name: Build the production Docker image
         run: docker build --tag unexpected-ai-studio:openrouter-test .

@@ -9,6 +9,10 @@ on:
       - 'mobile-assets.parts/**'
       - 'source.tar.gz.b64'
       - 'test/mobile*.test.mjs'
+      - 'test/openrouter-ui.test.mjs'
+      - 'openrouter-ui.js'
+      - 'README.md'
+      - 'render.yaml'
       - '.github/workflows/mobile-integration.yml'
   push:
     branches: [main]
@@ -49,4 +53,4 @@ jobs:
           node --check server.js
           node --check mobile-assets.mjs
       - name: Mobile and authenticated gateway HTTP tests
-        run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs
+        run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/openrouter-ui.test.mjs

@@ -1,0 +1,34 @@
+name: uneXpected Phone Integration
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'server.js'
+      - 'Dockerfile'
+      - 'mobile-assets.mjs'
+      - 'mobile-assets.tar.gz.b64'
+      - 'test/mobile*.test.mjs'
+      - '.github/workflows/mobile-integration.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'server.js'
+      - 'Dockerfile'
+      - 'mobile-assets.mjs'
+      - 'mobile-assets.tar.gz.b64'
+      - 'test/mobile*.test.mjs'
+      - '.github/workflows/mobile-integration.yml'
+jobs:
+  mobile-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax checks
+        run: |
+          node --check server.js
+          node --check mobile-assets.mjs
+      - name: Mobile and gateway tests
+        run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs

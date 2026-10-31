@@ -10,6 +10,8 @@ RUN base64 -d /tmp/source.tar.gz.b64 > /tmp/source.tar.gz \
 WORKDIR /app
 COPY server.js /app/server.js
 COPY taaft-integration.mjs /app/taaft-integration.mjs
+COPY mobile-assets.mjs /app/mobile-assets.mjs
+COPY mobile /app/public/mobile
 EXPOSE 10000
 USER node
 CMD ["node", "server.js"]

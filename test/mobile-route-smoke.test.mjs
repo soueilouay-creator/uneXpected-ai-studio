@@ -18,7 +18,7 @@ test('gateway serves the phone app without weakening its existing authorization'
  for(let n=0;n<40;n++){try{health=await fetch(base+'/health');if(health.ok)break}catch{}await delay(100)}
  assert.ok(health?.ok,'server did not start; stderr: '+stderr);
  const homepage=await fetch(base);assert.equal(homepage.status,200);assert.match(await homepage.text(),/uneXpected/i);
- const app=await fetch(base+'/mobile/');assert.equal(app.status,200);assert.match(app.headers.get('content-type'),/text\/html/);assert.match(app.headers.get('content-security-policy')||'','/default-src/');assert.match(await app.text(),/uneXpected · Phone/);
+ const app=await fetch(base+'/mobile/');assert.equal(app.status,200);assert.match(app.headers.get('content-type'),/text\/html/);assert.match(app.headers.get('content-security-policy')||'', /default-src 'self'/);assert.match(await app.text(),/uneXpected · Phone/);
  const manifest=await fetch(base+'/mobile/manifest.webmanifest');assert.equal(manifest.status,200);assert.match(manifest.headers.get('content-type'),/manifest\+json/);const m=await manifest.json();assert.equal(m.start_url,'/mobile/');assert.equal(m.scope,'/mobile/');
  const sw=await fetch(base+'/mobile/sw.js');assert.equal(sw.status,200);assert.match(await sw.text(),/\/orchestrate/);
  const roles=await fetch(base+'/mobile/agents.json');assert.equal(roles.status,200);assert.equal((await roles.json()).count,40);

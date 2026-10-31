@@ -11,8 +11,12 @@ WORKDIR /app
 COPY server.js /app/server.js
 COPY taaft-integration.mjs /app/taaft-integration.mjs
 COPY mobile-assets.mjs /app/mobile-assets.mjs
-COPY mobile-assets.tar.gz.b64 /tmp/mobile-assets.tar.gz.b64
-RUN mkdir -p /app/public && base64 -d /tmp/mobile-assets.tar.gz.b64 | tar -xz -C /app/public && rm -f /tmp/mobile-assets.tar.gz.b64
+COPY mobile-assets.parts/ /tmp/mobile-assets.parts/
+RUN cat /tmp/mobile-assets.parts/part-*.b64 > /tmp/mobile-assets.tar.gz.b64 \
+ && printf '%s  %s\n' 'd9316477b654ea04bc842a2f7ae158b2fffe3eab85f057d7bc3aa7a749f9f55e' /tmp/mobile-assets.tar.gz.b64 | sha256sum -c - \
+ && mkdir -p /app/public \
+ && base64 -d /tmp/mobile-assets.tar.gz.b64 | tar -xz -C /app/public \
+ && rm -rf /tmp/mobile-assets.parts /tmp/mobile-assets.tar.gz.b64
 EXPOSE 10000
 USER node
 CMD ["node", "server.js"]

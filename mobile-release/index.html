@@ -37,14 +37,14 @@
       </nav>
 
       <div class="sidebar-history">
-        <div class="history-heading"><span>Recent conversations</span><button class="text-icon" id="clearSearchBtn" type="button" aria-label="Clear conversation search">↻</button></div>
+        <div class="history-heading"><span>Recent conversations</span></div>
         <label class="history-search"><span aria-hidden="true">⌕</span><input id="chatSearch" type="search" placeholder="Find a conversation" aria-label="Find a conversation"></label>
         <div class="chat-list" id="chatList"><div class="sidebar-empty">Your conversations will appear here.</div></div>
       </div>
 
       <div class="sidebar-bottom">
         <div class="connection-row"><span class="connection-dot" id="connectionDot"></span><div><strong id="connectionLabel">Local workspace</strong><small id="connectionDetail">Saved on this device</small></div></div>
-        <button class="profile-button" id="avatarBtn" type="button"><span class="profile-avatar">•</span><span class="profile-copy"><strong>Personal workspace</strong><small>Local-first · private by default</small></span><span class="profile-more">•••</span></button>
+        <button class="profile-button" id="avatarBtn" type="button"><span class="profile-avatar">•</span><span class="profile-copy"><strong>Personal workspace</strong><small>Local-first · private by default</small></span></button>
       </div>
     </aside>
 
@@ -59,13 +59,13 @@
 
       <section class="view home-view" id="view-home">
         <div class="view-heading">
-          <div><h1>Your work. Your intelligence.</h1><p>Conversations, projects and ideas in one place.</p></div>
+          <div><h1>Your work. Your intelligence.</h1><p>Conversations and projects in one place.</p></div>
           <div class="date-label" id="todayLabel"></div>
         </div>
         <div class="home-hero">
           <div class="hero-copy">
             <h2>One conversation.<br>Three perspectives.</h2>
-            <p>Switch between ChatGPT, Claude and OpenRouter without losing your place.</p>
+            <p>Move between ChatGPT, Claude and OpenRouter.</p>
             <div class="hero-actions"><button class="button button-primary" data-go="chat" type="button">Start a conversation <span>↗</span></button><button class="button button-quiet" data-go="projects" type="button">View projects</button></div>
           </div>
           <div class="hero-art" aria-hidden="true">
@@ -107,27 +107,24 @@
           <div class="composer-dock">
             <div class="composer-shell">
               <div class="composer-topline">
-                <div class="model-picker-label"><span class="model-picker-dot"></span><span>Choose a model</span></div>
+                <h2 class="model-picker-label"><span class="model-picker-dot"></span><span>Choose a model</span></h2>
                 <div class="composer-tools"><label class="context-consent" title="Include recent conversation, saved memories and approved improvement notes"><input id="shareContext" type="checkbox"><span>Include saved context</span></label><span class="profile-chip" id="profileChip">research-scout</span></div>
               </div>
 
               <div class="provider-switcher" role="group" aria-label="Choose the model for your next message">
-                <button class="provider-option active" data-model="openai" type="button" aria-pressed="true"><span class="provider-symbol chatgpt-symbol">✳</span><span><strong>ChatGPT</strong><small>OpenAI</small></span><span class="provider-check">✓</span></button>
-                <button class="provider-option" data-model="claude" type="button" aria-pressed="false"><span class="provider-symbol claude-symbol">◈</span><span><strong>Claude</strong><small>Anthropic</small></span><span class="provider-check">✓</span></button>
-                <button class="provider-option" data-model="openrouter" type="button" aria-pressed="false"><span class="provider-symbol router-symbol">⌘</span><span><strong>OpenRouter</strong><small>Free model route</small></span><span class="provider-check">✓</span></button>
+                <button class="provider-option active" data-model="openai" type="button" aria-pressed="true"><span class="provider-symbol chatgpt-symbol">✳</span><span><strong>ChatGPT</strong></span><span class="provider-check">✓</span></button>
+                <button class="provider-option" data-model="claude" type="button" aria-pressed="false"><span class="provider-symbol claude-symbol">◈</span><span><strong>Claude</strong></span><span class="provider-check">✓</span></button>
+                <button class="provider-option" data-model="openrouter" type="button" aria-pressed="false"><span class="provider-symbol router-symbol">⌘</span><span><strong>OpenRouter</strong><small>Free</small></span><span class="provider-check">✓</span></button>
                 <button class="compare-option" id="compareBtn" type="button" aria-pressed="false" title="Ask ChatGPT and Claude, then request a synthesis">Compare <span>⇄</span></button>
                 <button class="local-option" id="localModeBtn" type="button" aria-pressed="false" title="Use local workspace tools without a model request">Local</button>
-                <label class="sr-only" for="modelMode">Model route</label>
-                <select id="modelMode" class="visually-hidden" tabindex="-1" aria-hidden="true">
-                  <option value="openai">ChatGPT</option><option value="claude">Claude</option><option value="openrouter">OpenRouter</option><option value="both">Compare ChatGPT + Claude</option><option value="local">Local tools only</option>
-                </select>
+                <select id="modelMode" class="visually-hidden" tabindex="-1" aria-hidden="true"><option value="openai"></option><option value="claude"></option><option value="openrouter"></option><option value="both"></option><option value="local"></option></select>
               </div>
 
               <form id="chatForm" class="message-composer">
                 <label class="sr-only" for="chatInput">Message uneXpected</label>
                 <textarea id="chatInput" rows="1" maxlength="8500" placeholder="Message…" aria-label="Message uneXpected"></textarea>
                 <div class="composer-footer">
-                  <div class="composer-hints"><span class="composer-hint"><span class="hint-dot"></span><span id="voiceStatus">Saved on this device</span></span><span class="model-mode-hint" id="modelModeHint">ChatGPT will answer this message.</span></div>
+                  <div class="composer-hints"><span class="composer-hint"><span class="hint-dot"></span><span id="voiceStatus">Ready</span></span></div>
                   <div class="composer-actions">
                     <button class="composer-icon-button" id="voiceInputBtn" type="button" aria-label="Start voice input" title="Voice input">⌁</button>
                     <button class="composer-icon-button" id="voiceModeBtn" type="button" aria-pressed="false" title="Voice conversation">◖</button>
@@ -137,7 +134,7 @@
                 </div>
               </form>
             </div>
-            <p class="composer-disclaimer">Check important answers before acting.</p>
+            <p class="composer-disclaimer">Verify important answers.</p>
           </div>
         </div>
       </section>

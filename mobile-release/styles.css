@@ -476,3 +476,29 @@ p { color: var(--muted); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+
+/* Keyboard access and touch ergonomics */
+.skip-link {
+  position: fixed;
+  top: -4rem;
+  left: 1rem;
+  z-index: 120;
+  padding: .75rem 1rem;
+  border: 1px solid rgba(169,154,255,.5);
+  border-radius: .65rem;
+  background: #f5f2ff;
+  color: #211b35;
+  font-size: .875rem;
+  font-weight: 700;
+}
+.skip-link:focus { top: max(.75rem, env(safe-area-inset-top)); }
+body.drawer-open { overflow: hidden; }
+@media (max-width: 760px) {
+  .nav-item { min-height: 2.75rem; }
+  .new-chat-button { min-height: 2.75rem; }
+  .sidebar-close, .icon-button, .top-status { min-width: 2.75rem; min-height: 2.75rem; }
+  .provider-option { min-height: 2.75rem; }
+  .composer-icon-button { min-width: 2.5rem; min-height: 2.75rem; }
+  .send-button { min-width: 2.75rem; min-height: 2.75rem; }
+}

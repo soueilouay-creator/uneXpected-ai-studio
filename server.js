@@ -277,8 +277,15 @@ const server = http.createServer(async (req, res) => {
         throw error;
       }
     }
+    if (req.method === 'GET' && url.pathname === '/openrouter-ui.js') {
+      res.writeHead(200, { 'content-type': MIME['.js'], 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' });
+      return res.end(await readFile(join(ROOT, 'openrouter-ui.js')));
+    }
     if (req.method === 'GET' && url.pathname === '/') {
-      const html = await readFile(join(ROOT, 'public', 'index.html'));
+      const page = await readFile(join(ROOT, 'public', 'index.html'), 'utf8');
+      const script = '<script src="/openrouter-ui.js" defer></script>';
+      const closingBody = page.toLowerCase().lastIndexOf('</body>');
+      const html = closingBody >= 0 ? page.slice(0, closingBody) + script + page.slice(closingBody) : page + script;
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'content-security-policy': "default-src 'self'; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'" });
       return res.end(html);
     }

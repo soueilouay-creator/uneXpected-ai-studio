@@ -28,6 +28,17 @@ Defaults in this deployment are `gpt-4.1` and `claude-sonnet-4-5-20250929`; over
 No API keys are committed. The app's private endpoints require a bearer access token, requests are size-limited, and the app does not persist prompts or responses. Rotate any key that has previously been exposed.
 
 
-## Optional free-model fallback
+## Optional OpenRouter free-model fallback
 
-If the OpenAI or Anthropic API account runs out of credits, uneXpected can optionally fall back to OpenRouter's free-model router. Create an OpenRouter account and API key, then set `OPENROUTER_API_KEY` in the Render service's environment variables. The default model is `openrouter/free`; free models are rate-limited and availability can vary. This fallback does not make OpenAI/Anthropic credit-restricted calls available again, and the fallback model is not ChatGPT or Claude. Check OpenRouter's current model, rate-limit, and data policies before sending sensitive prompts.
+When every requested primary provider fails, the gateway can make one fallback attempt through OpenRouter's `openrouter/free` router. It chooses an available free model for the request; the result is not ChatGPT or Claude, and this fallback is not connected to TAAFT.
+
+1. Create an OpenRouter account and API key at [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys). OpenRouter documents a free account and free-model access without a credit purchase.
+2. In the Render service's Environment page, add `OPENROUTER_API_KEY` with the key value. Keep it in Render only; never commit it or paste it into the Studio page.
+3. Save the environment change and wait for Render to finish its automatic redeploy.
+4. Open the Studio, enter the existing `UNEXPECTED_ACCESS_TOKEN` in **Access settings** if needed, and click **Use token for this tab**. Then click **Test OpenRouter API** in System status.
+
+The Studio health display distinguishes **not configured**, **configured but not yet verified**, and **verified after a real test request**. The test uses one small real OpenRouter request and does not call ChatGPT or Claude. The access token is retained in this tab's session storage only.
+
+The default model is `openrouter/free`. OpenRouter currently documents a free-model limit of 20 requests per minute and 50 requests per day; failed attempts count toward the daily cap. Availability and provider capacity can change. Check the [current free-model guidance](https://openrouter.ai/collections/free-models/) before relying on the fallback for production workloads.
+
+OpenRouter sends requests to third-party model providers. Review the selected model/provider's data handling terms before sending confidential or sensitive prompts. The fallback does not restore OpenAI or Anthropic API credits and does not make their models available.

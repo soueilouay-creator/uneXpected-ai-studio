@@ -44,7 +44,7 @@ jobs:
           tar -xzf /tmp/ue-source/source.tar.gz -C /tmp/ue-extracted
           cp -R /tmp/ue-extracted/uneXpected-ai-studio-v1.0.1/public ./public
           cat mobile-assets.parts/part-*.b64 > /tmp/mobile-assets.tar.gz.b64
-          printf '%s  %s\\n' 'd9316477b654ea04bc842a2f7ae158b2fffe3eab85f057d7bc3aa7a749f9f55e' /tmp/mobile-assets.tar.gz.b64 | sha256sum -c -
+          printf '%s  %s\n' 'd9316477b654ea04bc842a2f7ae158b2fffe3eab85f057d7bc3aa7a749f9f55e' /tmp/mobile-assets.tar.gz.b64 | sha256sum -c -
           base64 -d /tmp/mobile-assets.tar.gz.b64 | tar -xz -C .
           rm -f /tmp/mobile-assets.tar.gz.b64
           mkdir -p public

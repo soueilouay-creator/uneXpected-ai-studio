@@ -880,7 +880,7 @@ async function checkGateway() {
     if (!data.providers) {
       box.textContent = `HTTP ${response.status} · ${data.service || 'Local preview'}\nThis service is not connected to the model gateway.`;
       $('#gatewayStatus').textContent = 'Local preview only';
-      setConnection('Local workspace', 'local');
+      setConnection('On this device', 'local');
       return;
     }
     const names = [['openai', 'ChatGPT'], ['anthropic', 'Claude'], ['openrouter', 'OpenRouter']];
@@ -895,7 +895,7 @@ async function checkGateway() {
   } catch (error) {
     box.textContent = `Gateway check failed: ${error.message}\nLocal projects, conversations and memory remain available.`;
     $('#gatewayStatus').textContent = 'Unavailable';
-    setConnection('Local workspace', 'warning');
+    setConnection('On this device', 'warning');
   }
 }
 
@@ -1093,7 +1093,7 @@ async function boot() {
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
     navigator.serviceWorker.register('./sw.js')
       .then(() => setConnection('Offline shell ready', 'online', 'App shell cached on this device'))
-      .catch(() => setConnection('Local workspace', 'local'));
+      .catch(() => setConnection('On this device', 'local'));
   }
   fetch(`${location.origin}/health`, { cache: 'no-store' })
     .then(response => response.json())
@@ -1102,9 +1102,9 @@ async function boot() {
         setConnection('Gateway reachable', 'online');
         const names = [['openai', 'ChatGPT'], ['anthropic', 'Claude'], ['openrouter', 'OpenRouter']];
         $('#providerHealthList').innerHTML = names.map(([key, label]) => `<span>${label} · ${data.providers?.[key]?.configured ? 'configured' : 'not configured'}</span>`).join('');
-      } else setConnection('Local workspace', 'local');
+      } else setConnection('On this device', 'local');
     })
-    .catch(() => setConnection('Local workspace', 'local'));
+    .catch(() => setConnection('On this device', 'local'));
   requestPersistentStorage().then(result => {
     if (result.granted) $('#persistState').textContent = 'Granted';
   }).catch(() => {});

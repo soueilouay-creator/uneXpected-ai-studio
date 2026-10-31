@@ -15,6 +15,10 @@ Create a Render Blueprint from this repository or a Docker web service from bran
 
 Open `/health` to see service and credential-presence status. Then open the app, set the generated `UNEXPECTED_ACCESS_TOKEN` under Access settings, and click the separate Test ChatGPT API and Test Claude API buttons. These buttons make real API calls and may incur provider charges. A green health endpoint alone is not a provider test.
 
+## TAAFT AI discovery
+
+OpenAI and Claude requests can use TAAFT's official public MCP catalog for relevant AI-tool, model, and MCP-server discovery. The integration is read-only and restricted to an explicit allowlist of search and detail tools. It does not access private TAAFT account data. OpenRouter fallback requests are not connected to TAAFT. See [docs/TAAFT_MCP_INTEGRATION.md](docs/TAAFT_MCP_INTEGRATION.md) for privacy boundaries, tool allowlisting, and verification.
+
 ## Models
 
 Defaults in this deployment are `gpt-4.1` and `claude-sonnet-4-5-20250929`; override them if those models are not enabled for your API accounts. See the [OpenAI model catalog](https://developers.openai.com/api/docs/models) and [Anthropic model overview](https://platform.claude.com/docs/en/models/overview).

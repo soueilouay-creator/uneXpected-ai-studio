@@ -125,12 +125,14 @@
                 </details>
               </div>
 
-              <div class="provider-switcher" role="group" aria-label="Choose the model for your next message">
-                <button class="provider-option active" data-model="openai" type="button" aria-pressed="true"><span class="provider-symbol chatgpt-symbol">✳</span><span><strong>ChatGPT</strong></span><span class="provider-check">✓</span></button>
-                <button class="provider-option" data-model="claude" type="button" aria-pressed="false"><span class="provider-symbol claude-symbol">◈</span><span><strong>Claude</strong></span><span class="provider-check">✓</span></button>
-                <button class="provider-option" data-model="openrouter" type="button" aria-pressed="false"><span class="provider-symbol router-symbol">⌘</span><span><strong>OpenRouter</strong><small>Free</small></span><span class="provider-check">✓</span></button>
-                <select id="modelMode" class="visually-hidden" tabindex="-1" aria-hidden="true"><option value="openai"></option><option value="claude"></option><option value="openrouter"></option><option value="both"></option><option value="local"></option></select>
-              </div>
+              <label class="model-route-picker" for="modelMode">
+                <span>Model</span>
+                <select id="modelMode" aria-label="Choose the model for your next message">
+                  <option value="openai" selected>ChatGPT</option>
+                  <option value="claude">Claude</option>
+                  <option value="openrouter">OpenRouter · Free</option>
+                </select>
+              </label>
 
               <form id="chatForm" class="message-composer">
                 <label class="sr-only" for="chatInput">Message uneXpected</label>

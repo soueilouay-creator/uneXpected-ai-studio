@@ -13,7 +13,8 @@
 <body>
   <a class="skip-link" href="#mainContent">Skip to main content</a>
   <div class="app-shell">
-    <aside class="sidebar" id="sidebar" aria-label="Main navigation" inert aria-hidden="true">\n      <h2 class="visually-hidden">Main menu</h2>
+    <aside class="sidebar" id="sidebar" aria-label="Main navigation" inert aria-hidden="true">
+      <h2 class="visually-hidden">Main menu</h2>
       <div class="sidebar-brand">
         <div class="brand-mark" aria-hidden="true"><span>u</span></div>
         <div class="brand-copy"><strong>uneXpected</strong></div>
@@ -107,28 +108,40 @@
           <div class="composer-dock">
             <div class="composer-shell">
               <div class="composer-topline">
-                <h2 class="model-picker-label"><span class="model-picker-dot"></span><span>Choose a model</span></h2>
-                <div class="composer-tools"><label class="context-consent" title="Include recent conversation, saved memories and approved improvement notes"><input id="shareContext" type="checkbox"><span>Include saved context</span></label><span class="profile-chip" id="profileChip">research-scout</span></div>
+                <h2 class="model-picker-label"><span class="model-picker-dot"></span><span>Model</span></h2>
+                <details class="composer-advanced">
+                  <summary>More options</summary>
+                  <div class="advanced-panel">
+                    <div class="advanced-mode-row">
+                      <button class="compare-option" id="compareBtn" type="button" aria-pressed="false" title="Ask ChatGPT and Claude, then request a synthesis">Compare ChatGPT + Claude</button>
+                      <button class="local-option" id="localModeBtn" type="button" aria-pressed="false" title="Use local workspace tools without a model request">Local tools</button>
+                    </div>
+                    <div class="advanced-preferences">
+                      <label class="context-consent" title="Include recent conversation, saved memories and approved improvement notes"><input id="shareContext" type="checkbox"><span>Include saved context</span></label>
+                      <span class="profile-chip" id="profileChip">auto-route</span>
+                    </div>
+                    <div class="advanced-voice-row">
+                      <button class="advanced-voice-button" id="voiceModeBtn" type="button" aria-pressed="false" title="Voice conversation">Start voice conversation</button>
+                      <button class="advanced-voice-button" id="speakLastBtn" type="button" title="Read the last reply aloud">Read last reply aloud</button>
+                    </div>
+                  </div>
+                </details>
               </div>
 
               <div class="provider-switcher" role="group" aria-label="Choose the model for your next message">
                 <button class="provider-option active" data-model="openai" type="button" aria-pressed="true"><span class="provider-symbol chatgpt-symbol">✳</span><span><strong>ChatGPT</strong></span><span class="provider-check">✓</span></button>
                 <button class="provider-option" data-model="claude" type="button" aria-pressed="false"><span class="provider-symbol claude-symbol">◈</span><span><strong>Claude</strong></span><span class="provider-check">✓</span></button>
                 <button class="provider-option" data-model="openrouter" type="button" aria-pressed="false"><span class="provider-symbol router-symbol">⌘</span><span><strong>OpenRouter</strong><small>Free</small></span><span class="provider-check">✓</span></button>
-                <button class="compare-option" id="compareBtn" type="button" aria-pressed="false" title="Ask ChatGPT and Claude, then request a synthesis">Compare <span>⇄</span></button>
-                <button class="local-option" id="localModeBtn" type="button" aria-pressed="false" title="Use local workspace tools without a model request">Local</button>
                 <select id="modelMode" class="visually-hidden" tabindex="-1" aria-hidden="true"><option value="openai"></option><option value="claude"></option><option value="openrouter"></option><option value="both"></option><option value="local"></option></select>
               </div>
 
               <form id="chatForm" class="message-composer">
                 <label class="sr-only" for="chatInput">Message uneXpected</label>
-                <textarea id="chatInput" rows="1" maxlength="8500" placeholder="Message…" aria-label="Message uneXpected"></textarea>
+                <textarea id="chatInput" rows="1" maxlength="8500" placeholder="Message uneXpected…" aria-label="Message uneXpected"></textarea>
                 <div class="composer-footer">
                   <div class="composer-hints"><span class="composer-hint"><span class="hint-dot"></span><span id="voiceStatus">Ready</span></span></div>
                   <div class="composer-actions">
                     <button class="composer-icon-button" id="voiceInputBtn" type="button" aria-label="Start voice input" title="Voice input">⌁</button>
-                    <button class="composer-icon-button" id="voiceModeBtn" type="button" aria-pressed="false" title="Voice conversation">◖</button>
-                    <button class="composer-icon-button" id="speakLastBtn" type="button" title="Read the last reply aloud">◗</button>
                     <button class="send-button" id="sendBtn" type="submit" aria-label="Send message"><span>↑</span></button>
                   </div>
                 </div>

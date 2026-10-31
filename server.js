@@ -1,6 +1,7 @@
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { resolveMobileAsset } from './mobile-assets.mjs';
 import { fileURLToPath } from 'node:url';
 import { timingSafeEqual } from 'node:crypto';
 import { TAAFT_MCP_URL, TAAFT_MCP_BETA, TAAFT_ALLOWED_TOOLS, buildOpenAITaaftTool, buildAnthropicTaaftConfig, withTaaftGuidance } from './taaft-integration.mjs';
@@ -253,6 +254,28 @@ const server = http.createServer(async (req, res) => {
           }
         }
       });
+    }
+    if (req.method === 'GET' && url.pathname === '/mobile') {
+      res.writeHead(308, { location: '/mobile/', 'cache-control': 'no-store' });
+      return res.end();
+    }
+    if (req.method === 'GET' && url.pathname.startsWith('/mobile/')) {
+      const asset = resolveMobileAsset(url.pathname, join(ROOT, 'public'));
+      if (!asset) return json(res, 404, { error: 'Not found.' });
+      try {
+        const content = await readFile(asset.filePath);
+        res.writeHead(200, {
+          'content-type': asset.contentType,
+          'cache-control': asset.cacheControl,
+          'x-content-type-options': 'nosniff',
+          'content-security-policy': "default-src 'self'; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; object-src 'none'",
+          'permissions-policy': 'microphone=(self)'
+        });
+        return res.end(content);
+      } catch (error) {
+        if (error.code === 'ENOENT' || error.code === 'EISDIR') return json(res, 404, { error: 'Not found.' });
+        throw error;
+      }
     }
     if (req.method === 'GET' && url.pathname === '/') {
       const html = await readFile(join(ROOT, 'public', 'index.html'));

@@ -13,7 +13,7 @@
 <body>
   <a class="skip-link" href="#mainContent">Skip to main content</a>
   <div class="app-shell">
-    <aside class="sidebar" id="sidebar" aria-label="Main navigation" inert aria-hidden="true">\n      <h2 class="visually-hidden">Workspace navigation</h2>
+    <aside class="sidebar" id="sidebar" aria-label="Main navigation" inert aria-hidden="true">\n      <h2 class="visually-hidden">Main menu</h2>
       <div class="sidebar-brand">
         <div class="brand-mark" aria-hidden="true"><span>u</span></div>
         <div class="brand-copy"><strong>uneXpected</strong></div>
@@ -21,11 +21,11 @@
       </div>
 
       <button class="new-chat-button" id="newChatBtn" type="button">
-        <span class="new-chat-plus" aria-hidden="true">＋</span><span>New chat</span><kbd>Ctrl K</kbd>
+        <span class="new-chat-plus" aria-hidden="true">＋</span><span>New chat</span>
       </button>
 
       <nav class="primary-nav" aria-label="Main menu">
-        <h2 class="nav-label">Workspace</h2>
+        <h2 class="nav-label">Navigation</h2>
         <button class="nav-item" data-view="home" type="button"><span class="nav-icon">⌂</span><span>Overview</span></button>
         <button class="nav-item active" data-view="chat" type="button"><span class="nav-icon">◌</span><span>Conversations</span></button>
         <button class="nav-item" data-view="projects" type="button"><span class="nav-icon">▦</span><span>Projects</span></button>
@@ -38,12 +38,12 @@
 
       <div class="sidebar-history">
         <div class="history-heading"><span>Recent conversations</span></div>
-        <label class="history-search"><span aria-hidden="true">⌕</span><input id="chatSearch" type="search" placeholder="Find a conversation" aria-label="Find a conversation"></label>
+        <label class="history-search"><span aria-hidden="true">⌕</span><input id="chatSearch" type="search" placeholder="Search chats" aria-label="Find a conversation"></label>
         <div class="chat-list" id="chatList"><div class="sidebar-empty">Your conversations will appear here.</div></div>
       </div>
 
       <div class="sidebar-bottom">
-        <div class="connection-row"><span class="connection-dot" id="connectionDot"></span><div><strong id="connectionLabel">Local workspace</strong><small id="connectionDetail">Saved on this device</small></div></div>
+        <div class="connection-row"><span class="connection-dot" id="connectionDot"></span><div><strong id="connectionLabel">On this device</strong><small id="connectionDetail">Private by default</small></div></div>
         <button class="profile-button" id="avatarBtn" type="button"><span class="profile-avatar">•</span><span class="profile-copy"><strong>Personal workspace</strong><small>Local-first · private by default</small></span></button>
       </div>
     </aside>

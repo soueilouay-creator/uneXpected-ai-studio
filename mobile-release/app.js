@@ -114,6 +114,9 @@ function setSelectedModel(mode) {
   const compare = $('#compareBtn');
   compare?.classList.toggle('active', mode === 'both');
   compare?.setAttribute('aria-pressed', String(mode === 'both'));
+  const local = $('#localModeBtn');
+  local?.classList.toggle('active', mode === 'local');
+  local?.setAttribute('aria-pressed', String(mode === 'local'));
   const hint = $('#modelModeHint');
   const hintText = {
     openai: 'ChatGPT will answer this message.',
@@ -393,7 +396,7 @@ async function sendChat(event) {
     return;
   }
 
-  const mode = $('#modelMode').value || selectedModel;
+  const mode = selectedModel;
   const role = selectedContextRole(prompt);
   const skill = selectedSkillId ? skills.find(item => item.id === selectedSkillId) : null;
   $('#profileChip').textContent = skill ? `${role.id} + ${skill.id}` : role.id;
@@ -459,7 +462,7 @@ async function sendChat(event) {
     const response = await fetch(`${gatewayBase()}/orchestrate`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'authorization': 'Bearer ' + sessionToken },
-      body: JSON.stringify({ task: buildTaskEnvelope(prompt, role, context), mode })
+      body: JSON.stringify({ task: buildTaskEnvelope(prompt, role, context), mode: selectedModel })
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(payload.error || `Gateway request failed (${response.status}).`);
@@ -973,6 +976,7 @@ function bindEvents() {
   $('#clearSearchBtn').addEventListener('click', () => { $('#chatSearch').value = ''; refreshChats(); });
   $$('[data-model]').forEach(button => button.addEventListener('click', () => setSelectedModel(button.dataset.model)));
   $('#compareBtn').addEventListener('click', () => setSelectedModel(selectedModel === 'both' ? 'openai' : 'both'));
+  $('#localModeBtn').addEventListener('click', () => setSelectedModel(selectedModel === 'local' ? 'openai' : 'local'));
   $('#modelMode').addEventListener('change', event => setSelectedModel(event.target.value));
   $('#voiceInputBtn').addEventListener('click', startVoiceCapture);
   $('#voiceModeBtn').addEventListener('click', toggleVoiceConversation);

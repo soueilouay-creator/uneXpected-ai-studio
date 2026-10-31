@@ -51,3 +51,20 @@ test('mobile access token remains in memory and never enters local backup settin
   assert.match(app, /sessionToken\s*=\s*event\.target\.value\.trim\(\)/);
   assert.doesNotMatch(app + core + db, /localStorage|sessionStorage/);
 });
+
+
+test('mobile navigation is hidden from focus when closed and manages keyboard focus when open', async () => {
+  const html = await read('mobile/index.html');
+  const app = await read('mobile/app.js');
+  const css = await read('mobile/styles.css');
+  assert.match(html, /class="skip-link" href="#mainContent"/);
+  assert.match(html, /id="sidebar"[^>]*inert[^>]*aria-hidden="true"/);
+  assert.match(html, /id="sidebarBackdrop"[^>]*aria-hidden="true"/);
+  assert.match(app, /sidebar\.setAttribute\('inert', ''\)/);
+  assert.match(app, /sidebar\.removeAttribute\('inert'\)/);
+  assert.match(app, /#sidebarClose'\)\?\.focus\(\)/);
+  assert.match(app, /#sidebarToggle'\)\?\.focus\(\)/);
+  assert.match(app, /event\.shiftKey[\s\S]*last\.focus\(\)/);
+  assert.match(css, /\.nav-item\s*\{\s*min-height:\s*2\.75rem/);
+  assert.match(css, /\.composer-icon-button\s*\{\s*min-width:\s*2\.5rem;\s*min-height:\s*2\.75rem/);
+});

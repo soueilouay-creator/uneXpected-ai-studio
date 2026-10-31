@@ -48,6 +48,6 @@ test('mobile access token remains in memory and never enters local backup settin
   const db = await read('mobile/db.js');
   assert.match(app, /let sessionToken\s*=\s*''/);
   assert.match(app, /authorization:\s*['\"]Bearer/);
-  assert.match(app, /sessionToken=event\.target\.value\.trim\(\)/);
+  assert.match(app, /sessionToken\s*=\s*event\.target\.value\.trim\(\)/);
   assert.doesNotMatch(app + core + db, /localStorage|sessionStorage/);
 });

@@ -9,6 +9,7 @@ RUN base64 -d /tmp/source.tar.gz.b64 > /tmp/source.tar.gz \
  && rm -rf /tmp/ue-source /tmp/ue-extracted /tmp/source.tar.gz /tmp/source.tar.gz.b64
 WORKDIR /app
 COPY server.js /app/server.js
+COPY taaft-integration.mjs /app/taaft-integration.mjs
 EXPOSE 10000
 USER node
 CMD ["node", "server.js"]

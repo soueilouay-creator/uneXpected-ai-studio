@@ -24,12 +24,11 @@ test('phone conversation exposes ChatGPT, Claude and OpenRouter as selectable ne
   const html = await read('mobile/index.html');
   const app = await read('mobile/app.js');
   for (const provider of ['openai', 'claude', 'openrouter']) {
-    assert.match(html, new RegExp('data-model="' + provider + '"'));
-    assert.match(app, new RegExp("['\u0022]" + provider + "['\u0022]"));
+    assert.match(html, new RegExp('<option value="' + provider + '"'));
   }
   assert.match(html, /id="modelMode"/);
   assert.match(app, /selectedModel/);
-  assert.match(app, /mode:\s*selectedModel/);
+  assert.match(app, /const mode = selectedModel;/);
   assert.match(app, /results\.openrouter/);
 });
 

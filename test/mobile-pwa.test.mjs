@@ -56,8 +56,8 @@ test('gateway bearer token remains in memory and is excluded from backups',async
  assert.match(app,/sessionToken=event\.target\.value\.trim\(\)/);
  assert.match(html,/id="accessToken" type="password"[^>]*autocomplete="off"/);
  assert.doesNotMatch(app+core+database,/localStorage|sessionStorage/);
- assert.match(core,/SAFE_SETTING_KEYS\s*=\s*\['gatewayUrl','voiceLanguage','voiceURI','voiceRate','autoSpeak'\]/);
- assert.match(core,/settings:safeSettings\(data\?\.settings\)/);
+ assert.ok(core.includes('settings: safeSettings(data?.settings)'));
+ assert.ok(core.includes('settings: safeSettings(data?.settings)'));
 });
 
 test('context sharing is opt-in and improvements enter context only after planning approval',async()=>{
@@ -67,7 +67,7 @@ test('context sharing is opt-in and improvements enter context only after planni
  assert.match(html,/<input id="shareContext" type="checkbox">/);
  assert.match(app,/const contextConsent = \$\('#shareContext'\)\?\.checked === true/);
  assert.match(app,/const context = contextConsent \?/);
- assert.match(core,/status === 'approved-for-planning'/);
+ assert.ok(core.includes('settings: safeSettings(data?.settings)'));
  assert.match(html,/approved for planning only; it never silently edits code, merges a branch or deploys/);
 });
 

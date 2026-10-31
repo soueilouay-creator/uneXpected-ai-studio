@@ -1031,7 +1031,6 @@ function bindEvents() {
   $('#chatForm').addEventListener('submit', sendChat);
   $('#chatInput').addEventListener('input', resizeComposer);
   $('#chatSearch').addEventListener('input', refreshChats);
-  $('#clearSearchBtn').addEventListener('click', () => { $('#chatSearch').value = ''; refreshChats(); });
   $$('[data-model]').forEach(button => button.addEventListener('click', () => setSelectedModel(button.dataset.model)));
   $('#compareBtn').addEventListener('click', () => setSelectedModel(selectedModel === 'both' ? 'openai' : 'both'));
   $('#localModeBtn').addEventListener('click', () => setSelectedModel(selectedModel === 'local' ? 'openai' : 'local'));

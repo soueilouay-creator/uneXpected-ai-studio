@@ -337,22 +337,14 @@ async function renderConversation() {
   const conversation = await getActiveConversation();
   const pane = $('#messageList');
   $('#chatHeading').textContent = conversation?.title || 'New conversation';
+  $('#deleteChatBtn')?.classList.toggle('hidden', !conversation?.messages?.length);
   if (!conversation || !conversation.messages?.length) {
     pane.innerHTML = `
       <div class="chat-welcome">
         <div class="welcome-symbol"><span>u</span><i></i></div>
         <h2>What are we working on?</h2>
-        <p>Pick a model and send your first message.</p>
-        <div class="prompt-suggestions">
-          <button class="prompt-card" data-prompt="Help me turn an idea into a practical project plan with milestones." type="button"><span class="prompt-icon">↗</span><span><strong>Plan a project</strong></span><span class="prompt-arrow">→</span></button>
-          <button class="prompt-card" data-prompt="A 24 VDC sensor is counting intermittently. Help me troubleshoot it safely, step by step." type="button"><span class="prompt-icon">⌁</span><span><strong>Troubleshoot</strong></span><span class="prompt-arrow">→</span></button>
-        </div>
+        <p>Choose ChatGPT, Claude or OpenRouter, then type below.</p>
       </div>`;
-    pane.querySelectorAll('[data-prompt]').forEach(button => button.addEventListener('click', () => {
-      $('#chatInput').value = button.dataset.prompt;
-      $('#chatInput').focus();
-      resizeComposer();
-    }));
     return;
   }
   pane.innerHTML = conversation.messages.map(renderMessage).join('');

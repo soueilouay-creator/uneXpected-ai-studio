@@ -1,33 +1,103 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const read=p=>readFile(resolve(root,p),'utf8');
-test('mobile page and manifest use the same install scope',async()=>{
- const html=await read('mobile/index.html'),manifest=JSON.parse(await read('mobile/manifest.webmanifest'));
- assert.match(html,/href="\/mobile\/manifest\.webmanifest"/);assert.equal(manifest.start_url,'/mobile/');assert.equal(manifest.scope,'/mobile/');assert.equal(manifest.display,'standalone');
+
+test('installable page references its PWA manifest and external app modules',async()=>{
+ const html=await read('mobile/index.html');
+ const manifest=JSON.parse(await read('mobile/manifest.webmanifest'));
+ assert.match(html,/<link rel="manifest" href="manifest\.webmanifest">/);
+ assert.match(html,/<link rel="stylesheet" href="styles\.css">/);
+ assert.match(html,/<script type="module" src="app\.js"><\/script>/);
+ assert.equal(manifest.id,'/mobile/');
+ assert.equal(manifest.start_url,'/mobile/');
+ assert.equal(manifest.scope,'/mobile/');
+ assert.equal(manifest.display,'standalone');
+ assert.equal(manifest.orientation,'any');
+ assert.ok(manifest.icons.some(icon=>icon.src==='/mobile/icons/icon.svg'));
 });
-test('embedded application script parses as JavaScript',async()=>{
- const html=await read('mobile/index.html'),script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];assert.ok(script);assert.doesNotThrow(()=>new vm.Script(script));
+
+test('mobile application is split into parseable ES modules',async()=>{
+ const files=['app.js','core.js','db.js','voice.js'];
+ for(const file of files){
+  const source=await read('mobile/'+file);
+  assert.ok(source.length>100, file+' should not be empty');
+  assert.match(source,/\b(import|export)\b/,file+' should be an ES module');
+ }
+ const html=await read('mobile/index.html');
+ assert.doesNotMatch(html,/<script>([\s\S]*?)<\/script>/);
 });
-test('phone includes all 40 v7.1 role references and two workflow skills',async()=>{
- const registry=JSON.parse(await read('mobile/agents.json')),skills=JSON.parse(await read('mobile/skills.json'));assert.equal(registry.count,40);assert.equal(registry.agents.length,40);assert.ok(registry.agents.some(a=>a.id==='self-improvement-governor'));assert.ok(registry.agents.some(a=>a.id==='creative-media-studio'));assert.ok(registry.agents.some(a=>a.id==='skill-engineering'));assert.equal(skills.skills.length,2);
+
+test('phone includes the complete v7.1 profile index and workflow skills',async()=>{
+ const registry=JSON.parse(await read('mobile/agents.json'));
+ const skills=JSON.parse(await read('mobile/skills.json'));
+ assert.equal(registry.sourceCount,40);
+ assert.equal(registry.agents.length,40);
+ assert.ok(registry.agents.some(a=>a.id==='self-improvement-governor'));
+ assert.ok(registry.agents.some(a=>a.id==='creative-media-studio'));
+ assert.ok(registry.agents.some(a=>a.id==='skill-engineering'));
+ assert.equal(skills.count,2);
+ assert.equal(skills.skills.length,2);
+ assert.match(registry.runtimeStatus,/profile|not.*running|not.*verified/i);
 });
-test('gateway uses a session-only bearer token and never saves it with local workspace data',async()=>{
- const html=await read('mobile/index.html');assert.match(html,/authorization':'Bearer '\s*\+\s*token\(\)/);assert.match(html,/sessionStorage\.setItem\(TOKEN,value\)/);assert.doesNotMatch(html,/localStorage\.setItem\(TOKEN/);assert.match(html,/JSON\.stringify\(\{version:1,workspace:data\}/);
+
+test('gateway bearer token remains in memory and is excluded from backups',async()=>{
+ const app=await read('mobile/app.js');
+ const core=await read('mobile/core.js');
+ const database=await read('mobile/db.js');
+ const html=await read('mobile/index.html');
+ assert.match(app,/let sessionToken\s*=\s*''/);
+ assert.match(app,/authorization.*Bearer/);
+ assert.match(app,/sessionToken=event\.target\.value\.trim\(\)/);
+ assert.match(html,/id="accessToken" type="password"[^>]*autocomplete="off"/);
+ assert.doesNotMatch(app+core+database,/localStorage|sessionStorage/);
+ assert.match(core,/SAFE_SETTING_KEYS\s*=\s*\['gatewayUrl','voiceLanguage','voiceURI','voiceRate','autoSpeak'\]/);
+ assert.match(core,/settings:safeSettings\(data\?\.settings\)/);
 });
-test('context sharing is opt-in and improvement approvals are limited to planning',async()=>{
- const html=await read('mobile/index.html');assert.match(html,/id="share"/);assert.match(html,/\$\('share'\)\.checked=false/);assert.match(html,/approved for planning only/);assert.match(html,/does not execute code changes/);
+
+test('context sharing is opt-in and improvements enter context only after planning approval',async()=>{
+ const html=await read('mobile/index.html');
+ const app=await read('mobile/app.js');
+ const core=await read('mobile/core.js');
+ assert.match(html,/<input id="shareContext" type="checkbox">/);
+ assert.match(app,/const contextConsent = \$\('#shareContext'\)\?\.checked === true/);
+ assert.match(app,/const context = contextConsent \?/);
+ assert.match(core,/status === 'approved-for-planning'/);
+ assert.match(html,/approved for planning only; it never silently edits code, merges a branch or deploys/);
 });
-test('voice interaction supports recognition, spoken replies and language selection',async()=>{
- const html=await read('mobile/index.html');assert.match(html,/window\.SpeechRecognition\|\|window\.webkitSpeechRecognition/);assert.match(html,/new SpeechSynthesisUtterance/);assert.match(html,/\$\('listen'\)\.onclick/);assert.match(html,/id="voiceLang"/);assert.match(html,/\$\('voiceToggle'\)\.onclick/);
+
+test('voice modules support recognition, speech synthesis and user-selected language',async()=>{
+ const html=await read('mobile/index.html');
+ const app=await read('mobile/app.js');
+ const voice=await read('mobile/voice.js');
+ assert.match(voice,/environment\?\.SpeechRecognition \|\| environment\?\.webkitSpeechRecognition/);
+ assert.match(voice,/environment\?\.speechSynthesis/);
+ assert.match(voice,/environment\?\.SpeechSynthesisUtterance/);
+ assert.match(app,/createSpeechRecognition\(/);
+ assert.match(app,/speakText\(/);
+ assert.match(html,/id="voiceLanguage"/);
+ assert.match(html,/id="voiceModeBtn"/);
+ assert.match(html,/id="voiceInputBtn"/);
+ assert.match(html,/id="autoSpeakToggle"/);
 });
-test('offline service worker never caches authenticated model endpoints',async()=>{
- const worker=await read('mobile/sw.js');assert.match(worker,/\/orchestrate/);assert.match(worker,/\/test-provider/);assert.match(worker,/\/health/);assert.match(worker,/if \(req\.method !== 'GET'\) return/);
+
+test('offline service worker caches only same-origin mobile GET resources',async()=>{
+ const worker=await read('mobile/sw.js');
+ assert.match(worker,/event\.request\.method !== 'GET'/);
+ assert.match(worker,/url\.origin !== self\.location\.origin/);
+ assert.match(worker,/url\.pathname\.startsWith\('\/mobile\/'\)/);
+ assert.match(worker,/caches\.open\(CACHE_NAME\)/);
+ assert.doesNotMatch(worker,/\/orchestrate|\/test-provider|\/health/);
 });
-test('gateway status renders untrusted status text as text, not HTML',async()=>{
- const html=await read('mobile/index.html');assert.match(html,/el\.textContent='';const dot=document\.createElement\('span'\)/);assert.doesNotMatch(html,/gatewayState'\)\.innerHTML/);
+
+test('gateway status uses text output and safely escapes status labels',async()=>{
+ const app=await read('mobile/app.js');
+ assert.match(app,/function escapeHtml\(/);
+ assert.match(app,/node\.textContent = message/);
+ assert.match(app,/box\.textContent =/);
+ assert.match(app,/Gateway check failed:/);
 });

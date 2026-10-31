@@ -13,7 +13,7 @@
 <body>
   <a class="skip-link" href="#mainContent">Skip to main content</a>
   <div class="app-shell">
-    <aside class="sidebar" id="sidebar" aria-label="Main navigation" inert aria-hidden="true">
+    <aside class="sidebar" id="sidebar" aria-label="Main navigation" inert aria-hidden="true">\n      <h2 class="visually-hidden">Workspace navigation</h2>
       <div class="sidebar-brand">
         <div class="brand-mark" aria-hidden="true"><span>u</span></div>
         <div class="brand-copy"><strong>uneXpected</strong><small>Personal workspace</small></div>
@@ -82,7 +82,7 @@
           <article class="overview-stat"><strong id="statMemory">0</strong><span>Memories</span></article>
         </div>
         <div class="section-heading"><div><h2>Recent activity</h2></div><button class="text-link" data-go="chat" type="button">All conversations ↗</button></div>
-        <div class="recent-list" id="recentList"><div class="empty-inline"><span>◌</span><strong>No recent work</strong><p>Start a chat to see it here.</p></div></div>
+        <div class="recent-list" id="recentList"><div class="empty-inline"><span>◌</span><strong>No recent work yet</strong></div></div>
       </section>
 
       <section class="view chat-view active" id="view-chat">
@@ -157,7 +157,7 @@
       </section>
 
       <section class="view standard-view" id="view-agents">
-        <div class="view-heading"><div><h1>Profiles</h1><p>Choose a workflow profile to guide your next request.</p></div><span class="count-pill" id="agentCount">40 profiles</span></div>
+        <div class="view-heading"><div><h1>Profiles</h1><p>Choose a profile for your next request.</p></div><span class="count-pill" id="agentCount">40 profiles</span></div>
         <div class="warning-note"><strong>Profile library, not independent running agents</strong><p>These are workflow references. They do not prove that 40 separate agents are executing in the background.</p></div>
         <div class="profile-tabs"><button id="showAgentsBtn" class="profile-tab active" type="button">40 Profiles</button><button id="showSkillsBtn" class="profile-tab" type="button">2 Skills</button></div>
         <label class="agent-search"><span>⌕</span><input id="agentSearch" type="search" placeholder="Search workflows…" aria-label="Search profiles"></label>
@@ -165,10 +165,10 @@
       </section>
 
       <section class="view standard-view" id="view-settings">
-        <div class="view-heading"><div><h1>Settings</h1><p>Connections, voice and local data.</p></div></div>
+        <div class="view-heading"><div><h1>Settings</h1><p>Manage connection, voice and data.</p></div></div>
         <div class="settings-layout">
           <section class="settings-section">
-            <div class="settings-section-head"><span class="settings-section-icon">◈</span><div><h2>AI connection</h2><p>Connect the phone to your chosen models.</p></div><span id="gatewayStatus" class="status-tag">Not checked</span></div>
+            <div class="settings-section-head"><span class="settings-section-icon">◈</span><div><h2>AI connection</h2><p>Connect to your models.</p></div><span id="gatewayStatus" class="status-tag">Not checked</span></div>
             <div class="settings-grid">
               <label class="form-field"><span>AI server address</span><input id="gatewayUrl" type="url" placeholder="Leave empty to use this app's host"></label>
               <label class="form-field"><span>App access token</span><input id="accessToken" type="password" autocomplete="off" placeholder="Paste your access token"></label>
@@ -180,7 +180,7 @@
           </section>
 
           <section class="settings-section">
-            <div class="settings-section-head"><span class="settings-section-icon">◖</span><div><h2>Voice & conversation</h2><p>Choose a language, voice and speaking speed.</p></div></div>
+            <div class="settings-section-head"><span class="settings-section-icon">◖</span><div><h2>Voice & conversation</h2><p>Choose your speaking voice.</p></div></div>
             <div class="settings-grid">
               <label class="form-field"><span>Speech language</span><select id="voiceLanguage"><option value="en-US">English (US)</option><option value="fr-FR">Français</option><option value="ar-TN">العربية (تونس)</option><option value="ar-SA">العربية (الفصحى)</option></select></label>
               <label class="form-field"><span>Speaking voice</span><select id="voiceSelect"><option value="">Device default voice</option></select></label>

@@ -69,19 +69,68 @@ function setConnection(text, tone = 'local', detail = '') {
   if ($('#connectionDetail')) $('#connectionDetail').textContent = detail || (tone === 'online' ? 'Gateway reachable' : tone === 'warning' ? 'Check connection settings' : 'Saved on this device');
 }
 
+function isMobileNavigation() {
+  return window.matchMedia('(max-width: 760px)').matches;
+}
+
+function syncSidebarForViewport() {
+  const sidebar = $('#sidebar');
+  const backdrop = $('#sidebarBackdrop');
+  const toggle = $('#sidebarToggle');
+  if (!sidebar) return;
+  if (!isMobileNavigation()) {
+    sidebar.classList.remove('open');
+    sidebar.removeAttribute('inert');
+    sidebar.removeAttribute('aria-hidden');
+    backdrop?.classList.remove('open');
+    backdrop?.setAttribute('aria-hidden', 'true');
+    toggle?.setAttribute('aria-expanded', 'false');
+    $('#mainContent')?.removeAttribute('inert');
+    document.body.classList.remove('drawer-open');
+  } else if (!sidebar.classList.contains('open')) {
+    sidebar.setAttribute('inert', '');
+    sidebar.setAttribute('aria-hidden', 'true');
+  }
+}
+
 function closeSidebar() {
-  $('#sidebar')?.classList.remove('open');
+  const sidebar = $('#sidebar');
+  const wasOpen = sidebar?.classList.contains('open') === true;
+  sidebar?.classList.remove('open');
   $('#sidebarBackdrop')?.classList.remove('open');
+  $('#sidebarBackdrop')?.setAttribute('aria-hidden', 'true');
   $('#sidebarToggle')?.setAttribute('aria-expanded', 'false');
+  $('#mainContent')?.removeAttribute('inert');
   document.body.classList.remove('drawer-open');
+  if (isMobileNavigation()) {
+    sidebar?.setAttribute('inert', '');
+    sidebar?.setAttribute('aria-hidden', 'true');
+    if (wasOpen) $('#sidebarToggle')?.focus();
+  }
 }
 
 function toggleSidebar(force) {
-  const open = typeof force === 'boolean' ? force : !$('#sidebar')?.classList.contains('open');
-  $('#sidebar')?.classList.toggle('open', open);
-  $('#sidebarBackdrop')?.classList.toggle('open', open);
-  $('#sidebarToggle')?.setAttribute('aria-expanded', String(open));
-  document.body.classList.toggle('drawer-open', open);
+  const sidebar = $('#sidebar');
+  const backdrop = $('#sidebarBackdrop');
+  const open = typeof force === 'boolean' ? force : !sidebar?.classList.contains('open');
+  if (!sidebar) return;
+  if (!isMobileNavigation()) {
+    syncSidebarForViewport();
+    return;
+  }
+  if (open) {
+    sidebar.removeAttribute('inert');
+    sidebar.setAttribute('aria-hidden', 'false');
+    sidebar.classList.add('open');
+    backdrop?.classList.add('open');
+    backdrop?.setAttribute('aria-hidden', 'false');
+    $('#mainContent')?.setAttribute('inert', '');
+    $('#sidebarToggle')?.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('drawer-open');
+    $('#sidebarClose')?.focus();
+  } else {
+    closeSidebar();
+  }
 }
 
 function showView(name) {
@@ -950,6 +999,16 @@ function bindEvents() {
   $('#sidebarToggle').addEventListener('click', () => toggleSidebar());
   $('#sidebarClose').addEventListener('click', closeSidebar);
   $('#sidebarBackdrop').addEventListener('click', closeSidebar);
+  $('#sidebar').addEventListener('keydown', event => {
+    if (event.key !== 'Tab' || !isMobileNavigation() || !$('#sidebar').classList.contains('open')) return;
+    const tabbable = [...$('#sidebar').querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')];
+    if (!tabbable.length) { event.preventDefault(); $('#sidebarClose').focus(); return; }
+    const first = tabbable[0];
+    const last = tabbable[tabbable.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  });
+  window.addEventListener('resize', syncSidebarForViewport);
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') closeSidebar();
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
@@ -1026,6 +1085,7 @@ async function boot() {
   appSettings = defaultAppSettings(settings, navigator.language);
   if (!settings) await store.put('settings', appSettings);
   $('#todayLabel').textContent = new Intl.DateTimeFormat(undefined, { weekday: 'short', month: 'short', day: 'numeric' }).format(new Date());
+  syncSidebarForViewport();
   bindEvents();
   setSelectedModel('openai');
   updateProfileChip();

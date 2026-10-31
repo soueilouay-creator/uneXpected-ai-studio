@@ -18,7 +18,8 @@ test('installable page references its PWA manifest and external app modules',asy
  assert.equal(manifest.scope,'/mobile/');
  assert.equal(manifest.display,'standalone');
  assert.equal(manifest.orientation,'any');
- assert.ok(manifest.icons.some(icon=>icon.src==='/mobile/icons/icon.svg'));
+ assert.ok(manifest.icons.some(icon=>icon.src==='icons/icon-192.png' && icon.sizes==='192x192'));
+ assert.ok(manifest.icons.some(icon=>icon.src==='icons/icon-512.png' && icon.sizes==='512x512'));
 });
 
 test('mobile application is split into parseable ES modules',async()=>{

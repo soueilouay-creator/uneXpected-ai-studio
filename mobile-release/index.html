@@ -59,7 +59,7 @@
 
       <section class="view home-view" id="view-home">
         <div class="view-heading">
-          <div><h1>Your work. Your intelligence.</h1><p>Conversations, projects and ideas in one private place.</p></div>
+          <div><h1>Your work. Your intelligence.</h1><p>Conversations, projects and ideas in one place.</p></div>
           <div class="date-label" id="todayLabel"></div>
         </div>
         <div class="home-hero">
@@ -82,8 +82,7 @@
           <article class="overview-stat"><strong id="statMemory">0</strong><span>Memories</span></article>
         </div>
         <div class="section-heading"><div><h2>Recent activity</h2></div><button class="text-link" data-go="chat" type="button">All conversations ↗</button></div>
-        <div class="recent-list" id="recentList"><div class="empty-inline"><span>◌</span><strong>Nothing here yet</strong><p>Start a conversation and your recent work will appear here.</p></div></div>
-        <div class="privacy-note"><span class="privacy-mark">◇</span><div><strong>Private by default</strong><p>Your work stays on this device until you choose to share it with a model.</p></div></div>
+        <div class="recent-list" id="recentList"><div class="empty-inline"><span>◌</span><strong>No recent work</strong><p>Start a chat to see it here.</p></div></div>
       </section>
 
       <section class="view chat-view active" id="view-chat">
@@ -97,11 +96,10 @@
             <div class="chat-welcome">
               <div class="welcome-symbol"><span>u</span><i></i></div>
               <h2>What are we working on?</h2>
-              <p>Ask a question, shape an idea or solve a problem. Pick your model below.</p>
+              <p>Pick a model and send your first message.</p>
               <div class="prompt-suggestions">
                 <button class="prompt-card" data-prompt="Help me turn an idea into a practical project plan with milestones." type="button"><span class="prompt-icon">↗</span><span><strong>Plan a project</strong></span><span class="prompt-arrow">→</span></button>
                 <button class="prompt-card" data-prompt="A 24 VDC sensor is counting intermittently. Help me troubleshoot it safely, step by step." type="button"><span class="prompt-icon">⌁</span><span><strong>Troubleshoot</strong></span><span class="prompt-arrow">→</span></button>
-                <button class="prompt-card" data-prompt="Help me prioritize my sales pipeline and choose the next follow-up actions." type="button"><span class="prompt-icon">◫</span><span><strong>Organize sales</strong></span><span class="prompt-arrow">→</span></button>
               </div>
             </div>
           </div>
@@ -173,7 +171,7 @@
             <div class="settings-section-head"><span class="settings-section-icon">◈</span><div><h2>AI connection</h2><p>Connect the phone to your chosen models.</p></div><span id="gatewayStatus" class="status-tag">Not checked</span></div>
             <div class="settings-grid">
               <label class="form-field"><span>AI server address</span><input id="gatewayUrl" type="url" placeholder="Leave empty to use this app's host"></label>
-              <label class="form-field"><span>App access token</span><input id="accessToken" type="password" autocomplete="off" placeholder="Enter for this session only"></label>
+              <label class="form-field"><span>App access token</span><input id="accessToken" type="password" autocomplete="off" placeholder="Paste your access token"></label>
             </div>
             <p class="field-note">The access token stays in memory only. Provider keys stay on the server.</p>
             <div class="button-row"><button class="button button-secondary" id="checkGatewayBtn" type="button">Check gateway</button><label class="test-provider-label">Test provider<select id="testProviderSelect"><option value="openai">ChatGPT</option><option value="anthropic">Claude</option><option value="openrouter">OpenRouter</option></select></label><button class="button button-primary" id="testProviderBtn" type="button">Run real test</button></div>

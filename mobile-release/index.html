@@ -16,7 +16,7 @@
     <aside class="sidebar" id="sidebar" aria-label="Main navigation" inert aria-hidden="true">
       <div class="sidebar-brand">
         <div class="brand-mark" aria-hidden="true"><span>u</span></div>
-        <div class="brand-copy"><strong>uneXpected</strong><small>PERSONAL AI WORKSPACE</small></div>
+        <div class="brand-copy"><strong>uneXpected</strong><small>Personal workspace</small></div>
         <button class="icon-button sidebar-close" id="sidebarClose" type="button" aria-label="Close navigation">×</button>
       </div>
 
@@ -25,26 +25,26 @@
       </button>
 
       <nav class="primary-nav" aria-label="Workspace">
-        <div class="nav-label">WORKSPACE</div>
+        <div class="nav-label">Workspace</div>
         <button class="nav-item" data-view="home" type="button"><span class="nav-icon">⌂</span><span>Overview</span></button>
         <button class="nav-item active" data-view="chat" type="button"><span class="nav-icon">◌</span><span>Conversations</span></button>
         <button class="nav-item" data-view="projects" type="button"><span class="nav-icon">▦</span><span>Projects</span></button>
         <button class="nav-item" data-view="memory" type="button"><span class="nav-icon">⌘</span><span>Memory</span></button>
-        <div class="nav-label nav-label-spaced">BUILD & AUTOMATE</div>
-        <button class="nav-item" data-view="agents" type="button"><span class="nav-icon">✳</span><span>Agent profiles</span><span class="nav-count">40</span></button>
-        <div class="nav-label nav-label-spaced">PREFERENCES</div>
+        <div class="nav-label nav-label-spaced">Build & automate</div>
+        <button class="nav-item" data-view="agents" type="button"><span class="nav-icon">✳</span><span>Profiles</span><span class="nav-count">40</span></button>
+        <div class="nav-label nav-label-spaced">Preferences</div>
         <button class="nav-item" data-view="settings" type="button"><span class="nav-icon">⚙</span><span>Control center</span></button>
       </nav>
 
       <div class="sidebar-history">
-        <div class="history-heading"><span>RECENT CONVERSATIONS</span><button class="text-icon" id="clearSearchBtn" type="button" aria-label="Clear conversation search">↻</button></div>
+        <div class="history-heading"><span>Recent conversations</span><button class="text-icon" id="clearSearchBtn" type="button" aria-label="Clear conversation search">↻</button></div>
         <label class="history-search"><span aria-hidden="true">⌕</span><input id="chatSearch" type="search" placeholder="Find a conversation" aria-label="Find a conversation"></label>
         <div class="chat-list" id="chatList"><div class="sidebar-empty">Your conversations will appear here.</div></div>
       </div>
 
       <div class="sidebar-bottom">
         <div class="connection-row"><span class="connection-dot" id="connectionDot"></span><div><strong id="connectionLabel">Local workspace</strong><small id="connectionDetail">Saved on this device</small></div></div>
-        <button class="profile-button" id="avatarBtn" type="button"><span class="profile-avatar">UX</span><span class="profile-copy"><strong>Personal workspace</strong><small>Local-first · private by default</small></span><span class="profile-more">•••</span></button>
+        <button class="profile-button" id="avatarBtn" type="button"><span class="profile-avatar">•</span><span class="profile-copy"><strong>Personal workspace</strong><small>Local-first · private by default</small></span><span class="profile-more">•••</span></button>
       </div>
     </aside>
 
@@ -67,7 +67,7 @@
             <div class="hero-kicker"><span class="hero-kicker-dot"></span> THREE MODELS. ONE WORKSPACE.</div>
             <h2>Your ideas deserve<br>more than one perspective.</h2>
             <p>Move between ChatGPT, Claude and OpenRouter without losing the thread. Your projects and notes stay on this device.</p>
-            <div class="hero-actions"><button class="button button-primary" data-go="chat" type="button">Start a conversation <span>↗</span></button><button class="button button-quiet" data-go="projects" type="button">Explore projects</button></div>
+            <div class="hero-actions"><button class="button button-primary" data-go="chat" type="button">Start a conversation <span>↗</span></button><button class="button button-quiet" data-go="projects" type="button">View projects</button></div>
           </div>
           <div class="hero-art" aria-hidden="true">
             <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="orbit orbit-three"></div>
@@ -78,19 +78,19 @@
           </div>
         </div>
         <div class="overview-grid">
-          <article class="overview-stat"><div class="stat-top"><span>Projects</span><span class="stat-icon">▦</span></div><strong id="statProjects">0</strong><small>Work you are shaping</small></article>
-          <article class="overview-stat"><div class="stat-top"><span>Conversations</span><span class="stat-icon">◌</span></div><strong id="statChats">0</strong><small>Ideas and decisions in motion</small></article>
-          <article class="overview-stat"><div class="stat-top"><span>Saved memories</span><span class="stat-icon">⌘</span></div><strong id="statMemory">0</strong><small>Context you chose to keep</small></article>
+          <article class="overview-stat"><strong id="statProjects">0</strong><span>Projects</span></article>
+          <article class="overview-stat"><strong id="statChats">0</strong><span>Conversations</span></article>
+          <article class="overview-stat"><strong id="statMemory">0</strong><span>Memories</span></article>
         </div>
-        <div class="section-heading"><div><div class="eyebrow">PICK UP WHERE YOU LEFT OFF</div><h2>Recent activity</h2></div><button class="text-link" data-go="chat" type="button">All conversations ↗</button></div>
+        <div class="section-heading"><div><h2>Recent activity</h2></div><button class="text-link" data-go="chat" type="button">All conversations ↗</button></div>
         <div class="recent-list" id="recentList"><div class="empty-inline"><span>◌</span><strong>Nothing here yet</strong><p>Start a conversation and your recent work will appear here.</p></div></div>
-        <div class="privacy-note"><span class="privacy-mark">◇</span><div><strong>Private by default</strong><p>Your workspace data stays in this browser profile. Remote models only receive a request when you choose a model and send a message.</p></div></div>
+        <div class="privacy-note"><span class="privacy-mark">◇</span><div><strong>Private by default</strong><p>Your work stays on this device until you choose to share it with a model.</p></div></div>
       </section>
 
       <section class="view chat-view active" id="view-chat">
         <div class="chat-page-heading">
-          <div class="chat-title-group"><div class="eyebrow">YOUR THINKING SPACE</div><h1 id="chatHeading">New conversation</h1><p id="routeCaption">Choose a model for your next message.</p></div>
-          <div class="chat-head-actions"><span class="secure-label"><span class="secure-dot"></span> Private workspace</span><button class="icon-button" id="deleteChatBtn" type="button" aria-label="Delete conversation" title="Delete conversation">⌫</button></div>
+          <div class="chat-title-group"><h1 id="chatHeading">New conversation</h1><p id="routeCaption">Next message · ChatGPT</p></div>
+          <div class="chat-head-actions"><button class="icon-button" id="deleteChatBtn" type="button" aria-label="Delete conversation" title="Delete conversation">⌫</button></div>
         </div>
 
         <div class="chat-workspace">
@@ -101,9 +101,9 @@
               <h2>What are we working on?</h2>
               <p>Start with an idea, a question or a problem. Choose who answers each time you send a message.</p>
               <div class="prompt-suggestions">
-                <button class="prompt-card" data-prompt="Help me turn an idea into a practical project plan with milestones." type="button"><span class="prompt-icon">↗</span><span><strong>Plan a project</strong><small>From first idea to next milestone</small></span><span class="prompt-arrow">→</span></button>
-                <button class="prompt-card" data-prompt="A 24 VDC sensor is counting intermittently. Help me troubleshoot it safely, step by step." type="button"><span class="prompt-icon">⌁</span><span><strong>Solve a technical problem</strong><small>Investigate with a clear method</small></span><span class="prompt-arrow">→</span></button>
-                <button class="prompt-card" data-prompt="Help me prioritize my sales pipeline and choose the next follow-up actions." type="button"><span class="prompt-icon">◫</span><span><strong>Organize sales work</strong><small>Focus on the next useful action</small></span><span class="prompt-arrow">→</span></button>
+                <button class="prompt-card" data-prompt="Help me turn an idea into a practical project plan with milestones." type="button"><span class="prompt-icon">↗</span><span><strong>Plan a project</strong></span><span class="prompt-arrow">→</span></button>
+                <button class="prompt-card" data-prompt="A 24 VDC sensor is counting intermittently. Help me troubleshoot it safely, step by step." type="button"><span class="prompt-icon">⌁</span><span><strong>Troubleshoot</strong></span><span class="prompt-arrow">→</span></button>
+                <button class="prompt-card" data-prompt="Help me prioritize my sales pipeline and choose the next follow-up actions." type="button"><span class="prompt-icon">◫</span><span><strong>Organize sales</strong></span><span class="prompt-arrow">→</span></button>
               </div>
             </div>
           </div>
@@ -111,8 +111,8 @@
           <div class="composer-dock">
             <div class="composer-shell">
               <div class="composer-topline">
-                <div class="model-picker-label"><span class="model-picker-dot"></span><span>RESPOND WITH</span></div>
-                <div class="composer-tools"><label class="context-consent" title="Include recent conversation, saved memories and approved improvement notes"><input id="shareContext" type="checkbox"><span>Share workspace context</span></label><span class="profile-chip" id="profileChip">research-scout</span></div>
+                <div class="model-picker-label"><span class="model-picker-dot"></span><span>Choose a model</span></div>
+                <div class="composer-tools"><label class="context-consent" title="Include recent conversation, saved memories and approved improvement notes"><input id="shareContext" type="checkbox"><span>Include saved context</span></label><span class="profile-chip" id="profileChip">research-scout</span></div>
               </div>
 
               <div class="provider-switcher" role="group" aria-label="Choose the model for your next message">
@@ -129,7 +129,7 @@
 
               <form id="chatForm" class="message-composer">
                 <label class="sr-only" for="chatInput">Message uneXpected</label>
-                <textarea id="chatInput" rows="1" maxlength="8500" placeholder="Message uneXpected…" aria-label="Message uneXpected"></textarea>
+                <textarea id="chatInput" rows="1" maxlength="8500" placeholder="Message…" aria-label="Message uneXpected"></textarea>
                 <div class="composer-footer">
                   <div class="composer-hints"><span class="composer-hint"><span class="hint-dot"></span><span id="voiceStatus">Saved on this device</span></span><span class="model-mode-hint" id="modelModeHint">ChatGPT will answer this message.</span></div>
                   <div class="composer-actions">
@@ -141,27 +141,27 @@
                 </div>
               </form>
             </div>
-            <p class="composer-disclaimer">Model responses can be wrong. Check important information before acting.</p>
+            <p class="composer-disclaimer">Check important answers before acting.</p>
           </div>
         </div>
       </section>
 
       <section class="view standard-view" id="view-projects">
-        <div class="view-heading"><div><div class="eyebrow">YOUR WORK IN MOTION</div><h1>Projects</h1><p>Keep goals, tasks and decisions together.</p></div><button class="button button-primary" id="addProjectBtn" type="button">＋ New project</button></div>
+        <div class="view-heading"><div><h1>Projects</h1><p>Keep goals, tasks and decisions together.</p></div><button class="button button-primary" id="addProjectBtn" type="button">＋ New project</button></div>
         <div class="project-grid" id="projectGrid"></div>
         <div class="empty-state hidden" id="projectEmpty"><span class="empty-state-icon">▦</span><h2>Create your first project</h2><p>Bring the important parts of a goal into one practical workspace.</p><button class="button button-primary" id="emptyProjectBtn" type="button">Create project</button></div>
         <div class="project-detail hidden" id="projectDetail"></div>
       </section>
 
       <section class="view standard-view" id="view-memory">
-        <div class="view-heading"><div><div class="eyebrow">PERSONAL KNOWLEDGE</div><h1>Memory</h1><p>Save the context you want uneXpected to keep.</p></div><button class="button button-primary" id="addMemoryBtn" type="button">＋ Add note</button></div>
+        <div class="view-heading"><div><h1>Memory</h1><p>Save the context you want uneXpected to keep.</p></div><button class="button button-primary" id="addMemoryBtn" type="button">＋ Add note</button></div>
         <div class="memory-intro"><span class="memory-symbol">⌘</span><div><strong>Your knowledge stays yours.</strong><p>Notes stay on this device. They are not included in model requests unless you opt in for that message.</p></div></div>
         <div class="memory-list" id="memoryList"></div>
         <div class="empty-state hidden" id="memoryEmpty"><span class="empty-state-icon">◇</span><h2>No saved memories yet</h2><p>Add useful decisions, preferences or project facts to your workspace.</p></div>
       </section>
 
       <section class="view standard-view" id="view-agents">
-        <div class="view-heading"><div><div class="eyebrow">UNE​XPECTED WORKFLOW LIBRARY</div><h1>Agent profiles</h1><p>Choose a workflow profile to guide your next request.</p></div><span class="count-pill" id="agentCount">40 profiles</span></div>
+        <div class="view-heading"><div><h1>Profiles</h1><p>Choose a workflow profile to guide your next request.</p></div><span class="count-pill" id="agentCount">40 profiles</span></div>
         <div class="warning-note"><strong>Profile library, not independent running agents</strong><p>These are workflow references. They do not prove that 40 separate agents are executing in the background.</p></div>
         <div class="profile-tabs"><button id="showAgentsBtn" class="profile-tab active" type="button">40 Profiles</button><button id="showSkillsBtn" class="profile-tab" type="button">2 Skills</button></div>
         <label class="agent-search"><span>⌕</span><input id="agentSearch" type="search" placeholder="Search workflows…" aria-label="Search profiles"></label>
@@ -169,22 +169,22 @@
       </section>
 
       <section class="view standard-view" id="view-settings">
-        <div class="view-heading"><div><div class="eyebrow">YOUR DEVICE · YOUR RULES</div><h1>Control center</h1><p>Manage model access, voice and local workspace data.</p></div></div>
+        <div class="view-heading"><div><h1>Settings</h1><p>Connections, voice and local data.</p></div></div>
         <div class="settings-layout">
           <section class="settings-section">
-            <div class="settings-section-head"><span class="settings-section-icon">◈</span><div><h2>AI gateway</h2><p>Connect to your existing uneXpected service.</p></div><span id="gatewayStatus" class="status-tag">Not checked</span></div>
+            <div class="settings-section-head"><span class="settings-section-icon">◈</span><div><h2>AI connection</h2><p>Connect the phone to your chosen models.</p></div><span id="gatewayStatus" class="status-tag">Not checked</span></div>
             <div class="settings-grid">
-              <label class="form-field"><span>Gateway address</span><input id="gatewayUrl" type="url" placeholder="Leave empty to use this app's host"></label>
-              <label class="form-field"><span>Server access token</span><input id="accessToken" type="password" autocomplete="off" placeholder="Enter for this session only"></label>
+              <label class="form-field"><span>AI server address</span><input id="gatewayUrl" type="url" placeholder="Leave empty to use this app's host"></label>
+              <label class="form-field"><span>App access token</span><input id="accessToken" type="password" autocomplete="off" placeholder="Enter for this session only"></label>
             </div>
-            <p class="field-note">The access token stays in memory only and is not saved in backups. Provider API keys stay on the server; never paste them here.</p>
+            <p class="field-note">The access token stays in memory only. Provider keys stay on the server.</p>
             <div class="button-row"><button class="button button-secondary" id="checkGatewayBtn" type="button">Check gateway</button><label class="test-provider-label">Test provider<select id="testProviderSelect"><option value="openai">ChatGPT</option><option value="anthropic">Claude</option><option value="openrouter">OpenRouter</option></select></label><button class="button button-primary" id="testProviderBtn" type="button">Run real test</button></div>
             <div class="result-box hidden" id="gatewayDetails" role="status" aria-live="polite"></div>
             <div class="provider-health-list" id="providerHealthList"><span>ChatGPT · not checked</span><span>Claude · not checked</span><span>OpenRouter · not checked</span></div>
           </section>
 
           <section class="settings-section">
-            <div class="settings-section-head"><span class="settings-section-icon">◖</span><div><h2>Voice & conversation</h2><p>Choose how your device hears you and reads replies.</p></div></div>
+            <div class="settings-section-head"><span class="settings-section-icon">◖</span><div><h2>Voice & conversation</h2><p>Choose a language, voice and speaking speed.</p></div></div>
             <div class="settings-grid">
               <label class="form-field"><span>Speech language</span><select id="voiceLanguage"><option value="en-US">English (US)</option><option value="fr-FR">Français</option><option value="ar-TN">العربية (تونس)</option><option value="ar-SA">العربية (الفصحى)</option></select></label>
               <label class="form-field"><span>Speaking voice</span><select id="voiceSelect"><option value="">Device default voice</option></select></label>
@@ -196,7 +196,7 @@
           </section>
 
           <section class="settings-section">
-            <div class="settings-section-head"><span class="settings-section-icon">▤</span><div><h2>Local data & backups</h2><p>Your personal workspace data belongs to you.</p></div></div>
+            <div class="settings-section-head"><span class="settings-section-icon">▤</span><div><h2>Local data & backups</h2><p>Export or restore your workspace.</p></div></div>
             <div class="data-status-row"><span>Browser database</span><strong id="storageState">Checking…</strong></div>
             <div class="data-status-row"><span>Persistent storage</span><strong id="persistState">Checking…</strong></div>
             <div class="button-row"><button class="button button-secondary" id="exportBtn" type="button">Export backup</button><button class="button button-secondary" id="importBtn" type="button">Restore backup</button><input type="file" id="importFile" accept="application/json,.json" class="hidden"></div>
@@ -204,8 +204,8 @@
           </section>
 
           <section class="settings-section">
-            <div class="settings-section-head"><span class="settings-section-icon">✦</span><div><h2>Improve uneXpected with me</h2><p>Turn feedback into measured improvement proposals.</p></div><button class="button button-secondary button-small" id="addImprovementBtn" type="button">＋ Add idea</button></div>
-            <p class="field-note">In chat, write “Improve uneXpected: …” to save a proposal locally, or “List improvements” to review it. Marking an idea approved means approved for planning only; it never silently edits code, merges a branch or deploys.</p>
+            <div class="settings-section-head"><span class="settings-section-icon">✦</span><div><h2>Improve uneXpected</h2><p>Save ideas for measured upgrades.</p></div><button class="button button-secondary button-small" id="addImprovementBtn" type="button">＋ Add idea</button></div>
+            <p class="field-note">Approved ideas are for planning only; they do not change code or deploy automatically.</p>
             <div class="improvement-list" id="improvementList"></div>
             <div class="empty-inline" id="improvementEmpty"><strong>No improvement proposals yet</strong><p>Save feedback and measurable ideas as we work together.</p></div>
           </section>

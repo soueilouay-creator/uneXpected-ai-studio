@@ -68,3 +68,30 @@ test('mobile navigation is hidden from focus when closed and manages keyboard fo
   assert.match(css, /\.nav-item\s*\{\s*min-height:\s*2\.75rem/);
   assert.match(css, /\.composer-icon-button\s*\{\s*min-width:\s*2\.5rem;\s*min-height:\s*2\.75rem/);
 });
+
+
+test('phone composer keeps the three primary providers separate from secondary modes and tools', async () => {
+  const html = await read('mobile/index.html');
+  const primary = html.match(/<div class="provider-switcher"[\\s\\S]*?<\\/div>/)?.[0] || '';
+  const advanced = html.match(/<details class="composer-advanced"[\\s\\S]*?<\\/details>/)?.[0] || '';
+  for (const provider of ['openai', 'claude', 'openrouter']) {
+    assert.match(primary, new RegExp('data-model="' + provider + '"'));
+  }
+  assert.doesNotMatch(primary, /compareBtn|localModeBtn/);
+  assert.match(advanced, /id="compareBtn"/);
+  assert.match(advanced, /id="localModeBtn"/);
+  assert.match(advanced, /id="shareContext"/);
+  assert.match(advanced, /id="voiceModeBtn"/);
+  assert.match(advanced, /id="speakLastBtn"/);
+});
+
+test('phone source contains no literal newline escapes and uses readable app-scale typography', async () => {
+  const html = await read('mobile/index.html');
+  const css = await read('mobile/styles.css');
+  assert.doesNotMatch(html, /\\\\n/);
+  assert.doesNotMatch(css, /\\\\n/);
+  assert.match(css, /body\\s*\\{[^}]*font-size:\\s*1rem/s);
+  assert.match(css, /@media\\s*\\(max-width:\\s*760px\\)/);
+  assert.match(css, /message-composer textarea[^}]*font-size:\\s*1rem/s);
+  assert.match(css, /send-button[^}]*min-width:\\s*2\\.75rem/s);
+});

@@ -108,7 +108,7 @@ test('empty phone conversation has one clear next step without unused delete or 
   assert.doesNotMatch(app, /data-prompt=/);
   assert.match(app, /deleteChatBtn'\)\?\.classList\.toggle\('hidden', !conversation\?\.messages\?\.length\)/);
   assert.match(app, /Start a conversation/);
-  assert.match(app, /Type below to begin\./);
+  assert.match(app, /Type a message\./);
   assert.match(html, /class="icon-button hidden" id="deleteChatBtn"/);
   assert.match(html, /<summary>More options<\/summary>/);
 });

@@ -96,3 +96,14 @@ test('phone source contains no literal newline escapes and uses readable app-sca
   assert.match(css, /message-composer textarea[^}]*font-size:\s*1rem/s);
   assert.match(css, /send-button[^}]*min-width:\s*2\.75rem/s);
 });
+
+
+test('empty phone conversation has one clear next step without unused delete or prompt-card clutter', async () => {
+  const html = await read('mobile/index.html');
+  const app = await read('mobile/app.js');
+  assert.doesNotMatch(html, /data-prompt=/);
+  assert.doesNotMatch(app, /data-prompt=/);
+  assert.match(app, /deleteChatBtn'\)\?\.classList\.toggle\('hidden', !conversation\?\.messages\?\.length\)/);
+  assert.match(app, /Choose ChatGPT, Claude or OpenRouter, then type below\./);
+  assert.match(html, /<summary>More options<\/summary>/);
+});

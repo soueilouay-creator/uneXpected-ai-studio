@@ -342,8 +342,8 @@ async function renderConversation() {
     pane.innerHTML = `
       <div class="chat-welcome">
         <div class="welcome-symbol"><span>u</span><i></i></div>
-        <h2>What are we working on?</h2>
-        <p>Choose ChatGPT, Claude or OpenRouter, then type below.</p>
+        <h2>Start a conversation</h2>
+        <p>Type a message.</p>
       </div>`;
     return;
   }

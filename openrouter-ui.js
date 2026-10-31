@@ -40,8 +40,11 @@
       content.append(title, status);
       step.append(number, content);
       claudeStep.after(step);
+      const orchestratorNumber = document.getElementById('serverStatus')?.closest('.step')?.querySelector('.num');
+      if (orchestratorNumber) orchestratorNumber.textContent = '4';
     }
 
+    button.style.flex = '1 1 160px';
     document.getElementById('saveToken')?.addEventListener('click', () => {
       const value = accessInput.value.trim();
       if (value) {

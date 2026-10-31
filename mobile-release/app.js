@@ -168,11 +168,11 @@ function setSelectedModel(mode) {
   local?.setAttribute('aria-pressed', String(mode === 'local'));
   const hint = $('#modelModeHint');
   const hintText = {
-    openai: 'ChatGPT will answer this message.',
-    claude: 'Claude will answer this message.',
-    openrouter: 'OpenRouter will answer directly using an available free model.',
-    both: 'ChatGPT and Claude will respond; uneXpected will synthesize when possible.',
-    local: 'Local tools only. No generative model request will be sent.'
+    openai: 'ChatGPT selected.',
+    claude: 'Claude selected.',
+    openrouter: 'OpenRouter selected.',
+    both: 'Compare ChatGPT + Claude.',
+    local: 'Local tools only.'
   };
   if (hint) hint.textContent = hintText[mode] || '';
   const route = $('#routeCaption');

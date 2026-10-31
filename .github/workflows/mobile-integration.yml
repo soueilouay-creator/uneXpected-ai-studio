@@ -7,6 +7,7 @@ on:
       - 'Dockerfile'
       - 'mobile-assets.mjs'
       - 'mobile-assets.tar.gz.b64'
+      - 'source.tar.gz.b64'
       - 'test/mobile*.test.mjs'
       - '.github/workflows/mobile-integration.yml'
   push:
@@ -16,6 +17,7 @@ on:
       - 'Dockerfile'
       - 'mobile-assets.mjs'
       - 'mobile-assets.tar.gz.b64'
+      - 'source.tar.gz.b64'
       - 'test/mobile*.test.mjs'
       - '.github/workflows/mobile-integration.yml'
 jobs:
@@ -26,9 +28,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Restore the original static site and mobile app assets
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ue-source /tmp/ue-extracted
+          base64 -d source.tar.gz.b64 > /tmp/ue-source/source.tar.gz
+          tar -xzf /tmp/ue-source/source.tar.gz -C /tmp/ue-extracted
+          cp -R /tmp/ue-extracted/uneXpected-ai-studio-v1.0.1/public ./public
+          base64 -d mobile-assets.tar.gz.b64 | tar -xz -C .
+          mkdir -p public
+          rm -rf public/mobile
+          cp -R mobile public/mobile
+          test -f public/index.html
+          test -f public/mobile/index.html
       - name: Syntax checks
         run: |
           node --check server.js
           node --check mobile-assets.mjs
-      - name: Mobile and gateway tests
+      - name: Mobile and authenticated gateway HTTP tests
         run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs

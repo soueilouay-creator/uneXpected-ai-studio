@@ -53,6 +53,8 @@ test('Studio serves a visible OpenRouter test control without exposing provider 
   assert.match(script,/Test OpenRouter API/);
   assert.match(script,/\/test-provider/);
   assert.match(script,/sessionStorage/);
+  assert.match(script,/ux_access_token/,'the extension must reuse the existing Studio tab-scoped access token');
+  assert.doesNotMatch(script,/unexpected_openrouter_ui_access_token/,'the extension must not duplicate the access token under a second storage key');
   assert.doesNotMatch(script,/sk-or-v1-[A-Za-z0-9]+/,'the UI must not contain an API key');
 
   const healthData=await health.json();

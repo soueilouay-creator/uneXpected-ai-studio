@@ -552,8 +552,11 @@ async function sendChat(event) {
 function updateVoiceModeButton() {
   const button = $('#voiceModeBtn');
   if (!button) return;
-  button.textContent = voiceModeEnabled ? (activeRecognition || voiceBusy ? '■' : 'Resume') : '◖';
-  button.title = voiceModeEnabled ? 'End voice conversation' : 'Start voice conversation';
+  button.textContent = voiceModeEnabled
+    ? (activeRecognition || voiceBusy ? 'End voice conversation' : 'Resume voice conversation')
+    : 'Start voice conversation';
+  button.title = button.textContent;
+  button.setAttribute('aria-label', button.textContent);
   button.setAttribute('aria-pressed', String(voiceModeEnabled));
   button.classList.toggle('active', voiceModeEnabled);
 }

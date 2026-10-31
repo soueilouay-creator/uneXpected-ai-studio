@@ -48,3 +48,19 @@ OpenRouter sends requests to third-party model providers. Review the selected mo
 The `POST /orchestrate` response keeps provider results separate: `results.openai`, `results.anthropic`, `results.openrouter`, and (when primary answers exist) `results.synthesis`. Each successful provider result identifies its `provider`, configured `requestedModel`, actual returned `model`, latency, status, and text. OpenRouter is never stored in the synthesis slot.
 
 The top-level `fallback` object reports `not_attempted`, `not_configured`, `succeeded`, or `failed`, including the provider and requested route. The gateway makes at most one OpenRouter request, and only if all providers selected by the task mode fail to return usable text. It does not spend free-model requests when a requested primary provider succeeds. A failed or unconfigured fallback returns an error/status entry, never a simulated answer.
+
+
+## uneXpected Phone workspace
+
+The installable phone PWA is served at `/mobile/`. Its reviewed source is in `mobile-release/`; CI overlays that source over the archived phone assets before running integration tests, and the Docker image copies it into `/app/public/mobile/`.
+
+Phone conversations support a per-message route selector:
+- `openai` — ChatGPT
+- `claude` — Claude
+- `openrouter` — direct OpenRouter free-model routing
+- `both` — compare ChatGPT and Claude, then synthesize when possible
+- `local` — use local workspace commands without a model request
+
+The selected route applies to the next message only. Earlier conversation turns keep their original provider attribution. Assistant responses display their provider, actual returned model, requested route when different, latency, and whether OpenRouter was used as a fallback. A direct OpenRouter request is made once and does not start a second OpenRouter fallback attempt. The automatic OpenRouter fallback remains enabled for primary-provider routes when no requested primary provider returns usable text.
+
+The phone interface uses a responsive left navigation drawer on narrow screens and a persistent sidebar on wider screens. Local projects, conversations, memories, improvements, profile browsing, voice controls, and backup export/import remain on-device. The mobile gateway access token stays in memory only; it is not written to IndexedDB, browser storage, or backups. Provider API keys remain server-side.

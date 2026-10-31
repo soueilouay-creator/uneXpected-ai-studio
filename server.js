@@ -187,7 +187,12 @@ async function attempt(fn) {
 }
 async function orchestrate({ task, mode }) {
   const results = {};
-  if (mode === 'openai') {
+  if (mode === 'openrouter') {
+    const r = await attempt(() => callOpenRouter(task));
+    providerVerified.openrouter = r.ok;
+    results.openrouter = present(r, 'OpenRouter', 'openrouter', OPENROUTER_MODEL);
+    if (r.ok) results.openrouter.status = 'LIVE · direct response';
+  } else if (mode === 'openai') {
     const r = await attempt(() => callOpenAI(task));
     providerVerified.openai = r.ok;
     results.openai = present(r, 'ChatGPT', 'openai', OPENAI_MODEL);
@@ -221,10 +226,12 @@ async function orchestrate({ task, mode }) {
     provider: 'openrouter',
     status: 'not_attempted',
     requestedModel: OPENROUTER_MODEL,
-    reason: 'At least one requested primary provider returned a usable response.'
+    reason: mode === 'openrouter'
+      ? 'OpenRouter was selected directly; no additional fallback request was made.'
+      : 'At least one requested primary provider returned a usable response.'
   };
 
-  if (!hasPrimaryText) {
+  if (mode !== 'openrouter' && !hasPrimaryText) {
     if (OPENROUTER_KEY) {
       const r = await attempt(() => callOpenRouter(task));
       providerVerified.openrouter = r.ok;
@@ -370,7 +377,7 @@ const server = http.createServer(async (req, res) => {
       const mode = body.mode || 'both';
       if (!task) return json(res, 400, { error: 'task is required.' });
       if (task.length > 16000) return json(res, 413, { error: 'Task exceeds 16,000 characters.' });
-      if (!['both', 'openai', 'claude'].includes(mode)) return json(res, 400, { error: 'mode must be both, openai, or claude.' });
+      if (!['both', 'openai', 'claude', 'openrouter'].includes(mode)) return json(res, 400, { error: 'mode must be both, openai, claude, or openrouter.' });
       const result = await orchestrate({ task, mode });
       return json(res, result.ok ? 200 : 502, result);
     }

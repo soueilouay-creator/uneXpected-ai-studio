@@ -68,7 +68,7 @@ test('context sharing is opt-in and improvements enter context only after planni
  assert.match(app,/const contextConsent = \$\('#shareContext'\)\?\.checked === true/);
  assert.match(app,/const context = contextConsent \?/);
  assert.ok(core.includes('settings: safeSettings(data?.settings)'));
- assert.match(html,/approved for planning only; it never silently edits code, merges a branch or deploys/);
+ assert.match(html,/Approved ideas are for planning only; they do not change code or deploy automatically/);
 });
 
 test('voice modules support recognition, speech synthesis and user-selected language',async()=>{

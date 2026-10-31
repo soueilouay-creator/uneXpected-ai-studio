@@ -5,6 +5,7 @@ on:
     paths:
       - 'server.js'
       - 'Dockerfile'
+      - 'mobile-release/**'
       - 'mobile-assets.mjs'
       - 'mobile-assets.parts/**'
       - 'source.tar.gz.b64'
@@ -12,6 +13,8 @@ on:
       - 'test/openrouter-ui.test.mjs'
       - 'test/orchestrator.test.mjs'
       - 'test/provider-fetch-stub.mjs'
+      - 'test/phone-workspace-ui.test.mjs'
+      - 'test/mobile-provider-results.test.mjs'
       - 'openrouter-ui.js'
       - 'README.md'
       - 'render.yaml'
@@ -21,12 +24,15 @@ on:
     paths:
       - 'server.js'
       - 'Dockerfile'
+      - 'mobile-release/**'
       - 'mobile-assets.mjs'
       - 'mobile-assets.parts/**'
       - 'source.tar.gz.b64'
       - 'test/mobile*.test.mjs'
       - 'test/orchestrator.test.mjs'
       - 'test/provider-fetch-stub.mjs'
+      - 'test/phone-workspace-ui.test.mjs'
+      - 'test/mobile-provider-results.test.mjs'
       - '.github/workflows/mobile-integration.yml'
 jobs:
   mobile-integration:
@@ -48,6 +54,8 @@ jobs:
           printf '%s  %s\n' 'd9316477b654ea04bc842a2f7ae158b2fffe3eab85f057d7bc3aa7a749f9f55e' /tmp/mobile-assets.tar.gz.b64 | sha256sum -c -
           base64 -d /tmp/mobile-assets.tar.gz.b64 | tar -xz -C .
           rm -f /tmp/mobile-assets.tar.gz.b64
+          mkdir -p mobile
+          cp -R mobile-release/. mobile/
           mkdir -p public
           rm -rf public/mobile
           cp -R mobile public/mobile
@@ -62,7 +70,11 @@ jobs:
           node --check test/orchestrator.test.mjs
           node --check test/provider-fetch-stub.mjs
           node --check mobile-assets.mjs
+          node --check mobile-release/app.js
+          node --check mobile-release/providers.js
+          node --check test/mobile-provider-results.test.mjs
+          node --check test/phone-workspace-ui.test.mjs
       - name: Mobile and authenticated gateway HTTP tests
-        run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/openrouter-ui.test.mjs test/orchestrator.test.mjs
+        run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/openrouter-ui.test.mjs test/orchestrator.test.mjs test/phone-workspace-ui.test.mjs test/mobile-provider-results.test.mjs
       - name: Build the production Docker image
         run: docker build --tag unexpected-ai-studio:openrouter-test .

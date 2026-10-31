@@ -19,6 +19,7 @@ RUN cat /tmp/mobile-assets.parts/part-*.b64 > /tmp/mobile-assets.tar.gz.b64 \
  && mkdir -p /app/public \
  && base64 -d /tmp/mobile-assets.tar.gz.b64 | tar -xz -C /app/public \
  && rm -rf /tmp/mobile-assets.parts /tmp/mobile-assets.tar.gz.b64
+COPY mobile-release/ /app/public/mobile/
 EXPOSE 10000
 USER node
 CMD ["node", "server.js"]

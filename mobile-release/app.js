@@ -461,7 +461,7 @@ async function sendChat(event) {
     } : {};
     const response = await fetch(`${gatewayBase()}/orchestrate`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'authorization': 'Bearer ' + sessionToken },
+      headers: { 'content-type': 'application/json', authorization: 'Bearer ' + sessionToken },
       body: JSON.stringify({ task: buildTaskEnvelope(prompt, role, context), mode: selectedModel })
     });
     const payload = await response.json().catch(() => ({}));
@@ -469,6 +469,7 @@ async function sendChat(event) {
     const cards = collectProviderCards(payload);
     assistant.responseCards = cards;
     assistant.fallback = payload.fallback || null;
+    assistant.providerSummary = cards.map(card => ({ provider: card.provider, model: card.model, requestedModel: card.requestedModel, latencyMs: card.latencyMs, fallback: card.isFallback }));
     assistant.speechText = responseSpeechText(payload, mode);
     assistant.isLoading = false;
     if (!payload.ok || !cards.some(card => Boolean(card.text))) {

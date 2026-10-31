@@ -767,3 +767,44 @@ body {
   .composer-hints { max-width: 56%; }
 }
 
+
+
+/* One provider picker keeps the composer focused while preserving every route. */
+.model-route-picker {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: .35rem;
+  color: var(--muted);
+  font-size: .82rem;
+  font-weight: 600;
+}
+.model-route-picker select {
+  display: block;
+  width: 100%;
+  min-height: 2.85rem;
+  padding: .65rem 2.6rem .65rem .9rem;
+  border: 1px solid var(--line);
+  border-radius: .8rem;
+  appearance: none;
+  background-color: var(--surface-input);
+  background-image:
+    linear-gradient(45deg, transparent 50%, #a99aff 50%),
+    linear-gradient(135deg, #a99aff 50%, transparent 50%);
+  background-position:
+    calc(100% - 19px) 50%,
+    calc(100% - 14px) 50%;
+  background-repeat: no-repeat;
+  background-size: 5px 5px, 5px 5px;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: .95rem;
+  font-weight: 650;
+}
+.model-route-picker select:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+@media (max-width: 760px) {
+  .composer-topline { align-items: flex-end; gap: .7rem; }
+  .model-route-picker { gap: .3rem; font-size: .78rem; }
+  .model-route-picker select { min-height: 3rem; font-size: .9rem; }
+  .composer-advanced { flex: 0 0 auto; }
+}

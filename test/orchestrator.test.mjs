@@ -159,3 +159,25 @@ test('serves a task UI that displays OpenRouter results and their actual model',
   assert.match(script, /x\.requestedModel/);
   assert.match(script, /FALLBACK/);
 });
+
+
+test('supports a direct OpenRouter conversation route without invoking a second fallback request', async t => {
+  const studio = await startStudio(t, 'fallback-success');
+  const { status, data } = await studio.request('Reply with a short greeting.', 'openrouter');
+
+  assert.equal(status, 200);
+  assert.equal(data.ok, true);
+  assert.equal(data.mode, 'openrouter');
+  assert.equal(data.results.openrouter.provider, 'openrouter');
+  assert.equal(data.results.openrouter.label, 'OpenRouter');
+  assert.equal(data.results.openrouter.status, 'LIVE · direct response');
+  assert.equal(data.results.openrouter.model, 'nvidia/nemotron-3.5-lightning:free');
+  assert.equal(data.results.openrouter.text, 'OpenRouter fallback answer.');
+  assert.equal(data.results.openai, undefined);
+  assert.equal(data.results.anthropic, undefined);
+  assert.equal(data.results.synthesis, undefined);
+  assert.equal(data.fallback.attempted, false);
+  assert.equal(data.fallback.status, 'not_attempted');
+  assert.match(studio.getStdout(), /PROVIDER_MOCK_CALL:openrouter/);
+  assert.equal((studio.getStdout().match(/PROVIDER_MOCK_CALL:openrouter/g) || []).length, 1);
+});

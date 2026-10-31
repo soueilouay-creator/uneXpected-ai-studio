@@ -183,7 +183,7 @@ p { color: var(--muted); }
 .composer-dock { position: sticky; bottom: 0; z-index: 5; width: 100%; max-width: 870px; margin: 0 auto; padding: 0 0 7px; background: linear-gradient(180deg, rgba(11,16,23,0), var(--canvas) 13%); }
 .composer-shell { padding: 11px 13px 9px; border: 1px solid #344354; border-radius: 15px; background: #111a25; box-shadow: 0 14px 38px rgba(0,0,0,.2); }
 .composer-topline { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
-.model-picker-label { display: inline-flex; align-items: center; gap: 7px; color: #8494a8; font-size: 8px; font-weight: 760; letter-spacing: 1.05px; }
+.model-picker-label { margin: 0; display: inline-flex; align-items: center; gap: 7px; color: #8494a8; font-size: 8px; font-weight: 760; letter-spacing: 1.05px; }
 .model-picker-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 9px rgba(169,154,255,.35); }
 .composer-tools { display: flex; align-items: center; gap: 9px; }
 .context-consent { display: inline-flex; align-items: center; gap: 6px; color: #7f8fa2; font-size: 8px; white-space: nowrap; cursor: pointer; }

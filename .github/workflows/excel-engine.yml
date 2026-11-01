@@ -56,6 +56,8 @@ jobs:
           test -f public/index.html
           test -f public/mobile/index.html
       - name: Run repository regression tests
+        env:
+          EXCEL_WORKER_PATH: ${{ github.workspace }}/integrations/excel-engine/bin/ux-excel
         run: node --test test/*.test.mjs
       - name: Build production Docker image
         run: docker build --pull=false -t unexpected-excel-engine:ci .

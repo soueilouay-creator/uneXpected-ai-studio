@@ -16,7 +16,7 @@ Coordinate general-purpose spreadsheet work across macro-free Excel, server-side
 - Distinguish a mocked provider tool loop from a live provider invocation.
 
 ## Engines
-**Excelize `v2.11.1-0.20260805032953-db93f8d89de7`:** a security-patched pre-release pseudo-version pinned in integrations/excel-engine/go.mod, BSD 3-Clause. The Node gateway exposes native client tools excel_inspect and excel_generate to OpenAI Responses and Anthropic Messages for detected Excel tasks. POST /excel/upload creates a temporary file reference, /orchestrate passes only explicit attachment IDs to the provider, and GET /excel/download/{id} delivers generated outputs. See integrations/excel-engine/agent/TOOL_CONTRACTS.md for exact schemas and limits.
+**Excelize `v2.11.1-0.20260805032953-db93f8d89de7`:** a security-patched pre-release pseudo-version pinned in integrations/excel-engine/go.mod, BSD 3-Clause. The Node gateway exposes native client tools excel_inspect and excel_generate to OpenAI Responses and Anthropic Messages for detected Excel tasks. The current generator supports scalar values and a basic header style, not formula insertion or full workbook authoring. POST /excel/upload creates a temporary file reference, /orchestrate passes only explicit attachment IDs to the provider, and GET /excel/download/{id} delivers generated outputs. See integrations/excel-engine/agent/TOOL_CONTRACTS.md for exact schemas and limits.
 
 **VBA:** reviewed importable BAS modules in integrations/excel-vba-kit/modules/. Target is supported Windows desktop Excel. Static checks are not VBA compilation or desktop runtime tests.
 

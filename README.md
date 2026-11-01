@@ -68,7 +68,7 @@ The phone interface uses a responsive left navigation drawer on narrow screens a
 
 ## Excel Engineering
 
-The repository includes a general-purpose Excel specialist coordinating macro-free Excel, the Excelize v2.11.1-0.20260805032953-db93f8d89de7 worker (security-patched pre-release revision), and the desktop VBA toolkit. OpenAI Responses and Anthropic Messages now receive native client tools for excel_inspect and excel_generate on detected Excel tasks. The main browser app and phone PWA support authenticated .xlsx upload and generated workbook downloads.
+The repository includes a general-purpose Excel specialist coordinating macro-free Excel, the Excelize v2.11.1-0.20260805032953-db93f8d89de7 worker (security-patched pre-release revision), and the desktop VBA toolkit. OpenAI Responses and Anthropic Messages now receive native client tools for excel_inspect and excel_generate on detected Excel tasks. Generated workbooks are reopened through the inspect worker before handoff; sheet count, sheet names and header widths must pass read-back verification. The main browser app and phone PWA support authenticated .xlsx upload and generated workbook downloads.
 
 Workflow: upload a workbook to POST /excel/upload, send its returned file ID in excelFiles to POST /orchestrate, and download a generated artifact using the returned authenticated downloadPath. Uploads and outputs are private temporary files and expire after 30 minutes. Only the IDs attached to the current request can be inspected; workbook preview rows are bounded and passed to the chosen provider. OpenRouter and Local mode do not support attached workbook tools, and the gateway avoids implying that a text fallback processed a workbook.
 

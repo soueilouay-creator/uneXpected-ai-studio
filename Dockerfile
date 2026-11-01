@@ -19,6 +19,7 @@ WORKDIR /app
 COPY app.js /app/public/app.js
 COPY server.js /app/server.js
 COPY excel-engine.mjs /app/excel-engine.mjs
+COPY excel-tools.mjs /app/excel-tools.mjs
 COPY integrations/excel-engine/agent/ /app/integrations/excel-engine/agent/
 COPY specialists/excel/ /app/specialists/excel/
 COPY --from=excel-engine-build /out/ux-excel /app/bin/ux-excel

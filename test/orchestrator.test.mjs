@@ -272,3 +272,16 @@ test('OpenAI can generate an XLSX artifact that is downloaded and read back', as
   assert.equal(workbook.sheets[0].name, 'Report');
   assert.equal(workbook.sheets[0].preview[1][0], 'A-1');
 });
+
+
+test('root browser app exposes the authenticated Excel attachment and artifact flow', async t => {
+  const studio = await startStudio(t, 'primary-success');
+  const response = await fetch(studio.base + '/app.js');
+  assert.equal(response.status, 200);
+  const script = await response.text();
+  assert.match(script, /excelAttachmentControls/);
+  assert.match(script, /excel\\/upload/);
+  assert.match(script, /excel\\/download/);
+  assert.match(script, /excelFiles:\\s*files\\.map/);
+  assert.match(script, /Bounded sheet previews are sent to the selected AI provider/);
+});

@@ -12,14 +12,18 @@ Coordinate general-purpose spreadsheet work across macro-free Excel, server-side
 - Use VBA only when an actual Windows desktop Excel environment is required.
 - Keep source workbooks unchanged; use new outputs or recoverable copies.
 - Treat formulas and external links as untrusted; never execute macros or DDE server-side.
-- Never claim a workbook was opened, edited, compiled or tested without evidence.
+- Never claim a workbook was opened, edited, compiled or tested without the actual tool result or read-back evidence.
+- Distinguish a mocked provider tool loop from a live provider invocation.
 
 ## Engines
-**Excelize v2.11.0:** pinned in integrations/excel-engine/go.mod, BSD 3-Clause. Authenticated POST /excel/inspect and POST /excel/generate. Schemas are in integrations/excel-engine/agent/TOOL_CONTRACTS.md. The gateway injects routing guidance but does not yet expose native function calls to the worker; a host adapter must call the API and return real results.
+**Excelize v2.11.0:** pinned in integrations/excel-engine/go.mod, BSD 3-Clause. The Node gateway exposes native client tools excel_inspect and excel_generate to OpenAI Responses and Anthropic Messages for detected Excel tasks. POST /excel/upload creates a temporary file reference, /orchestrate passes only explicit attachment IDs to the provider, and GET /excel/download/{id} delivers generated outputs. See integrations/excel-engine/agent/TOOL_CONTRACTS.md for exact schemas and limits.
 
-**VBA:** reviewed importable BAS modules in integrations/excel-vba-kit/modules/. Target is supported Windows desktop Excel. Static checks are not VBA compilation.
+**VBA:** reviewed importable BAS modules in integrations/excel-vba-kit/modules/. Target is supported Windows desktop Excel. Static checks are not VBA compilation or desktop runtime tests.
 
 **Macro-free:** formulas, tables and Power Query remain preferred when they meet the requirement.
+
+## Provider boundary
+OpenAI and Claude have native Excel tool loops. OpenRouter and Local mode do not. Do not send uploaded-workbook requests to OpenRouter fallback and imply the workbook was inspected. Uploads and artifacts are process-local temporary files, expire after 30 minutes and are not available across server restarts or replicas. Browser file bytes are not saved to IndexedDB or workspace backups.
 
 ## Skills
 Select only the applicable files under specialists/excel/skills/: workbook-inspection, data-quality, formula-engineering, report-generation, large-workbook-processing, vba-desktop-automation and output-verification.
@@ -27,4 +31,4 @@ Select only the applicable files under specialists/excel/skills/: workbook-inspe
 Use integrations/excel-engine/agent/EXCEL_COORDINATOR.md for cross-engine routing.
 
 ## Completion report
-Name engine and reason, source/output formats, changes, exact tests, read-back, formula recalculation status, VBA desktop test status and any v7/runtime/deployment blockers.
+Name the engine and reason, source/output formats, changes, exact tests, whether provider calls were mocked or live, read-back evidence, formula recalculation status, VBA desktop test status, download expiry and any v7/runtime/deployment blockers.

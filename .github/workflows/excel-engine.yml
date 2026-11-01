@@ -25,7 +25,7 @@ jobs:
         working-directory: integrations/excel-engine
         run: |
           go mod download github.com/xuri/excelize/v2@v2.11.1-0.20261029001137-c5fd73bde8f6
-          grep '^github.com/xuri/excelize/v2 v2.11.1-0.20261029001137-c5fd73bde8f6 ' go.sum
+          grep '^github.com/xuri/excelize/v2 v2.11.1-0.20261029001137-c5fd73bde8f6' go.sum
       - name: Run Excelize engine tests
         working-directory: integrations/excel-engine
         run: go test ./...

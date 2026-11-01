@@ -4,7 +4,7 @@ Route general-purpose spreadsheet work across macro-free Excel, the server-side 
 
 ## Engine selection
 1. Prefer formulas, Excel tables and Power Query when they meet the goal without macros.
-2. Use Excelize for bounded server-side XLSX inspection, structured XLSX generation and streamed row reads.
+2. Use Excelize for bounded server-side XLSX inspection, structured XLSX generation and streamed row reads. The current native generator writes scalar values and a basic header style only; it does not insert formulas, tables, charts, validations or arbitrary cell styles.
 3. Use VBA only for Windows desktop Excel object-model, Office event, UI or add-in behavior. Node.js, Render and Excelize do not execute VBA.
 4. For unsupported formats, do not silently convert or discard features. Explain the boundary and request a supported source or another route.
 

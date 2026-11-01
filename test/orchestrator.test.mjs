@@ -221,7 +221,7 @@ test('OpenAI can inspect an uploaded XLSX through a native function tool round t
   assert.match(data.results.openai.text, /inspected the uploaded workbook/i);
   assert.deepEqual(data.excelArtifacts, []);
   assert.match(studio.getStdout(), /MOCK_EXCEL_TOOLS:excel_inspect,excel_generate/);
-  assert.match(studio.getStdout(), /MOCK_EXCEL_TOOL_RESULT:ok/);
+  assert.match(studio.getStdout(), /MOCK_EXCEL_TOOL_RESULT:ok:data/);
 });
 
 test('Claude can inspect an uploaded XLSX through its native tool-use round trip', async t => {
@@ -234,7 +234,7 @@ test('Claude can inspect an uploaded XLSX through its native tool-use round trip
   assert.match(data.results.anthropic.text, /inspected the uploaded workbook/i);
   assert.deepEqual(data.excelArtifacts, []);
   assert.match(studio.getStdout(), /MOCK_EXCEL_TOOLS:.*excel_inspect/);
-  assert.match(studio.getStdout(), /MOCK_EXCEL_TOOL_RESULT:ok/);
+  assert.match(studio.getStdout(), /MOCK_EXCEL_TOOL_RESULT:ok:data/);
 });
 
 test('OpenAI can generate an XLSX artifact that is downloaded and read back', async t => {

@@ -150,6 +150,32 @@ async function generateWorkbookArtifact(spec) {
   try {
     await writeFile(specPath, serialized, { flag: 'wx', mode: 0o600 });
     await runExcelWorker(['generate', '--input-spec', specPath, '--output', outputPath]);
+    const verificationOutput = await runExcelWorker(['inspect', '--input', outputPath, '--preview-rows', '10']);
+    let inspection;
+    try {
+      inspection = JSON.parse(verificationOutput);
+    } catch {
+      throw fail('Generated workbook could not be read back for verification.', 502);
+    }
+    const expectedSheets = spec.sheets;
+    const verified = inspection?.sheetCount === expectedSheets.length &&
+      Array.isArray(inspection.sheets) &&
+      inspection.sheets.length === expectedSheets.length &&
+      inspection.sheets.every((sheet, index) =>
+        sheet.name === expectedSheets[index].name &&
+        sheet.rows >= 1 &&
+        sheet.columns === expectedSheets[index].headers.length
+      );
+    if (!verified) throw fail('Generated workbook failed read-back verification.', 502);
+    const verification = {
+      status: 'read-back verified',
+      sheetCount: inspection.sheetCount,
+      sheets: inspection.sheets.map(sheet => ({
+        name: sheet.name,
+        rows: sheet.rows,
+        columns: sheet.columns
+      }))
+    };
     const info = await stat(outputPath);
     if (!info.size || info.size > MAX_EXCEL_UPLOAD_BYTES) throw fail('Generated workbook exceeds the 20 MiB download limit.', 413);
     await assertCapacity(info.size);
@@ -161,6 +187,7 @@ async function generateWorkbookArtifact(spec) {
       sizeBytes: info.size,
       tempDir,
       filePath: outputPath,
+      verification,
       createdAt: Date.now(),
       expiresAt: Date.now() + FILE_TTL_MS
     };
@@ -171,7 +198,8 @@ async function generateWorkbookArtifact(spec) {
       fileName: record.fileName,
       sizeBytes: record.sizeBytes,
       expiresInSeconds: EXCEL_FILE_TTL_SECONDS,
-      downloadPath: '/excel/download/' + id
+      downloadPath: '/excel/download/' + id,
+      verification
     };
   } catch (error) {
     await rm(tempDir, { recursive: true, force: true }).catch(() => {});

@@ -423,7 +423,7 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'content-type': MIME['.css'], 'cache-control': 'no-store' });
       return res.end(await readFile(join(ROOT, 'public', 'styles.css')));
     }
-    const downloadMatch = req.method === 'GET' && url.pathname.match(/^\\/excel\\/download\\/([0-9a-f-]{36})$/i);
+    const downloadMatch = req.method === 'GET' && url.pathname.match(/^\/excel\/download\/([0-9a-f-]{36})$/i);
     if (downloadMatch) {
       if (rateLimited(req)) return json(res, 429, { error: 'Rate limit exceeded. Wait one minute and try again.' });
       if (!authorized(req)) return json(res, 401, { error: 'Unauthorized. Provide the configured bearer token.' });

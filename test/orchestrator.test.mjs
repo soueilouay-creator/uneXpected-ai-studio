@@ -280,8 +280,8 @@ test('root browser app exposes the authenticated Excel attachment and artifact f
   assert.equal(response.status, 200);
   const script = await response.text();
   assert.match(script, /excelAttachmentControls/);
-  assert.match(script, /excel\\/upload/);
-  assert.match(script, /excel\\/download/);
-  assert.match(script, /excelFiles:\\s*files\\.map/);
+  assert.match(script, /excel\/upload/);
+  assert.match(script, /excel\/download/);
+  assert.match(script, /excelFiles:\s*files\.map/);
   assert.match(script, /Bounded sheet previews are sent to the selected AI provider/);
 });

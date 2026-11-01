@@ -1,65 +1,42 @@
-# Excel VBA Toolkit Implementation Plan
+# General-Purpose Excel Toolkit — Implementation Record
 
-> Implementation record for the isolated `feature/excel-vba-toolkit` branch.
+> Execution record for `feature/excel-vba-toolkit`.
 
-**Goal:** Add a provenance-tracked Excel VBA source package and specialist role specification without changing existing uneXpected orchestration behavior.
+**Goal:** Provide a reusable, industry-neutral Excel automation foundation with safer VBA helpers, workbook validation, and general routing guidance.
 
-**Architecture:** Importable VBA modules live under `integrations/excel-vba-kit/`; a manifest and preserved MIT notice record provenance. Specialist guidance lives under `specialists/excel-vba/`. A Node.js 22 static test and dedicated GitHub Actions workflow enforce source-contract and safety checks. VBA execution is not connected to the Node.js/Render service.
+**Architecture:** Keep the toolkit as importable VBA modules under `integrations/excel-vba-kit/`. Track source provenance and MIT licensing in a manifest. Define a general Excel specialist under `specialists/excel-vba/`. Validate source contracts and safety rules through the Node.js 22 test runner and a dedicated GitHub Actions workflow. Keep desktop VBA execution outside the Node.js/Render runtime.
 
-**Tech Stack:** VBA 7 / Windows desktop Excel, Node.js 22 built-in test runner, GitHub Actions, GitHub feature branch.
+**Tech Stack:** VBA 7 / Windows desktop Excel, Node.js 22 built-in test runner, GitHub Actions.
 
-## Constraints
+## Global constraints
 
-- Keep changes isolated to `feature/excel-vba-toolkit`; do not merge to `main` or deploy Render.
-- Preserve upstream MIT attribution and pin the reviewed tree SHA.
-- Require explicit Workbook/Worksheet references; make file inventory read-only.
-- Never bypass protection, break external links, mutate Outlook state, or overwrite source files.
+- Keep this integration isolated to its feature branch; do not merge to `main` or deploy Render.
+- Preserve upstream MIT attribution and the reviewed source tree SHA.
+- Keep the core industry-neutral; domain-specific packs are optional extensions.
+- Inspect the actual workbook schema before adding business-specific logic.
+- Require explicit Workbook/Worksheet/Range references.
+- Keep inventory and data-validation helpers read-only.
+- Never bypass protection, break external links, mutate Outlook, or overwrite source files by default.
 - Capture and restore every Excel application setting changed by performance helpers.
-- Treat specialist documents as specifications, not proof of active runtime registration.
-- Node tests are static checks only; Excel compile/runtime verification remains a desktop gate.
+- Treat the specialist profile as documentation until connected to the authoritative v7 registry.
+- Node tests are static contract checks only; Excel compile/runtime validation is a separate desktop gate.
 
-## Task 1 — Curated VBA package
+## Delivered core modules
 
-**Files:** `integrations/excel-vba-kit/{README.md,LICENSE,manifest.json}`, five modules under `modules/`, and `test/excel-vba-kit.test.mjs`.
+1. `modUxWorkbook.bas`: explicit workbook/sheet checks and last-used row/column discovery.
+2. `modUxFileSystem.bas`: read-only file/folder checks, inventory, and selection dialogs.
+3. `modUxText.bas`: case-insensitive keyword search.
+4. `modUxDataValidation.bas`: header lookup, missing-header checks, blank counting, and duplicate-cell identification.
+5. `modUxApplicationState.bas`: reversible application performance settings.
+6. `modUxDiagnostics.bas`: append-only sanitized error logging.
 
-**Interfaces:** `UxWorksheetExists(wb, worksheetName)`, `UxLastUsedRow(ws)`, `UxLastUsedColumn(ws)`, `UxFileExists(filePath)`, `UxFolderExists(folderPath)`, `UxSelectFolder(...)`, `UxSelectFile(...)`, `UxListFiles(folderPath, includeSubfolders)`, `UxFindKeywords(textToSearch, keywordRange, delimiter)`, `UxBeginFastMode(state)`, `UxRestoreApplicationState(state)`, and `UxAppendErrorLog(...)`.
+## General-use coverage
 
-- [x] Add a static test for manifest provenance, module import headers, explicit workbook references, safe file operations, reversible application state, and append-only sanitized logging.
-- [x] Observe the initial test failure caused by the missing package manifest.
-- [x] Add five `.bas` modules with `Option Explicit`, narrow side effects, and explicit object arguments.
-- [x] Preserve the upstream MIT license notice and record the reviewed source tree SHA.
-- [x] Run the focused Node test; final result: 7 tests passed, 0 failed.
+Documentation and routing cover data quality, inventory/resource registers, sales/customer exports, finance/budget extracts, project/task tracking, scheduling/attendance, research, and operational datasets. Examples are generic and do not assume a particular employer or industry. Domain-specific rules are added only on request and after workbook inspection.
 
-## Task 2 — Specialist profile and safety boundaries
+## Verification
 
-**Files:** `specialists/excel-vba/AGENT.md`, `ROUTING.md`, `SAFETY.md`, plus the focused test.
-
-- [x] Document when to route Excel/VBA tasks and when to prefer macro-free spreadsheet work.
-- [x] Require inspection of the actual workbook schema before creating workbook-specific automation.
-- [x] Record provenance, approval, backup, safety, and evidence requirements.
-- [x] Explicitly state that repository documentation does not activate an external runtime registry.
-
-## Task 3 — CI and repository handoff
-
-**Files:** `.github/workflows/excel-vba-kit.yml`, this plan, and no existing application runtime files.
-
-- [x] Add a workflow scoped to toolkit, specialist, plan, and test paths using Node.js 22.
-- [x] Run `node --check test/excel-vba-kit.test.mjs`.
-- [x] Run `node --test test/excel-vba-kit.test.mjs`.
-- [x] Commit the changes on the feature branch and read back the branch tree and key files.
-
-## Excluded upstream routines
-
-- `RemovePasswords.vba`: attempts to bypass workbook/worksheet protection.
-- `BreakExternalLinks.vb`: can permanently sever external links.
-- `SaveOutlookAttachments.vba`: changes message read state and risks same-name file collisions.
-- `SpeedUp.vb`: changes broad Excel/workbook settings, including link-update behavior; replaced by a narrow reversible helper.
-
-## Verification still required
-
-- Import the modules into a disposable macro-enabled workbook in supported Windows desktop Excel.
-- Compile the full VBA project and exercise normal, cancellation, empty-folder, inaccessible-folder, and application-state restoration paths.
-- Add the specialist role to the authoritative uneXpected v7 registry only when that registry/package is available to this integration workflow.
-- Inspect the actual maintenance workbook schema before creating GMAO-specific macros.
-
-The repository branch contains source, documentation, tests, and CI configuration. It has not been merged into `main`, deployed to Render, imported into desktop Excel, or activated in the separate v7 runtime registry.
+- Static tests verify provenance, required source files, explicit object references, read-only helpers, reversible settings, sanitized diagnostics, specialist guidance, and general-purpose positioning.
+- GitHub Actions runs Node.js 22 syntax and contract tests.
+- Desktop Excel compilation and runtime behavior remain unverified until modules are imported and exercised in a supported Office installation.
+- The package does not execute VBA on Render and does not automatically register runtime specialist dispatch.

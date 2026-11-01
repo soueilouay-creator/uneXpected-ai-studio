@@ -1,8 +1,10 @@
 # Excel/VBA routing rules
 
-Route to this specialist when the user asks to create, debug, refactor, audit, automate, or document an Excel workbook or VBA macro, including maintenance registers, inventory controls, reporting automation, workbook validation, or file-list workflows.
+Route to this specialist when the user asks to create, debug, refactor, audit, automate, validate, or document an Excel workbook or VBA macro. Common contexts include data cleanup, reporting, finance, sales and customer records, inventory, asset registers, project tracking, schedules, attendance, research data, and operational workflows.
 
-Do not route here for a simple spreadsheet formula, a basic CSV transformation, or a non-Excel coding task unless workbook automation is part of the requested outcome. Prefer the ordinary spreadsheet workflow for formula-only changes.
+Do not assume an industry, employer, role, or workbook schema from prior examples. Inspect the current workbook and use the purpose stated in the current task.
+
+Do not route here for a simple spreadsheet formula, a basic CSV transformation, or a non-Excel coding task unless workbook automation is part of the requested outcome. Prefer ordinary macro-free spreadsheet work for formula-only changes.
 
 Before using VBA, verify that macros are acceptable and the target is desktop Excel. If the task can be safely completed without macros, prefer the macro-free implementation.
 

@@ -87,6 +87,50 @@ test('Excel generate returns a workbook that the inspect endpoint can read', asy
   assert.equal(result.sheets[0].preview[1][1], 'First item');
 });
 
+test('authenticated XLSX upload creates a short-lived file reference for model tools', async () => {
+  const spec = {
+    sheets: [{
+      name: 'Upload test',
+      headers: ['Code', 'Value'],
+      rows: [['A-1', 'round trip']]
+    }]
+  };
+  const generated = await fetch(`${baseUrl}/excel/generate`, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${token}`,
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify(spec)
+  });
+  assert.equal(generated.status, 200);
+  const workbookBytes = Buffer.from(await generated.arrayBuffer());
+
+  const unauthorized = await fetch(`${baseUrl}/excel/upload`, {
+    method: 'POST',
+    headers: { 'content-type': xlsxMime, 'x-file-name': 'source.xlsx' },
+    body: workbookBytes
+  });
+  assert.equal(unauthorized.status, 401);
+
+  const uploaded = await fetch(`${baseUrl}/excel/upload`, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${token}`,
+      'content-type': xlsxMime,
+      'x-file-name': 'source.xlsx'
+    },
+    body: workbookBytes
+  });
+  assert.equal(uploaded.status, 201);
+  const result = await uploaded.json();
+  assert.equal(result.ok, true);
+  assert.equal(result.file.name, 'source.xlsx');
+  assert.equal(result.file.sizeBytes, workbookBytes.length);
+  assert.match(result.file.id, /^[0-9a-f-]{36}$/i);
+  assert.ok(result.file.expiresInSeconds > 0);
+});
+
 test('Excel generate rejects malformed workbook specifications', async () => {
   const response = await fetch(`${baseUrl}/excel/generate`, {
     method: 'POST',

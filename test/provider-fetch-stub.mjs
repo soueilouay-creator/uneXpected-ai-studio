@@ -88,7 +88,8 @@ globalThis.fetch = async (input, init = {}) => {
         });
       }
       if (Array.isArray(body.input) && body.input.some(item => item.type === 'function_call_output')) {
-        process.stdout.write('MOCK_EXCEL_TOOL_RESULT:received\\n');
+        const toolResult = body.input.find(item => item.type === 'function_call_output');
+        recordExcelToolResult(toolResult?.output);
         return response(200, {
           model: 'gpt-4.1',
           output: [{ type: 'message', content: [{ type: 'output_text', text: 'Your workbook is ready.' }] }]

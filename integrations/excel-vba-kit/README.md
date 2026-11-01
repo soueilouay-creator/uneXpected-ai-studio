@@ -8,7 +8,7 @@ A general-purpose, cross-industry library of importable Excel VBA utilities. It 
 - **Inventory and resources:** inspect lists, validate identifiers, review file evidence, and locate missing fields.
 - **Sales and customer operations:** check CRM exports, required contact fields, duplicate records, and activity lists.
 - **Finance and administration:** validate budget/export layouts, count missing values, and inspect transaction extracts before reconciliation.
-- **Projects and workflows:** check task registers, status fields, dates, owners, and reporting ranges.
+- **Project tracking and workflows:** check task registers, status fields, dates, owners, and reporting ranges.
 - **Scheduling and service records:** inspect rosters, attendance tables, service logs, and recurring schedules.
 - **Research and operations:** validate survey extracts, study logs, quality records, and operational datasets.
 

@@ -24,8 +24,8 @@ jobs:
       - name: Resolve pinned Go module checksums
         working-directory: integrations/excel-engine
         run: |
-          go mod download
-          grep 'github.com/xuri/excelize/v2' go.sum
+          go mod download github.com/xuri/excelize/v2@v2.11.1-0.20260805032953-db93f8d89de7
+          grep '^github.com/xuri/excelize/v2 v2.11.1-0.20260805032953-db93f8d89de7 ' go.sum
       - name: Run Excelize engine tests
         working-directory: integrations/excel-engine
         run: go test ./...

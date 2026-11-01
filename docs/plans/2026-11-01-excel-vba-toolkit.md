@@ -1,32 +1,65 @@
 # Excel VBA Toolkit Implementation Plan
 
-> **For agentic workers:** Use the host's available task-by-task implementation workflow. Steps use checkbox (`- [ ]`) syntax for tracking.
+> Implementation record for the isolated `feature/excel-vba-toolkit` branch.
 
-**Goal:** Add an isolated, provenance-tracked Excel VBA toolkit and specialist role profile without changing uneXpected's existing AI orchestration behavior.
+**Goal:** Add a provenance-tracked Excel VBA source package and specialist role specification without changing existing uneXpected orchestration behavior.
 
-**Architecture:** Store importable `.bas` modules under `integrations/excel-vba-kit/`, with a manifest, upstream MIT notice, and usage/safety documentation. Add a specialist profile as a role specification, plus Node.js static checks and a separate GitHub Actions workflow; do not connect VBA execution to the Node.js/Render service.
+**Architecture:** Importable VBA modules live under `integrations/excel-vba-kit/`; a manifest and preserved MIT notice record provenance. Specialist guidance lives under `specialists/excel-vba/`. A Node.js 22 static test and dedicated GitHub Actions workflow enforce source-contract and safety checks. VBA execution is not connected to the Node.js/Render service.
 
-**Tech Stack: We use Node.js 22 built-in test runner, VBA 7/Microsoft Excel desktop object model, GitHub Actions, and a feature branch.
+**Tech Stack:** VBA 7 / Windows desktop Excel, Node.js 22 built-in test runner, GitHub Actions, GitHub feature branch.
 
-## Global Constraints
+## Constraints
 
-- Work on `feature/excel-vba-toolkit`; do not commit to `main` or deploy the Render service.
-- Preserve the upstream MIT copyright and license notice and record the reviewed source tree SHA.
-- Require explicit Workbook/Worksheet references for workbook inspection.
-- File inventory must be read-only; never remove protection, break links, mutate Outlook, or overwrite user data.
-- Application performance changes must capture and restore every changed setting; do not alter workbook link-update settings.
-- A specialist profile is documentation until connected to an authoritative runtime registry. Do not claim it is active.
-- Node tests prove static source/contract properties only. Excel compile/runtime tests remain a separate desktop verification gate.
+- Keep changes isolated to `feature/excel-vba-toolkit`; do not merge to `main` or deploy Render.
+- Preserve upstream MIT attribution and pin the reviewed tree SHA.
+- Require explicit Workbook/Worksheet references; make file inventory read-only.
+- Never bypass protection, break external links, mutate Outlook state, or overwrite source files.
+- Capture and restore every Excel application setting changed by performance helpers.
+- Treat specialist documents as specifications, not proof of active runtime registration.
+- Node tests are static checks only; Excel compile/runtime verification remains a desktop gate.
 
----
+## Task 1 â€” Curated VBA package
 
-### Task 1: Curated, safe VBA source package
+**Files:** `integrations/excel-vba-kit/{README.md,LICENSE,manifest.json}`, five modules under `modules/`, and `test/excel-vba-kit.test.mjs`.
 
-**Files:**
-- Create: `integrations/excel-vba-kit/manifest.json`
-- Create: `integrations/excel-vba-kit/LICENSEX
-KHÜ™X]Nˆ[YÜ˜][ÛœËÙ^Ù[]˜˜KZÚ]Ô‘PQQK›Y‹HÜ™X]Nˆ[YÜ˜][ÛœËÙ^Ù[]˜˜KZÚ]Û[Ù[\ËÛ[Ù^ÛÜšØ›ÛÚË˜˜\Ø‹HÜ™X]Nˆ[YÜ˜][ÛœËÙ^Ù[]˜˜KZÚ]Û[Ù[\ËÛ[Ù^š[TŞ\İ[K˜˜\Ø‹HÜ™X]Nˆ[YÜ˜][ÛœËÙ^Ù[]˜˜KZÚ]Û[Ù[\ËÛ[Ù^^˜˜\Ø‹HÜ™X]Nˆ[YÜ˜][ÛœËÙ^Ù[]˜˜KZÚ]Û[Ù[\ËÛ[Ù^\XØ][Û”İ]K˜˜\Ø‹HÜ™X]Nˆ[YÜ˜][ÛœËÙ^Ù[]˜˜KZÚ]Û[Ù[\ËÛ[Ù^XYÛ›ÜİXÜË˜˜\Ø‹H\İˆ\İÙ^Ù[]˜˜KZÚ]\İ›ZœØ‚ŠŠ’[\™˜XÙ\ÎŠŠ‚‹H›ÙXÙ\Îˆ^ÛÜšÜÚY]^\İÊØ‹ÛÜšÜÚY]˜[YJX^\İ\ÙY›İÊÜÊX^\İ\ÙYÛÛ[[ŠÜÊX^š[Q^\İÊš[T]
-X^›Û\‘^\İÊ›Û\”]
-X^Ù[Xİ›Û\Š‹‹ŠX^Ù[Xİš[J‹‹ŠX^\İš[\Ê›Û\”][˜ÛYTİX™›Û\œÊX^š[™Ù^]ÛÜ™Ê^ÔÙX\˜ÚÙ^]ÛÜ™˜[™ÙK[[Z]\ŠX^™YÚ[‘˜\İ[ÙJİ]JX^™\İÜ™P\XØ][Û”İ]Jİ]JX[™^\[™\œ›Ü“ÙÊ‹‹ŠX‚‹H^\İš[\Ø™]\›œÈHÛÛXİ[ÛˆÙˆ\œ˜^\ÈÛ˜[YK[]Ú^™P]\Ë\İ[ÙYšYYXÈ\œ›ÜœÈ›Üˆ[˜XØÙ\ÜÚX›H\™XİÜšY\È\™H˜Z\ÙYÈHØ[\‹‚‹H[\Hš[KÙ›Û\ˆXÚÙ\ˆÙ[Xİ[Ûˆ™]\›œÈ[ˆ[\Hİš[™ÎÈ[\H›Û\ˆ[™[ÜH™]\›œÈ[ˆ[\HÛÛXİ[Û‹‚‚‹HÈHYH›Øİ\ÙY›ÙH\İ›ÜˆX[šY™\İ›İ™[˜[˜ÙK[Ù[H[\ÜË^XÚ]ÛÜšØ›ÛÚÈ™Y™\™[˜Ù\Ë›Û‹Y\İXİ]™Hš[H[\œË™]™\œÚX›H\XØ][Ûˆİ]K[™\[™[Û›HØ[š]^™YÙÙÚ[™Ë‚‹HÈH[ˆ›ÙHK]\İ\İÙ^Ù[]˜˜KZÚ]\İ›ZœØ[™™XÛÜ™HZ\ÜÚ[™Ë\XÚØYÙH˜Z[\™H™Y›Ü™H[\[Y[][Û‹‚‹HÈH[\[Y[Hš]™Hİ[™\™[Ù[\ÈÚ]Ü[Ûˆ^XÚ]›È^\›˜[H™Y™\™[˜Ù\Ë^XÚ]Øš™Xİ\™İ[Y[Ë[™›İ[™YÚYHY™™XİË‚‹HÈH[\ÜX›H[Ù[HÛİ\˜ÙH\Ù\È˜˜\Øš[\È[™X]Ú[™È]šX]H—Ó˜[YXXÛ\˜][ÛœË‚‹HÈH™\[ˆHØ[YH\İÈ^XİYˆ[İ]XÈÛÛ˜Xİ\ÜÙ\[ÛœÈ\ÜË‚‚ˆÈÈÈ\ÚÈˆÜXÚX[\İ›Ùš[H[™ØY™]H›İ[™\šY\Â‚ŠŠ‘š[\ÎŠŠ‚‹HÜ™X]NˆÜXÚX[\İËÙ^Ù[]˜˜KĞQÑS•›Y‹HÜ™X]NˆÜXÚX[\İËÙ^Ù[]˜˜KÔ“ÕUS‘Ë›Y‹HÜ™X]NˆÜXÚX[\İËÙ^Ù[]˜˜KÔĞQ‘UK›Y‹H\İˆ\İÙ^Ù[]˜˜KZÚ]\İ›ZœØ‚ŠŠ’[\™˜XÙ\ÎŠŠ‚‹H›ÙXÙ\ÈH›ÛHÜXÚYšXØ][Û‹›İ][™È[\Ë[™ØY™]HÛXŞKˆ\ÙH\™H›İ[[YH™YÚ\İHXİ]˜][Û‹‚‹H™\]Z\™\È›İ™[˜[˜ÙH›Üˆ™]\ÙYÛÙKXİX[ÛÜšØ›ÛÚÈØÚ[XH[œÜXİ[Û‹[™^XÚ]\›İ˜[›Üˆ\İXİ]™HÜˆ^\›˜[Xİ[ÛœË‚‚‹HÈHY\İÈ›ÜˆH[[YH›İ[™\K›İ™[˜[˜ÙH™\]Z\™[Y[Ë[™^XÚ]X\›İ˜[ÛXŞK‚‹HÈH[ˆH›Øİ\ÙY\İ[™™XÛÜ™Z\ÜÚ[™ÈÜXÚX[\İš[\È\ÈH^XİY˜Z[\™HYˆ[\[Y[[™È\È\ÚÈ[™\[™[K‚‹HÈHYH™YH›ÛHØİ[Y[Ë[˜ÛY[™ÈÜ™X]YÜİ]XË]\İYÑ^Ù[XÛÛ\[YÜ[[YK]\İY\İ[˜İ[ÛœË‚‹HÈH™\[ˆH›Øİ\ÙY\İÈ^XİYˆH›ÛHÜXÚYšXØ][Ûˆ[™İX\™˜Z[È\™H›İ[™‚‚ˆÈÈÈ\ÚÈÎˆÒH[™›Ü˜Ù[Y[[™[™Ù™ˆØİ[Y[][Û‚‚ŠŠ‘š[\ÎŠŠ‚‹HÜ™X]Nˆ™Ú]X‹İÛÜšÙ›İÜËÙ^Ù[]˜˜KZÚ][[‹HÜ™X]NˆØÜËÜ[œËÌŒ‹LLKLKY^Ù[]˜˜K]ÛÛÚ]›Y‹H[ÙYNˆ›Û™HÙˆH^\İ[™È\XØ][Ûˆ[[YHš[\Ë‚‚ŠŠ’[\™˜XÙ\ÎŠŠ‚‹HÒH[œÈ›ÙHKXÚXÚÈ\İÙ^Ù[]˜˜KZÚ]\İ›ZœØ[™›ÙHK]\İ\İÙ^Ù[]˜˜KZÚ]\İ›ZœØÛˆ™[]˜[\Ú\È[™[™\]Y\İË‚‹H‘PQQH™XÛÜ™ÈH^Ù[\ÚİÜ˜[Y][ÛˆØ]H[™H›ÙKšœËÔ™[™\ˆ^Xİ][Ûˆ›İ[™\K‚‚‹HÈHYHÛÜšÙ›İÈØÛÜYÈÛÛÚ]ÜXÚX[\İ[‹[™\İ]ÎÈ\ÙH›ÙKšœÈŒ‹‚‹HÈH[ˆ›ÙHKXÚXÚÈ\İÙ^Ù[]˜˜KZÚ]\İ›ZœØ[™›ÙHK]\İ\İÙ^Ù[]˜˜KZÚ]\İ›ZœØØØ[K‚‹HÈH™]šY]ÈHÛÛ\]HÚ[™ÙYYš[H\İ[™[œİ\™H›ÈXZ[‹Xœ˜[˜ÚÜˆ\Ş[Y[Xİ[ÛˆØØİ\œ™Y‚‹HÈHÛÛ[Z]H[YÜ˜][ÛˆÛˆH™X]\™Hœ˜[˜Ú[™™XY˜XÚÈHœ˜[˜Ú™YH[™Ú[™ÙYš[\Ë‚‚ˆÈÈ[œ™\ÛÛ™Y^\›˜[™\šYšXØ][Û‚‚‹HÛÛ\[H[™[ˆ[Ù[\È[ˆZXÜ›ÜÛÙ^Ù[\ÚİÜ
-›İ]˜Z[X›H[ˆHİ\œ™[›ÙKšœÈ™\šYšXØ][Ûˆ[š\›Û›Y[
-K‚‹HYH›ÛHÈH]]Üš]]]™H[™VXİYÈ™YÚ\İHÛ›HY\ˆ]™YÚ\İKÜXÚØYÙH\È]˜Z[X›HÈH[YÜ˜][ÛˆÛÜšÙ›İÎÈ\È™\ÜÚ]ÜH›Ùš[H[Û™HÙ\È›İXİ]˜]H\Ü]Ú‚‹H˜[Y]HXZ[[˜[˜ÙHÛÜšØ›ÛÚË\ÜXÚYšXÈ]]ÛX][ÛˆÛ›HY\ˆ[œÜXİ[™ÈHXİX[ÛÜšØ›ÛÚÈ[™]È™X[ÛÛ[[œËX›\Ë›Ü›][\Ë[™Y[YšY\œË‚
+**Interfaces:** `UxWorksheetExists(wb, worksheetName)`, `UxLastUsedRow(ws)`, `UxLastUsedColumn(ws)`, `UxFileExists(filePath)`, `UxFolderExists(folderPath)`, `UxSelectFolder(...)`, `UxSelectFile(...)`, `UxListFiles(folderPath, includeSubfolders)`, `UxFindKeywords(textToSearch, keywordRange, delimiter)`, `UxBeginFastMode(state)`, `UxRestoreApplicationState(state)`, and `UxAppendErrorLog(...)`.
+
+- [x] Add a static test for manifest provenance, module import headers, explicit workbook references, safe file operations, reversible application state, and append-only sanitized logging.
+- [x] Observe the initial test failure caused by the missing package manifest.
+- [x] Add five `.bas` modules with `Option Explicit`, narrow side effects, and explicit object arguments.
+- [x] Preserve the upstream MIT license notice and record the reviewed source tree SHA.
+- [x] Run the focused Node test; final result: 7 tests passed, 0 failed.
+
+## Task 2 â€” Specialist profile and safety boundaries
+
+**Files:** `specialists/excel-vba/AGENT.md`, `ROUTING.md`, `SAFETY.md`, plus the focused test.
+
+- [x] Document when to route Excel/VBA tasks and when to prefer macro-free spreadsheet work.
+- [x] Require inspection of the actual workbook schema before creating workbook-specific automation.
+- [x] Record provenance, approval, backup, safety, and evidence requirements.
+- [x] Explicitly state that repository documentation does not activate an external runtime registry.
+
+## Task 3 â€” CI and repository handoff
+
+**Files:** `.github/workflows/excel-vba-kit.yml`, this plan, and no existing application runtime files.
+
+- [x] Add a workflow scoped to toolkit, specialist, plan, and test paths using Node.js 22.
+- [x] Run `node --check test/excel-vba-kit.test.mjs`.
+- [x] Run `node --test test/excel-vba-kit.test.mjs`.
+- [x] Commit the changes on the feature branch and read back the branch tree and key files.
+
+## Excluded upstream routines
+
+- `RemovePasswords.vba`: attempts to bypass workbook/worksheet protection.
+- `BreakExternalLinks.vb`: can permanently sever external links.
+- `SaveOutlookAttachments.vba`: changes message read state and risks same-name file collisions.
+- `SpeedUp.vb`: changes broad Excel/workbook settings, including link-update behavior; replaced by a narrow reversible helper.
+
+## Verification still required
+
+- Import the modules into a disposable macro-enabled workbook in supported Windows desktop Excel.
+- Compile the full VBA project and exercise normal, cancellation, empty-folder, inaccessible-folder, and application-state restoration paths.
+- Add the specialist role to the authoritative uneXpected v7 registry only when that registry/package is available to this integration workflow.
+- Inspect the actual maintenance workbook schema before creating GMAO-specific macros.
+
+The repository branch contains source, documentation, tests, and CI configuration. It has not been merged into `main`, deployed to Render, imported into desktop Excel, or activated in the separate v7 runtime registry.

@@ -249,9 +249,11 @@ export const ANTHROPIC_EXCEL_TOOLS = Object.freeze([
   }
 ]);
 
-export async function executeExcelTool(name, args) {
+export async function executeExcelTool(name, args, context = {}) {
   if (!args || typeof args !== 'object' || Array.isArray(args)) throw fail('Excel tool arguments must be an object.', 400);
   if (name === 'excel_inspect') {
+    const allowed = new Set(Array.isArray(context.allowedFileIds) ? context.allowedFileIds : []);
+    if (typeof args.file_id !== 'string' || !allowed.has(args.file_id)) throw fail('The model can inspect only workbooks explicitly attached to this request.', 403);
     const result = await inspectUploadedWorkbook(args.file_id);
     return { output: JSON.stringify(result), artifacts: [] };
   }

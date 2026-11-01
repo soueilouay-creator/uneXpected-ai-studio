@@ -23,6 +23,7 @@ let activeRecognition = null;
 let voiceModeEnabled = false;
 let voiceBusy = false;
 let requestBusy = false;
+let pendingExcelFiles = [];
 let toastTimer;
 
 function toast(message) {
@@ -50,6 +51,79 @@ function formatDate(value, options = { month: 'short', day: 'numeric' }) {
 function gatewayBase() {
   const raw = $('#gatewayUrl')?.value.trim() || appSettings.gatewayUrl || '';
   return raw ? raw.replace(/\/$/, '') : location.origin;
+}
+
+function renderExcelAttachments() {
+  const host = $('#excelAttachments');
+  if (!host) return;
+  host.classList.toggle('hidden', pendingExcelFiles.length === 0);
+  host.innerHTML = pendingExcelFiles.map(file => `
+    <span class="excel-attachment-chip">▤ ${escapeHtml(file.name)} · ${(file.sizeBytes / 1024).toFixed(0)} KB
+      <button type="button" data-excel-remove="${escapeHtml(file.id)}" aria-label="Remove ${escapeHtml(file.name)} from next message">×</button>
+    </span>`).join('');
+}
+
+async function uploadExcelFiles(files) {
+  if (!files.length) return;
+  if (!sessionToken) { toast('Enter your gateway access token in Control center first.'); showView('settings'); return; }
+  if (files.length + pendingExcelFiles.length > 8) { toast('Attach no more than 8 workbooks to one message.'); return; }
+  const xlsxMime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  for (const file of files) {
+    if (!file.name.toLowerCase().endsWith('.xlsx')) { toast(file.name + ' is not an .xlsx file.'); continue; }
+    if (!file.size || file.size > 20 * 1024 * 1024) { toast(file.name + ' must be between 1 byte and 20 MiB.'); continue; }
+    if (pendingExcelFiles.some(item => item.name === file.name && item.sizeBytes === file.size)) { toast(file.name + ' is already attached.'); continue; }
+    $('#voiceStatus').textContent = 'Uploading ' + file.name + '…';
+    try {
+      const response = await fetch(`${gatewayBase()}/excel/upload`, {
+        method: 'POST',
+        headers: {
+          authorization: 'Bearer ' + sessionToken,
+          'content-type': xlsxMime,
+          'x-file-name': encodeURIComponent(file.name)
+        },
+        body: file,
+        cache: 'no-store'
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.file?.id) throw new Error(payload.error || `Workbook upload failed (${response.status}).`);
+      pendingExcelFiles.push(payload.file);
+      renderExcelAttachments();
+      toast(file.name + ' attached for the next message.');
+    } catch (error) {
+      toast(file.name + ' upload failed: ' + error.message);
+    }
+  }
+  $('#voiceStatus').textContent = pendingExcelFiles.length ? 'Workbook ready · ' + pendingExcelFiles.length + ' attached' : 'Ready';
+}
+
+async function downloadExcelArtifact(fileId, button) {
+  if (!sessionToken) { toast('Enter your gateway token before downloading workbook files.'); return; }
+  if (!/^[0-9a-f-]{36}$/i.test(String(fileId || ''))) { toast('This workbook download reference is invalid.'); return; }
+  button.disabled = true;
+  try {
+    const response = await fetch(`${gatewayBase()}/excel/download/${fileId}`, {
+      headers: { authorization: 'Bearer ' + sessionToken },
+      cache: 'no-store'
+    });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.error || `Workbook download failed (${response.status}).`);
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'uneXpected-workbook.xlsx';
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+    toast('Workbook downloaded.');
+  } catch (error) {
+    toast('Could not download workbook: ' + error.message);
+  } finally {
+    button.disabled = false;
+  }
 }
 
 function setConnection(text, tone = 'local', detail = '') {
@@ -307,14 +381,17 @@ function renderProviderResult(card) {
 
 function renderMessage(message) {
   const isUser = message.role === 'user';
-  const isAssistant = message.role === 'assistant';
   const meta = isUser
     ? `<div class="message-meta"><span>You · ${escapeHtml(message.routeLabel || 'Message')}</span><time>${formatDate(message.createdAt, { hour: '2-digit', minute: '2-digit' })}</time></div>`
     : `<div class="message-meta"><span>${escapeHtml(message.label || 'uneXpected')}</span><time>${formatDate(message.createdAt, { hour: '2-digit', minute: '2-digit' })}</time></div>`;
-  if (isUser) return `
-    <div class="message-row user-row"><div class="message-content">
-      <div class="message-bubble">${escapeHtml(message.content).replace(/\n/g, '<br>')}</div>${meta}
-    </div></div>`;
+  if (isUser) {
+    const files = Array.isArray(message.excelFiles) ? message.excelFiles : [];
+    const fileMarkup = files.length ? `<div class="message-attachments">${files.map(file => `<span>▤ ${escapeHtml(file.name)} · ${(Number(file.sizeBytes || 0) / 1024).toFixed(0)} KB</span>`).join('')}</div>` : '';
+    return `
+      <div class="message-row user-row"><div class="message-content">
+        <div class="message-bubble">${escapeHtml(message.content).replace(/\n/g, '<br>')}</div>${fileMarkup}${meta}
+      </div></div>`;
+  }
 
   const cards = Array.isArray(message.responseCards) ? message.responseCards : [];
   const fallback = message.fallback && message.fallback.attempted
@@ -323,12 +400,19 @@ function renderMessage(message) {
   const content = cards.length
     ? fallback + cards.map(renderProviderResult).join('')
     : `<div class="message-bubble ${message.isError ? 'chat-error' : ''}">${escapeHtml(message.content || '').replace(/\n/g, '<br>')}</div>`;
+  const artifacts = Array.isArray(message.excelArtifacts) ? message.excelArtifacts : [];
+  const downloadMarkup = artifacts.map(artifact => {
+    const fileId = /^[0-9a-f-]{36}$/i.test(String(artifact.id || '')) ? artifact.id : '';
+    if (!fileId) return '';
+    return `<div class="excel-download-row"><span>Generated workbook · ${escapeHtml(artifact.fileName || 'workbook.xlsx')}</span><button type="button" data-excel-download="${escapeHtml(fileId)}">Download .xlsx ↧</button><small>Temporary link expires in ${Number(artifact.expiresInSeconds || 0)} seconds.</small></div>`;
+  }).join('');
   const providerMeta = message.provider
     ? `<span class="provider-pill" data-provider="${escapeHtml(message.provider)}">${escapeHtml(message.providerLabel || message.provider)}</span>`
     : '';
   return `
     <div class="message-row assistant-row"><div class="message-avatar" aria-hidden="true">u</div><div class="message-content">
       ${content}
+      ${downloadMarkup}
       <div class="message-meta">${providerMeta}<span>${escapeHtml(message.label || 'uneXpected')}</span><time>${formatDate(message.createdAt, { hour: '2-digit', minute: '2-digit' })}</time></div>
     </div></div>`;
 }
@@ -407,6 +491,8 @@ function setRequestBusy(value) {
   if (!value) $('#chatInput').disabled = false;
   $$('[data-model]').forEach(button => { button.disabled = value; });
   $('#compareBtn').disabled = value;
+  if ($('#attachExcelBtn')) $('#attachExcelBtn').disabled = value;
+  if ($('#excelFileInput')) $('#excelFileInput').disabled = value;
   if (value) $('#voiceStatus').textContent = 'Working on your request…';
 }
 
@@ -432,7 +518,13 @@ async function sendChat(event) {
   if (requestBusy) return;
   const input = $('#chatInput');
   const prompt = input.value.trim();
-  if (!prompt) return;
+  const excelFiles = [...pendingExcelFiles];
+  if (!prompt && !excelFiles.length) return;
+  if (excelFiles.length && selectedModel === 'openrouter') {
+    toast('Choose ChatGPT, Claude or Compare to inspect uploaded workbooks. OpenRouter has no Excel tools.');
+    return;
+  }
+  const taskPrompt = prompt || 'Inspect the attached workbook and summarize its structure and notable data-quality issues.';
   let conversation = await getActiveConversation();
   if (!conversation) {
     await createConversation();
@@ -444,16 +536,17 @@ async function sendChat(event) {
   }
 
   const mode = selectedModel;
-  const role = selectedContextRole(prompt);
+  const role = selectedContextRole(taskPrompt);
   const skill = selectedSkillId ? skills.find(item => item.id === selectedSkillId) : null;
   $('#profileChip').textContent = skill ? `${role.id} + ${skill.id}` : role.id;
   const userMessage = {
-    id: id(), role: 'user', content: prompt, createdAt: now(),
+    id: id(), role: 'user', content: taskPrompt, createdAt: now(),
+    excelFiles: excelFiles.map(file => ({ name: file.name, sizeBytes: file.sizeBytes })),
     label: 'You', routeLabel: modeLabel(mode)
   };
   conversation.messages ||= [];
   conversation.messages.push(userMessage);
-  if (conversation.messages.length === 1) conversation.title = prompt.slice(0, 48) || 'New conversation';
+  if (conversation.messages.length === 1) conversation.title = taskPrompt.slice(0, 48) || 'New conversation';
   conversation.updatedAt = now();
   input.value = '';
   resizeComposer();
@@ -509,11 +602,17 @@ async function sendChat(event) {
     const response = await fetch(`${gatewayBase()}/orchestrate`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: 'Bearer ' + sessionToken },
-      body: JSON.stringify({ task: buildTaskEnvelope(prompt, role, context), mode: selectedModel })
+      body: JSON.stringify({ task: buildTaskEnvelope(taskPrompt, role, context), mode: selectedModel, excelFiles: excelFiles.map(file => file.id) })
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(payload.error || `Gateway request failed (${response.status}).`);
     const cards = collectProviderCards(payload);
+    assistant.excelArtifacts = Array.isArray(payload.excelArtifacts) ? payload.excelArtifacts : [];
+    if (excelFiles.length) {
+      const usedIds = new Set(excelFiles.map(file => file.id));
+      pendingExcelFiles = pendingExcelFiles.filter(file => !usedIds.has(file.id));
+      renderExcelAttachments();
+    }
     assistant.responseCards = cards;
     assistant.fallback = payload.fallback || null;
     assistant.providerSummary = cards.map(card => ({ provider: card.provider, model: card.model, requestedModel: card.requestedModel, latencyMs: card.latencyMs, fallback: card.isFallback }));
@@ -1030,6 +1129,30 @@ function bindEvents() {
   });
   $('#chatForm').addEventListener('submit', sendChat);
   $('#chatInput').addEventListener('input', resizeComposer);
+  $('#attachExcelBtn').addEventListener('click', () => {
+    if (!sessionToken) {
+      toast('Enter your server access token in Control center before uploading workbooks.');
+      showView('settings');
+      $('#accessToken').focus();
+      return;
+    }
+    $('#excelFileInput').click();
+  });
+  $('#excelFileInput').addEventListener('change', async event => {
+    const files = [...(event.target.files || [])];
+    event.target.value = '';
+    await uploadExcelFiles(files);
+  });
+  $('#excelAttachments').addEventListener('click', event => {
+    const button = event.target.closest('[data-excel-remove]');
+    if (!button) return;
+    pendingExcelFiles = pendingExcelFiles.filter(file => file.id !== button.dataset.excelRemove);
+    renderExcelAttachments();
+  });
+  $('#messageList').addEventListener('click', async event => {
+    const button = event.target.closest('[data-excel-download]');
+    if (button) await downloadExcelArtifact(button.dataset.excelDownload, button);
+  });
   $('#chatSearch').addEventListener('input', refreshChats);
   $$('[data-model]').forEach(button => button.addEventListener('click', () => setSelectedModel(button.dataset.model)));
   $('#compareBtn').addEventListener('click', () => setSelectedModel(selectedModel === 'both' ? 'openai' : 'both'));

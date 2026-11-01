@@ -121,11 +121,14 @@
               </div>
 
               <form id="chatForm" class="message-composer">
+                <div id="excelAttachments" class="excel-attachments hidden" aria-live="polite"></div>
                 <label class="sr-only" for="chatInput">Message uneXpected</label>
                 <textarea id="chatInput" rows="1" maxlength="8500" placeholder="Message…" aria-label="Message uneXpected"></textarea>
                 <div class="composer-footer">
                   <div class="composer-hints"><span class="composer-hint"><span class="hint-dot"></span><span id="voiceStatus">Ready</span></span></div>
                   <div class="composer-actions">
+                    <input type="file" id="excelFileInput" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple class="hidden" aria-label="Choose Excel workbooks">
+                    <button class="composer-icon-button" id="attachExcelBtn" type="button" aria-label="Attach Excel workbook" title="Attach .xlsx workbooks">▤</button>
                     <button class="composer-icon-button" id="voiceInputBtn" type="button" aria-label="Start voice input" title="Voice input">⌁</button>
                     <button class="composer-icon-button" id="voiceModeBtn" type="button" aria-pressed="false" title="Voice conversation">◖</button>
                     <button class="composer-icon-button" id="speakLastBtn" type="button" title="Read the last reply aloud">◗</button>
@@ -134,7 +137,7 @@
                 </div>
               </form>
             </div>
-            <p class="composer-disclaimer">Verify important answers.</p>
+            <p class="composer-disclaimer">Attach .xlsx files for read-only inspection or workbook generation. Uploaded files expire after 30 minutes; bounded sheet previews are shared with the selected AI provider. Do not upload confidential data unless its provider terms allow it.</p>
           </div>
         </div>
       </section>

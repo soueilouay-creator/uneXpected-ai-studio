@@ -1,0 +1,47 @@
+{
+  "id": "unexpected.excel-vba-kit",
+  "name": "uneXpected Excel VBA Toolkit",
+  "version": "0.1.0",
+  "status": "reviewed-source-package",
+  "license": "MIT",
+  "source": {
+    "repository": "https://github.com/aaronkeene/ExcelVBA",
+    "branch": "master",
+    "treeSha": "ec5def4edaf787ed06371a97a9709cdc166d45f2",
+    "reviewedAt": "2026-11-01",
+    "reuseApproach": "Reviewed and independently rewritten utilities based on selected upstream patterns; see module-level source notes and LICENSE."
+  },
+  "compatibility": {
+    "excel": "Microsoft Excel 2010 or newer",
+    "platform": "Windows desktop",
+    "vba": "VBA 7 compatible; no external VBA project references required beyond the standard Excel/Office object model",
+    "notes": [
+      "File-system enumeration uses late-bound Scripting.FileSystemObject and is intended for Windows desktop Excel.",
+      "The toolkit is source code for import into a macro-enabled workbook; it does not run inside the Node.js/Render service.",
+      "Excel desktop compilation and runtime behavior must be verified in a real supported Office installation before production use."
+    ]
+  },
+  "modules": [
+    { "path": "modules/modUxWorkbook.bas", "name": "modUxWorkbook", "purpose": "Explicit-workbook worksheet checks and robust last-used row/column lookup." },
+    { "path": "modules/modUxFileSystem.bas", "name": "modUxFileSystem", "purpose": "Read-only file/folder checks, file inventory, and user-driven file/folder selection." },
+    { "path": "modules/modUxText.bas", "name": "modUxText", "purpose": "Case-insensitive keyword matching against an explicitly supplied Excel range." },
+    { "path": "modules/modUxApplicationState.bas", "name": "modUxApplicationState", "purpose": "Capture, apply, and restore selected Excel application settings around bulk work." },
+    { "path": "modules/modUxDiagnostics.bas", "name": "modUxDiagnostics", "purpose": "Append sanitized error records to a caller-selected existing folder." }
+  ],
+  "excludedUpstreamRoutines": [
+    { "path": "RemovePasswords.vba", "reason": "Attempts to bypass workbook or worksheet protection; excluded." },
+    { "path": "BreakExternalLinks.vb", "reason": "Can permanently sever workbook links; not included as an automatic utility." },
+    { "path": "SaveOutlookAttachments.vba", "reason": "Changes message read state and can overwrite same-named files; excluded pending a separately designed, consent-based workflow." },
+    { "path": "SpeedUp.vb", "reason": "Mutates broad application and workbook settings, including link-update behavior; replaced with a narrow state-preserving helper." }
+  ],
+  "verification": {
+    "automated": "Node.js static source and safety-contract tests",
+    "excelDesktop": "not yet executed",
+    "requiredBeforeProduction": [
+      "Import all .bas files into a disposable macro-enabled workbook.",
+      "Compile the VBA project with Option Explicit enabled.",
+      "Exercise file enumeration, workbook lookup, cancellation, and application-state restoration in supported Excel desktop versions.",
+      "Review the workbook-specific schema before creating or modifying a GMAO workbook."
+    ]
+  }
+}

@@ -1,8 +1,9 @@
 package workbook
 
 import (
+	"archive/zip"
 	"os"
-	"path/filepath
+	"path/filepath"
 	"testing"
 )
 
@@ -93,5 +94,82 @@ func TestInspectRejectsInvalidWorkbookAndPreviewLimits(t *testing.T) {
 	}
 	if _, err := InspectWorkbook(bad, 21); err == nil {
 		t.Fatal("InspectWorkbook() accepted more than 20 preview rows")
+	}
+}
+
+func writeXLSXFixture(t *testing.T, sharedStrings, worksheet string) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "preflight.xlsx")
+	file, err := os.Create(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	archive := zip.NewWriter(file)
+	entries := map[string]string{
+		"xl/sharedStrings.xml": sharedStrings,
+		"xl/worksheets/sheet1.xml": worksheet,
+	}
+	for name, content := range entries {
+		entry, err := archive.Create(name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := entry.Write([]byte(content)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := archive.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
+func TestPreflightRejectsNegativeAndOutOfRangeSharedStringIndexes(t *testing.T) {
+	shared := "<sst><si><t>Alpha</t></si></sst>"
+	for _, index := range []string{"-1", "1", "not-an-index"} {
+		t.Run(index, func(t *testing.T) {
+			sheet := "<worksheet><sheetData><row r=\"1\"><c r=\"A1\" t=\"s\"><v>" + index + "</v></c></row></sheetData></worksheet>"
+			if err := preflightXLSX(writeXLSXFixture(t, shared, sheet)); err == nil {
+				t.Fatalf("preflight accepted invalid shared-string index %q", index)
+			}
+		})
+	}
+}
+
+func TestPreflightAllowsValidSharedStringIndex(t *testing.T) {
+	shared := "<sst><si><t>Alpha</t></si></sst>"
+	sheet := "<worksheet><sheetData><row r=\"1\"><c r=\"A1\" t=\"s\"><v>0</v></c></row></sheetData></worksheet>"
+	if err := preflightXLSX(writeXLSXFixture(t, shared, sheet)); err != nil {
+		t.Fatalf("preflight rejected valid shared-string index: %v", err)
+	}
+}
+
+func TestPreflightRejectsDuplicateZIPEntries(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "duplicate.xlsx")
+	file, err := os.Create(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	archive := zip.NewWriter(file)
+	for i := 0; i < 2; i++ {
+		entry, err := archive.Create("xl/worksheets/sheet1.xml")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := entry.Write([]byte("<worksheet/>")); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := archive.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := preflightXLSX(path); err == nil {
+		t.Fatal("preflight accepted duplicate ZIP entries")
 	}
 }

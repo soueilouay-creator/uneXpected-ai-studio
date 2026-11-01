@@ -1,7 +1,7 @@
 {
   "id": "unexpected.excel-engine",
   "name": "uneXpected Excel Engineering Engine",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "status": "source-integration",
   "scope": "general-purpose-cross-industry",
   "engine": {
@@ -19,14 +19,23 @@
   ],
   "limits": {
     "uploadBytes": 20971520,
+    "zipEntries": 4096,
     "unzipBytes": 67108864,
-    "worksheetXmlBytes": 8388608,
+    "xmlPartBytes": 8388608,
     "sheets": 20,
     "rowsPerSheet": 50000,
     "columnsPerSheet": 100,
     "previewRows": 20,
     "jsonRequestBytes": 1048576,
     "workerTimeoutMs": 30000
+  },
+  "security": {
+    "zip64Preflight": true,
+    "sharedStringIndexPreflight": true,
+    "duplicateZipEntryRejection": true,
+    "exposedMethods": ["ZIP metadata preflight", "streaming worksheet rows", "cell value reads", "new workbook generation"],
+    "excludedMethods": ["pivot table retrieval", "slicer retrieval", "conditional format retrieval", "decryption", "formula calculation", "column mutation"],
+    "note": "Excelize v2.11.0 has advisories affecting methods outside this limited public surface. Preflight mitigates specific unsafe inputs; this is defense-in-depth, not a claim that all upstream vulnerabilities are eliminated."
   },
   "api": {
     "inspect": "POST /excel/inspect (raw .xlsx body, bearer-authenticated)",

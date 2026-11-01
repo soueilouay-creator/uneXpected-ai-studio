@@ -1,10 +1,14 @@
 package workbook
 
 import (
+	"archive/zip"
+	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/xuri/excelize/v2"
@@ -14,6 +18,7 @@ const (
 	MaxUploadBytes       int64 = 20 << 20
 	MaxUnzipBytes        int64 = 64 << 20
 	MaxWorksheetXMLBytes int64 = 8 << 20
+	MaxZipEntries              = 4096
 	MaxSheets                  = 20
 	MaxRows                    = 50_000
 	MaxColumns                 = 100
@@ -131,6 +136,9 @@ func InspectWorkbook(inputPath string, previewRows int) (Inspection, error) {
 	if info.Size() <= 0 || info.Size() > MaxUploadBytes {
 		return Inspection{}, fmt.Errorf("input file must be between 1 byte and %d bytes", MaxUploadBytes)
 	}
+	if err := preflightXLSX(inputPath); err != nil {
+		return Inspection{}, fmt.Errorf("XLSX safety preflight rejected the workbook: %w", err)
+	}
 
 	file, err := excelize.OpenFile(inputPath, excelize.Options{
 		UnzipSizeLimit:    MaxUnzipBytes,
@@ -186,6 +194,145 @@ func InspectWorkbook(inputPath string, previewRows int) (Inspection, error) {
 		result.Sheets = append(result.Sheets, sheet)
 	}
 	return result, nil
+}
+
+// preflightXLSX checks ZIP metadata before Excelize opens user-controlled content.
+// This prevents Zip64 size wraparound from bypassing the configured decompression limit
+// and validates shared-string indices before the pinned Excelize reader consumes them.
+func preflightXLSX(path string) error {
+	reader, err := zip.OpenReader(path)
+	if err != nil {
+		return fmt.Errorf("open ZIP package: %w", err)
+	}
+	defer reader.Close()
+
+	if len(reader.File) == 0 || len(reader.File) > MaxZipEntries {
+		return fmt.Errorf("ZIP package must contain between 1 and %d entries", MaxZipEntries)
+	}
+
+	seen := make(map[string]struct{}, len(reader.File))
+	var totalUncompressed uint64
+	var sharedStringsFile *zip.File
+	worksheets := make([]*zip.File, 0, MaxSheets)
+
+	for _, entry := range reader.File {
+		name := strings.ReplaceAll(entry.Name, "\\", "/")
+		if strings.HasPrefix(name, "/") || strings.Contains(name, "../") {
+			return fmt.Errorf("ZIP entry path %q is invalid", entry.Name)
+		}
+		if _, exists := seen[name]; exists {
+			return fmt.Errorf("ZIP package contains duplicate entry %q", name)
+		}
+		seen[name] = struct{}{}
+
+		size := entry.UncompressedSize64
+		if size > uint64(MaxUnzipBytes) || totalUncompressed > uint64(MaxUnzipBytes)-size {
+			return fmt.Errorf("ZIP package exceeds the %d-byte uncompressed limit", MaxUnzipBytes)
+		}
+		totalUncompressed += size
+
+		lowerName := strings.ToLower(name)
+		if strings.HasSuffix(lowerName, ".xml") || strings.HasSuffix(lowerName, ".rels") {
+			if size > uint64(MaxWorksheetXMLBytes) {
+				return fmt.Errorf("XML package part %q exceeds the %d-byte limit", name, MaxWorksheetXMLBytes)
+			}
+		}
+		if name == "xl/sharedStrings.xml" {
+			sharedStringsFile = entry
+		}
+		if strings.HasPrefix(name, "xl/worksheets/") &&
+			strings.HasSuffix(lowerName, ".xml") &&
+			!strings.Contains(name, "/_rels/") {
+			worksheets = append(worksheets, entry)
+		}
+	}
+	if len(worksheets) == 0 || len(worksheets) > MaxSheets {
+		return fmt.Errorf("ZIP package must contain between 1 and %d worksheet XML parts", MaxSheets)
+	}
+
+	sharedStringCount := 0
+	if sharedStringsFile != nil {
+		sharedStringCount, err = countSharedStrings(sharedStringsFile)
+		if err != nil {
+			return fmt.Errorf("validate shared strings: %w", err)
+		}
+	}
+	for _, sheet := range worksheets {
+		if err := validateWorksheetSharedStringReferences(sheet, sharedStringCount); err != nil {
+			return fmt.Errorf("validate worksheet %q shared-string references: %w", sheet.Name, err)
+		}
+	}
+	return nil
+}
+
+func countSharedStrings(entry *zip.File) (int, error) {
+	stream, err := entry.Open()
+	if err != nil {
+		return 0, err
+	}
+	defer stream.Close()
+
+	decoder := xml.NewDecoder(io.LimitReader(stream, MaxWorksheetXMLBytes+1))
+	count := 0
+	for {
+		token, err := decoder.Token()
+		if errors.Is(err, io.EOF) {
+			return count, nil
+		}
+		if err != nil {
+			return 0, err
+		}
+		if element, ok := token.(xml.StartElement); ok && element.Name.Local == "si" {
+			count++
+		}
+	}
+}
+
+func validateWorksheetSharedStringReferences(entry *zip.File, sharedStringCount int) error {
+	stream, err := entry.Open()
+	if err != nil {
+		return err
+	}
+	defer stream.Close()
+
+	decoder := xml.NewDecoder(io.LimitReader(stream, MaxWorksheetXMLBytes+1))
+	inCell, sharedStringCell := false, false
+	for {
+		token, err := decoder.Token()
+		if errors.Is(err, io.EOF) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		switch element := token.(type) {
+		case xml.StartElement:
+			switch element.Name.Local {
+			case "c":
+				inCell, sharedStringCell = true, false
+				for _, attr := range element.Attr {
+					if attr.Name.Local == "t" && attr.Value == "s" {
+						sharedStringCell = true
+					}
+				}
+			case "v":
+				if inCell && sharedStringCell {
+					var raw string
+					if err := decoder.DecodeElement(&raw, &element); err != nil {
+						return err
+					}
+					index, err := strconv.ParseInt(strings.TrimSpace(raw), 10, 64)
+					if err != nil || index < 0 || index >= int64(sharedStringCount) {
+						return fmt.Errorf("shared-string index %q is outside the valid range", raw)
+					}
+				}
+			}
+		case xml.EndElement:
+			if element.Name.Local == "c" {
+				inCell, sharedStringCell = false, false
+			}
+		}
+	}
 }
 
 func validateSpec(spec WorkbookSpec) error {

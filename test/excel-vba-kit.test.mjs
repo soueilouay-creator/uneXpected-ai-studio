@@ -89,3 +89,25 @@ test('README and license preserve the upstream attribution and disclose verifica
   assert.match(license, /Copyright \(c\) 2014 taxbender/u);
   assert.match(license, /THE SOFTWARE IS PROVIDED "AS IS"/u);
 });
+
+
+test('general data-validation helpers inspect headers, blanks, and duplicate values without changing cells', async () => {
+  const source = codeOnly(await readKit('modules/modUxDataValidation.bas'));
+  assert.match(source, /Function UxFindHeaderColumn/u);
+  assert.match(source, /Function UxMissingHeaders/u);
+  assert.match(source, /Function UxCountBlankCells/u);
+  assert.match(source, /Function UxFindDuplicateCells/u);
+  assert.doesNotMatch(source, /\.Value\s*=/u);
+  assert.doesNotMatch(source, /\.Clear(?:Contents|Formats)?\b|\.Delete\b|\.RemoveDuplicates\b/u);
+});
+
+test('toolkit guidance is general-purpose and avoids employer-specific workbook assumptions', async () => {
+  const readme = await readKit('README.md');
+  const agent = await readFile(resolve(ROOT, 'specialists/excel-vba/AGENT.md'), 'utf8');
+  assert.match(readme, /general-purpose/i);
+  assert.match(readme, /inventory/i);
+  assert.match(readme, /financial|budget/i);
+  assert.match(readme, /project tracking/i);
+  assert.doesNotMatch(readme, /Maintenance GMAO|129 machines|Variété Industrielle/i);
+  assert.match(agent, /industry-agnostic|industry agnostic|cross-industry/i);
+});

@@ -2,6 +2,8 @@
 
 ## Mission
 
+Coordinate with specialists/excel/AGENT.md. Server-side XLSX work routes to the pinned Excelize engine; desktop-only Excel object-model work remains in this VBA toolkit. Follow integrations/excel-engine/agent/EXCEL_COORDINATOR.md for cross-engine decisions.
+
 Design, inspect, improve, and document Excel workbooks and VBA automation for general use across industries and job functions. Maintain an industry-agnostic, reusable core that preserves workbook behavior, user data, and portability. Use `integrations/excel-vba-kit/` as a curated utility library, not as proof that code compiles in a target workbook.
 
 ## Operating procedure

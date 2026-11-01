@@ -64,3 +64,10 @@ Phone conversations support a per-message route selector:
 The selected route applies to the next message only. Earlier conversation turns keep their original provider attribution. Assistant responses display their provider, actual returned model, requested route when different, latency, and whether OpenRouter was used as a fallback. A direct OpenRouter request is made once and does not start a second OpenRouter fallback attempt. The automatic OpenRouter fallback remains enabled for primary-provider routes when no requested primary provider returns usable text.
 
 The phone interface uses a responsive left navigation drawer on narrow screens and a persistent sidebar on wider screens. Local projects, conversations, memories, improvements, profile browsing, voice controls, and backup export/import remain on-device. The mobile gateway access token stays in memory only; it is not written to IndexedDB, browser storage, or backups. Provider API keys remain server-side.
+
+
+## Excel Engineering
+
+The repository contains a general-purpose Excel Engineering specialist coordinating macro-free Excel techniques, a pinned Excelize v2.11.0 server worker, and the desktop VBA toolkit. The Node service injects coordinator instructions into OpenAI and Anthropic system prompts when a request is identified as Excel-related. Authenticated worker endpoints are available at POST /excel/inspect and POST /excel/generate; schemas and limits are documented in integrations/excel-engine/agent/TOOL_CONTRACTS.md.
+
+The first worker release inspects .xlsx files and generates new .xlsx files only. It does not execute VBA or replace Excel's formula calculation engine. The current provider gateway does not expose worker endpoints as native LLM function tools; host/v7 tool registration is a separate activation step and must be verified independently. See specialists/excel/AGENT.md and the seven skill files in specialists/excel/skills/.

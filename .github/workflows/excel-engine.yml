@@ -38,3 +38,5 @@ jobs:
         run: node --test test/excel-engine.test.mjs
       - name: Run repository regression tests
         run: node --test test/*.test.mjs
+      - name: Build production Docker image
+        run: docker build --pull=false -t unexpected-excel-engine:ci .

@@ -1,5 +1,6 @@
 import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
+import { isExcelTask, withExcelCoordinatorInstructions } from '../excel-engine.mjs';
 
 process.env.UNEXPECTED_ACCESS_TOKEN = 'excel-engine-test-token';
 process.env.PORT = '0';
@@ -96,4 +97,16 @@ test('Excel generate rejects malformed workbook specifications', async () => {
     body: JSON.stringify({ sheets: [] })
   });
   assert.equal(response.status, 400);
+});
+
+test('coordinator instructions are injected only for Excel-related provider requests', async () => {
+  assert.equal(isExcelTask('Create a project timeline'), false);
+  assert.equal(isExcelTask('Inspect this XLSX workbook'), true);
+  const ordinary = await withExcelCoordinatorInstructions('Create a project timeline', 'base system');
+  assert.equal(ordinary, 'base system');
+  const excel = await withExcelCoordinatorInstructions('Inspect this XLSX workbook', 'base system');
+  assert.match(excel, /Excel Engineering Coordinator/u);
+  assert.match(excel, /Excelize/u);
+  assert.match(excel, /VBA/u);
+  assert.match(excel, /Never claim to have called an endpoint/u);
 });

@@ -1,3 +1,11 @@
+FROM golang:1.25-alpine AS excel-engine-build
+WORKDIR /src
+COPY integrations/excel-engine/go.mod ./go.mod
+COPY integrations/excel-engine/go.sum ./go.sum
+RUN go mod download
+COPY integrations/excel-engine/ ./
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/ux-excel ./cmd/ux-excel
+
 FROM node:22-alpine
 ENV NODE_ENV=production PORT=10000
 WORKDIR /tmp/ue-source
@@ -10,6 +18,9 @@ RUN base64 -d /tmp/source.tar.gz.b64 > /tmp/source.tar.gz \
 WORKDIR /app
 COPY app.js /app/public/app.js
 COPY server.js /app/server.js
+COPY excel-engine.mjs /app/excel-engine.mjs
+COPY integrations/excel-engine/agent/ /app/integrations/excel-engine/agent/
+COPY --from=excel-engine-build /out/ux-excel /app/bin/ux-excel
 COPY openrouter-ui.js /app/openrouter-ui.js
 COPY taaft-integration.mjs /app/taaft-integration.mjs
 COPY mobile-assets.mjs /app/mobile-assets.mjs

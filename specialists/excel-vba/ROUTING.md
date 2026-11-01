@@ -6,6 +6,6 @@ Do not assume an industry, employer, role, or workbook schema from prior example
 
 Do not route here for a simple spreadsheet formula, a basic CSV transformation, or a non-Excel coding task unless workbook automation is part of the requested outcome. Prefer ordinary macro-free spreadsheet work for formula-only changes.
 
-Before using VBA, verify that macros are acceptable and the target is desktop Excel. If the task can be safely completed without macros, prefer the macro-free implementation.
+Before using VBA, verify that macros are acceptable and the target is desktop Excel. If the task can be safely completed without macros, prefer the macro-free implementation. For server-side XLSX inspection or generation, route to specialists/excel/AGENT.md and the Excelize worker instead.
 
 This profile is a role specification for a future uneXpected registry/host adapter. Adding these files to the repository does not by itself activate runtime dispatch in the Node.js service or install the role in the separate v7 registry.

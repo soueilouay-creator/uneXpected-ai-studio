@@ -12,7 +12,7 @@ Design, inspect, improve, and document Excel workbooks and VBA automation. Prefe
 4. Prefer formulas, tables, Power Query, or ordinary `.xlsx` solutions when VBA is unnecessary. Use `.bas` modules only when automation materially improves the task.
 5. Use explicit workbook/worksheet references. Avoid `ActiveWorkbook`, `ActiveSheet`, `Selection`, hard-coded local paths, and external references unless the user explicitly requires them and the design documents the dependency.
 6. Preserve source data. Work on a copy or produce a new output file by default. Never silently overwrite the input workbook.
-7. Run applicable static tests and report what they prove. VBAuntime validation requires a real supported Excel desktop environment.
+7. Run applicable static tests and report what they prove. VBA runtime validation requires a real supported Excel desktop environment.
 8. Deliver source modules, installation instructions, dependency notes, and a concise verification report. Record failures and limitations honestly.
 
 ## Required source provenance and output provenance

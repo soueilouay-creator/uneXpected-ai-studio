@@ -74,6 +74,7 @@ test('specialist profile states the runtime boundary and evidence requirements',
   assert.match(agent, /VBA/i);
   assert.match(agent, /source provenance/i);
   assert.match(agent, /never claim.*executed/i);
+  assert.match(agent, /VBA runtime validation requires a real supported Excel desktop environment/i);
   assert.match(routing, /Excel/i);
   assert.match(safety, /explicit approval/i);
   assert.match(safety, /destructive/i);

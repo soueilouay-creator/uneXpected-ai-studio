@@ -245,6 +245,7 @@ test('OpenAI can generate an XLSX artifact that is downloaded and read back', as
   assert.equal(data.ok, true);
   assert.match(data.results.openai.text, /workbook is ready/i);
   assert.equal(data.excelArtifacts.length, 1);
+  assert.match(studio.getStdout(), /MOCK_EXCEL_GENERATE_READBACK:ok/);
   const artifact = data.excelArtifacts[0];
   assert.equal(artifact.fileName, 'uneXpected-workbook.xlsx');
   assert.equal(artifact.sizeBytes > 0, true);

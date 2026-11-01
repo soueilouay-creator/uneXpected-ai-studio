@@ -41,7 +41,7 @@ test('Excel inspect rejects content that is not an XLSX ZIP package', async () =
   });
   assert.equal(response.status, 400);
   const data = await response.json();
-  assert.equal(data.ok, false);
+  assert.match(data.error, /not a valid XLSX ZIP package/i);
 });
 
 test('Excel generate returns a workbook that the inspect endpoint can read', async () => {

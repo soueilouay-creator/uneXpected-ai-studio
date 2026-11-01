@@ -14,6 +14,18 @@ function uploadedFileId(task) {
   return match?.[1] || '00000000-0000-4000-8000-000000000000';
 }
 
+function recordExcelToolResult(raw) {
+  try {
+    const parsed = JSON.parse(String(raw || ''));
+    const serialized = JSON.stringify(parsed);
+    const success = parsed?.ok === true;
+    const includesWorkbookData = serialized.includes('round trip');
+    process.stdout.write('MOCK_EXCEL_TOOL_RESULT:' + (success ? 'ok' : 'error') + (includesWorkbookData ? ':data' : '') + '\\n');
+  } catch {
+    process.stdout.write('MOCK_EXCEL_TOOL_RESULT:error\\n');
+  }
+}
+
 globalThis.fetch = async (input, init = {}) => {
   const url = String(input);
   let provider;
@@ -41,7 +53,8 @@ globalThis.fetch = async (input, init = {}) => {
         });
       }
       if (Array.isArray(body.input) && body.input.some(item => item.type === 'function_call_output')) {
-        process.stdout.write('MOCK_EXCEL_TOOL_RESULT:received\\n');
+        const toolResult = body.input.find(item => item.type === 'function_call_output');
+        recordExcelToolResult(toolResult?.output);
         return response(200, {
           model: 'gpt-4.1',
           output: [{ type: 'message', content: [{ type: 'output_text', text: 'OpenAI inspected the uploaded workbook.' }] }]
@@ -101,7 +114,8 @@ globalThis.fetch = async (input, init = {}) => {
       });
     }
     if (body.messages?.some(message => message.role === 'user' && Array.isArray(message.content) && message.content.some(item => item.type === 'tool_result'))) {
-      process.stdout.write('MOCK_EXCEL_TOOL_RESULT:received\\n');
+      const toolResult = body.messages.find(message => message.role === 'user' && Array.isArray(message.content))?.content.find(item => item.type === 'tool_result');
+      recordExcelToolResult(toolResult?.content);
       return response(200, {
         model: 'claude-sonnet-4-5-20250929',
         stop_reason: 'end_turn',

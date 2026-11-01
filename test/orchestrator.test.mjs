@@ -64,14 +64,14 @@ async function startStudio(t, scenario, openrouterKey = 'test-openrouter-secret'
     token,
     child,
     getStdout: () => stdout,
-    request: async (task, mode = 'both') => {
+    request: async (task, mode = 'both', excelFiles = []) => {
       const response = await fetch(base + '/orchestrate', {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
           authorization: 'Bearer ' + token
         },
-        body: JSON.stringify({ task, mode })
+        body: JSON.stringify({ task, mode, excelFiles })
       });
       return { status: response.status, data: await response.json() };
     },
@@ -180,4 +180,95 @@ test('supports a direct OpenRouter conversation route without invoking a second 
   assert.equal(data.fallback.status, 'not_attempted');
   assert.match(studio.getStdout(), /PROVIDER_MOCK_CALL:openrouter/);
   assert.equal((studio.getStdout().match(/PROVIDER_MOCK_CALL:openrouter/g) || []).length, 1);
+});
+
+
+
+async function uploadTestWorkbook(studio) {
+  const generated = await fetch(studio.base + '/excel/generate', {
+    method: 'POST',
+    headers: { authorization: 'Bearer ' + studio.token, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      sheets: [{
+        name: 'Upload test',
+        headers: ['Code', 'Value'],
+        rows: [['A-1', 'round trip']]
+      }]
+    })
+  });
+  assert.equal(generated.status, 200);
+  const workbookBytes = Buffer.from(await generated.arrayBuffer());
+  const uploaded = await fetch(studio.base + '/excel/upload', {
+    method: 'POST',
+    headers: {
+      authorization: 'Bearer ' + studio.token,
+      'content-type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'x-file-name': 'source.xlsx'
+    },
+    body: workbookBytes
+  });
+  assert.equal(uploaded.status, 201);
+  return (await uploaded.json()).file;
+}
+
+test('OpenAI can inspect an uploaded XLSX through a native function tool round trip', async t => {
+  const studio = await startStudio(t, 'excel-inspect-openai');
+  const file = await uploadTestWorkbook(studio);
+  const { status, data } = await studio.request('Inspect this workbook and describe its sheets.', 'openai', [file.id]);
+
+  assert.equal(status, 200);
+  assert.equal(data.ok, true);
+  assert.match(data.results.openai.text, /inspected the uploaded workbook/i);
+  assert.deepEqual(data.excelArtifacts, []);
+  assert.match(studio.getStdout(), /MOCK_EXCEL_TOOLS:excel_inspect,excel_generate/);
+  assert.match(studio.getStdout(), /MOCK_EXCEL_TOOL_RESULT:received/);
+});
+
+test('Claude can inspect an uploaded XLSX through its native tool-use round trip', async t => {
+  const studio = await startStudio(t, 'excel-inspect-claude');
+  const file = await uploadTestWorkbook(studio);
+  const { status, data } = await studio.request('Inspect this workbook and describe its sheets.', 'claude', [file.id]);
+
+  assert.equal(status, 200);
+  assert.equal(data.ok, true);
+  assert.match(data.results.anthropic.text, /inspected the uploaded workbook/i);
+  assert.deepEqual(data.excelArtifacts, []);
+  assert.match(studio.getStdout(), /MOCK_EXCEL_TOOLS:.*excel_inspect/);
+  assert.match(studio.getStdout(), /MOCK_EXCEL_TOOL_RESULT:received/);
+});
+
+test('OpenAI can generate an XLSX artifact that is downloaded and read back', async t => {
+  const studio = await startStudio(t, 'excel-generate-openai');
+  const { status, data } = await studio.request('Create an Excel workbook report for these values.', 'openai');
+
+  assert.equal(status, 200);
+  assert.equal(data.ok, true);
+  assert.match(data.results.openai.text, /workbook is ready/i);
+  assert.equal(data.excelArtifacts.length, 1);
+  const artifact = data.excelArtifacts[0];
+  assert.equal(artifact.fileName, 'uneXpected-workbook.xlsx');
+  assert.equal(artifact.sizeBytes > 0, true);
+
+  const unauthorized = await fetch(studio.base + artifact.downloadPath);
+  assert.equal(unauthorized.status, 401);
+  const downloaded = await fetch(studio.base + artifact.downloadPath, {
+    headers: { authorization: 'Bearer ' + studio.token }
+  });
+  assert.equal(downloaded.status, 200);
+  assert.match(downloaded.headers.get('content-type') || '', /spreadsheetml/);
+  const bytes = Buffer.from(await downloaded.arrayBuffer());
+  assert.equal(bytes.subarray(0, 2).toString(), 'PK');
+
+  const inspected = await fetch(studio.base + '/excel/inspect', {
+    method: 'POST',
+    headers: {
+      authorization: 'Bearer ' + studio.token,
+      'content-type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    },
+    body: bytes
+  });
+  assert.equal(inspected.status, 200);
+  const workbook = await inspected.json();
+  assert.equal(workbook.sheets[0].name, 'Report');
+  assert.equal(workbook.sheets[0].preview[1][0], 'A-1');
 });

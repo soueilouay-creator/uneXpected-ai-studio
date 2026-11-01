@@ -1,14 +1,18 @@
 {
   "id": "unexpected.excel-engineering-specialist",
   "name": "uneXpected Excel Engineering Specialist",
-  "version": "1.0.0",
-  "status": "repository-role-and-prompt-linked",
+  "version": "1.1.0",
+  "status": "repository-runtime-integrated",
   "scope": "general-purpose-cross-industry",
   "coordinator": "integrations/excel-engine/agent/EXCEL_COORDINATOR.md",
   "engines": {
     "excelize": "integrations/excel-engine/README.md",
     "vba": "integrations/excel-vba-kit/README.md",
-    "macroFree": ["Excel formulas", "Excel tables", "Power Query"]
+    "macroFree": [
+      "Excel formulas",
+      "Excel tables",
+      "Power Query"
+    ]
   },
   "skills": [
     "skills/workbook-inspection/SKILL.md",
@@ -19,14 +23,22 @@
     "skills/vba-desktop-automation/SKILL.md",
     "skills/output-verification/SKILL.md"
   ],
-  "promptInjection": {
-    "module": "excel-engine.mjs",
-    "providerCalls": ["OpenAI", "Anthropic"],
-    "condition": "Excel-related task detected",
-    "nativeWorkerFunctionTools": false
+  "providerToolExecution": {
+    "promptCoordinator": "excel-engine.mjs",
+    "toolSchemas": "excel-tools.mjs",
+    "hostExecutor": "server.js",
+    "providers": {
+      "openai": "Responses API function_call round-trip",
+      "anthropic": "Messages API tool_use round-trip"
+    },
+    "functions": [
+      "excel_inspect",
+      "excel_generate"
+    ],
+    "verification": "CI mocked provider-tool round-trips and actual worker results; live provider calls not verified"
   },
   "runtimeActivation": {
-    "v7Registry": "not verified",
+    "v7Registry": "not verified; no v7 registry is present in this repository tree",
     "renderDeployment": "not deployed"
   }
 }

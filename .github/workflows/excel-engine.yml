@@ -1,0 +1,40 @@
+name: Excel engineering validation
+
+on:
+  push:
+    branches: [feature/excel-vba-toolkit]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  excel-engine:
+    name: Go workbook engine and Node integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+          cache-dependency-path: integrations/excel-engine/go.sum
+      - name: Run Excelize engine tests
+        working-directory: integrations/excel-engine
+        run: go test ./...
+      - name: Build Excel worker
+        working-directory: integrations/excel-engine
+        run: |
+          mkdir -p bin
+          go build -trimpath -ldflags="-s -w" -o bin/ux-excel ./cmd/ux-excel
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run Excel API integration tests
+        env:
+          EXCEL_WORKER_PATH: ./integrations/excel-engine/bin/ux-excel
+        run: node --test test/excel-engine.test.mjs
+      - name: Run repository regression tests
+        run: node --test test/*.test.mjs

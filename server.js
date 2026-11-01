@@ -1,6 +1,8 @@
 import http from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { MAX_EXCEL_UPLOAD_BYTES, MAX_EXCEL_JSON_BYTES, runExcelWorker, withExcelCoordinatorInstructions } from './excel-engine.mjs';
 import { resolveMobileAsset } from './mobile-assets.mjs';
 import { fileURLToPath } from 'node:url';
 import { timingSafeEqual } from 'node:crypto';
@@ -76,14 +78,26 @@ function authorized(req) {
   if (supplied.length !== expected.length) return false;
   return timingSafeEqual(Buffer.from(supplied), Buffer.from(expected));
 }
-async function readBody(req) {
+async function readBody(req, maxBytes = MAX_BODY) {
   let data = '';
   for await (const chunk of req) {
     data += chunk;
-    if (Buffer.byteLength(data) > MAX_BODY) throw Object.assign(new Error('Request body too large (maximum 64 KB).'), { status: 413 });
+    if (Buffer.byteLength(data) > maxBytes) throw Object.assign(new Error('Request body exceeds the allowed size.'), { status: 413 });
   }
   try { return JSON.parse(data || '{}'); }
   catch { throw Object.assign(new Error('Request body must be valid JSON.'), { status: 400 }); }
+}
+async function readRawBody(req, maxBytes) {
+  const chunks = [];
+  let total = 0;
+  for await (const chunk of req) {
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    total += buffer.length;
+    if (total > maxBytes) throw Object.assign(new Error('Workbook upload exceeds the 20 MiB limit.'), { status: 413 });
+    chunks.push(buffer);
+  }
+  if (total === 0) throw Object.assign(new Error('Workbook upload is empty.'), { status: 400 });
+  return Buffer.concat(chunks, total);
 }
 async function fetchTimed(url, options) {
   const controller = new AbortController();
@@ -108,7 +122,7 @@ async function callOpenAI(task, system = 'You are ChatGPT, one model in the uneX
   const start = Date.now();
   const requestBody = {
     model: OPENAI_MODEL,
-    instructions: enableTaaft ? withTaaftGuidance(system) : system,
+    instructions: await withExcelCoordinatorInstructions(task, enableTaaft ? withTaaftGuidance(system) : system),
     input: task,
     store: false,
     max_output_tokens: 3000
@@ -138,7 +152,7 @@ async function callClaude(task, system = 'You are Claude, one model in the uneXp
   const body = {
     model: ANTHROPIC_MODEL,
     max_tokens: 3000,
-    system: enableTaaft ? withTaaftGuidance(system) : system,
+    system: await withExcelCoordinatorInstructions(task, enableTaaft ? withTaaftGuidance(system) : system),
     messages: [{ role: 'user', content: task }],
     ...mcpConfig
   };
@@ -349,6 +363,52 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && url.pathname === '/styles.css') {
       res.writeHead(200, { 'content-type': MIME['.css'], 'cache-control': 'no-store' });
       return res.end(await readFile(join(ROOT, 'public', 'styles.css')));
+    }
+    if (req.method === 'POST' && ['/excel/inspect', '/excel/generate'].includes(url.pathname)) {
+      if (rateLimited(req)) return json(res, 429, { error: 'Rate limit exceeded. Wait one minute and try again.' });
+      if (!authorized(req)) return json(res, 401, { error: ACCESS_TOKEN ? 'Unauthorized. Provide the configured bearer token.' : 'Server is locked: set UNEXPECTED_ACCESS_TOKEN before using provider endpoints.' });
+
+      const tempDir = await mkdtemp(join(tmpdir(), 'ux-excel-'));
+      try {
+        if (url.pathname === '/excel/inspect') {
+          const contentType = String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+          if (!['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/octet-stream'].includes(contentType)) {
+            throw Object.assign(new Error('Use the XLSX or application/octet-stream content type.'), { status: 415 });
+          }
+          const bytes = await readRawBody(req, MAX_EXCEL_UPLOAD_BYTES);
+          if (bytes.length < 4 || bytes[0] !== 0x50 || bytes[1] !== 0x4b || bytes[2] !== 0x03 || bytes[3] !== 0x04) {
+            throw Object.assign(new Error('Upload is not a valid XLSX ZIP package.'), { status: 400 });
+          }
+          const inputPath = join(tempDir, 'input.xlsx');
+          await writeFile(inputPath, bytes, { flag: 'wx', mode: 0o600 });
+          const output = await runExcelWorker(['inspect', '--input', inputPath, '--preview-rows', '10']);
+          let inspection;
+          try { inspection = JSON.parse(output); }
+          catch { throw Object.assign(new Error('Excel worker returned an invalid inspection response.'), { status: 502 }); }
+          return json(res, 200, { ok: true, ...inspection });
+        }
+
+        const contentType = String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+        if (contentType !== 'application/json') {
+          throw Object.assign(new Error('Use application/json for workbook generation.'), { status: 415 });
+        }
+        const spec = await readBody(req, MAX_EXCEL_JSON_BYTES);
+        const specPath = join(tempDir, 'workbook-spec.json');
+        const outputPath = join(tempDir, 'generated.xlsx');
+        await writeFile(specPath, JSON.stringify(spec), { flag: 'wx', mode: 0o600 });
+        await runExcelWorker(['generate', '--input-spec', specPath, '--output', outputPath]);
+        const bytes = await readFile(outputPath);
+        res.writeHead(200, {
+          'content-type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'content-disposition': 'attachment; filename="uneXpected-workbook.xlsx"',
+          'content-length': bytes.length,
+          'cache-control': 'no-store',
+          'x-content-type-options': 'nosniff'
+        });
+        return res.end(bytes);
+      } finally {
+        await rm(tempDir, { recursive: true, force: true }).catch(() => {});
+      }
     }
     if (req.method === 'POST' && ['/orchestrate', '/test-provider'].includes(url.pathname)) {
       if (rateLimited(req)) return json(res, 429, { error: 'Rate limit exceeded. Wait one minute and try again.' });

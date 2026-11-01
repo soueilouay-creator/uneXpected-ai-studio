@@ -7,9 +7,9 @@
   "engine": {
     "name": "Excelize",
     "module": "github.com/xuri/excelize/v2",
-    "version": "v2.11.0",
-    "releaseTag": "v2.11.0",
-    "releaseCommit": "90ff348959dd842cbf3a4fbd93a78afbe18db476",
+    "version": "v2.11.1-0.20260805032953-db93f8d89de7",
+    "releaseTag": null,
+    "releaseCommit": "db93f8d89de71589069a54d1b998af02e3c5f7cd",
     "license": "BSD-3-Clause",
     "goVersion": "1.25.0"
   },
@@ -33,9 +33,24 @@
     "zip64Preflight": true,
     "sharedStringIndexPreflight": true,
     "duplicateZipEntryRejection": true,
-    "exposedMethods": ["ZIP metadata preflight", "streaming worksheet rows", "cell value reads", "new workbook generation"],
-    "excludedMethods": ["pivot table retrieval", "slicer retrieval", "conditional format retrieval", "decryption", "formula calculation", "column mutation"],
-    "note": "Excelize v2.11.0 has advisories affecting methods outside this limited public surface. Preflight mitigates specific unsafe inputs; this is defense-in-depth, not a claim that all upstream vulnerabilities are eliminated."
+    "exposedMethods": [
+      "ZIP metadata preflight",
+      "streaming worksheet rows",
+      "cell value reads",
+      "new workbook generation"
+    ],
+    "excludedMethods": [
+      "pivot table retrieval",
+      "slicer retrieval",
+      "conditional format retrieval",
+      "decryption",
+      "formula calculation",
+      "column mutation"
+    ],
+    "fixedAdvisories": [
+      "CVE-2026-107224 / GHSA-fw94-4wwp-w8pw"
+    ],
+    "note": "Pinned Excelize pseudo-version includes the upstream Zip64 size fix. Independent ZIP preflight remains defense-in-depth. Other upstream advisories must be assessed against the exact exposed methods and dependency revision before production."
   },
   "api": {
     "inspect": "POST /excel/inspect (raw .xlsx body, bearer-authenticated)",
@@ -49,6 +64,7 @@
   "verification": {
     "goTests": "CI go test ./...",
     "nodeIntegrationTests": "CI node --test test/excel-engine.test.mjs",
-    "excelDesktop": "not executed by this server-side integration"
+    "excelDesktop": "not executed by this server-side integration",
+    "nodeProviderToolRoundTrips": "CI mocked OpenAI and Anthropic native tool loops; live provider calls require configured credits and separate test"
   }
 }

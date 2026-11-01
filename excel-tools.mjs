@@ -24,8 +24,16 @@ function safeWorkbookName(value) {
 }
 
 async function removeStoredFile(id, record) {
+  if (record.expiryTimer) clearTimeout(record.expiryTimer);
   storedFiles.delete(id);
   await rm(record.tempDir, { recursive: true, force: true }).catch(() => {});
+}
+
+function scheduleExpiry(id, record) {
+  record.expiryTimer = setTimeout(() => {
+    if (storedFiles.get(id) === record) removeStoredFile(id, record).catch(() => {});
+  }, FILE_TTL_MS);
+  record.expiryTimer.unref?.();
 }
 
 export async function pruneExpiredExcelFiles(now = Date.now()) {
@@ -87,6 +95,7 @@ export async function storeUploadedWorkbook(bytes, originalName = 'workbook.xlsx
     expiresAt: Date.now() + FILE_TTL_MS
   };
   storedFiles.set(id, record);
+  scheduleExpiry(id, record);
   return {
     id,
     name: fileName,
@@ -156,6 +165,7 @@ async function generateWorkbookArtifact(spec) {
       expiresAt: Date.now() + FILE_TTL_MS
     };
     storedFiles.set(id, record);
+    scheduleExpiry(id, record);
     return {
       id,
       fileName: record.fileName,

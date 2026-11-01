@@ -18,7 +18,7 @@ async function freePort(){
 }
 const hasGateway=await import('node:fs/promises').then(({access})=>access(resolve(root,'server.js')).then(()=>true,()=>false));
 
-test('gateway serves the Phone 0.4.0 PWA without weakening existing authorization',{skip:!hasGateway&&'server.js is supplied by the host repository; HTTP smoke test runs in GitHub Actions'},async t=>{
+test('gateway serves the Phone 0.4.1 PWA without weakening existing authorization',{skip:!hasGateway&&'server.js is supplied by the host repository; HTTP smoke test runs in GitHub Actions'},async t=>{
  const port=await freePort(),token='test-only-token-not-a-production-secret';
  const child=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,PORT:String(port),NODE_ENV:'test',UNEXPECTED_ACCESS_TOKEN:token},stdio:['ignore','pipe','pipe']});
  let stderr='';
@@ -43,6 +43,9 @@ test('gateway serves the Phone 0.4.0 PWA without weakening existing authorizatio
  const html=await app.text();
  assert.match(html,/Your work\./);
  assert.match(html,/<script type="module" src="app\.js"><\/script>/);
+ assert.match(html,/id="attachExcelBtn"/);
+ assert.match(html,/id="excelFileInput"/);
+ assert.match(html,/bounded sheet previews are shared with the selected AI provider/i);
 
  const paths=[
   ['/mobile/manifest.webmanifest',/manifest\+json/],

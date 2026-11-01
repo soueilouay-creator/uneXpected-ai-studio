@@ -520,8 +520,8 @@ async function sendChat(event) {
   const prompt = input.value.trim();
   const excelFiles = [...pendingExcelFiles];
   if (!prompt && !excelFiles.length) return;
-  if (excelFiles.length && selectedModel === 'openrouter') {
-    toast('Choose ChatGPT, Claude or Compare to inspect uploaded workbooks. OpenRouter has no Excel tools.');
+  if (excelFiles.length && (selectedModel === 'openrouter' || selectedModel === 'local')) {
+    toast('Choose ChatGPT, Claude or Compare to inspect uploaded workbooks. OpenRouter and Local mode do not have Excel tools.');
     return;
   }
   const taskPrompt = prompt || 'Inspect the attached workbook and summarize its structure and notable data-quality issues.';

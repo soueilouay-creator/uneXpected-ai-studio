@@ -23,7 +23,7 @@ const (
 	MaxRows                    = 50_000
 	MaxColumns                 = 100
 	MaxPreviewRows             = 20
-	EngineVersion              = "excelize-v2.11.1-0.20260805032953-db93f8d89de7"
+	EngineVersion              = "excelize-v2.11.1-0.20261029001137-c5fd73bde8f6"
 )
 
 type WorkbookSpec struct {

@@ -76,4 +76,4 @@ Content-Type: application/json. Body uses the same sheets shape shown for excel_
 
 ## Security pin
 
-The worker pins Excelize `v2.11.1-0.20260805032953-db93f8d89de7`, the published patched pseudo-version for CVE-2026-107224. The formal v2.11.1 release is dated November 2, 2026, so this repository does not claim that formal release has already shipped. The worker also performs its own unsigned Zip64 uncompressed-size preflight before opening the workbook.
+The worker pins Excelize `v2.11.1-0.20261029001137-c5fd73bde8f6`, the upstream source commit `c5fd73bde8f611a2f9c30eaf7b0494f2189cb79a` dated October 29, 2026. It includes the security hardening listed in the planned v2.11.1 release notes; the formal v2.11.1 tag is scheduled for November 2, 2026 and is not represented as already released. The project uses Go 1.26.0 or later. The worker additionally performs its own unsigned Zip64 uncompressed-size preflight before opening workbooks.

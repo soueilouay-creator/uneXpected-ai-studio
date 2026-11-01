@@ -1,4 +1,4 @@
-FROM golang:1.25-alpine AS excel-engine-build
+FROM golang:1.26-alpine AS excel-engine-build
 WORKDIR /src
 COPY integrations/excel-engine/go.mod ./go.mod
 COPY integrations/excel-engine/go.sum ./go.sum

@@ -1,17 +1,17 @@
 {
   "id": "unexpected.excel-engine",
   "name": "uneXpected Excel Engineering Engine",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "status": "source-integration",
   "scope": "general-purpose-cross-industry",
   "engine": {
     "name": "Excelize",
     "module": "github.com/xuri/excelize/v2",
-    "version": "v2.11.1-0.20260805032953-db93f8d89de7",
+    "version": "v2.11.1-0.20261029001137-c5fd73bde8f6",
     "releaseTag": null,
-    "releaseCommit": "db93f8d89de71589069a54d1b998af02e3c5f7cd",
+    "releaseCommit": "c5fd73bde8f611a2f9c30eaf7b0494f2189cb79a",
     "license": "BSD-3-Clause",
-    "goVersion": "1.25.0"
+    "goVersion": "1.26.0"
   },
   "operations": [
     "inspect-xlsx-streaming",
@@ -48,9 +48,24 @@
       "column mutation"
     ],
     "fixedAdvisories": [
-      "CVE-2026-107224 / GHSA-fw94-4wwp-w8pw"
+      "CVE-2026-104819",
+      "CVE-2026-107211",
+      "CVE-2026-107212",
+      "CVE-2026-107213",
+      "CVE-2026-107214",
+      "CVE-2026-107215",
+      "CVE-2026-107216",
+      "CVE-2026-107217",
+      "CVE-2026-107218",
+      "CVE-2026-107219",
+      "CVE-2026-107220",
+      "CVE-2026-107221",
+      "CVE-2026-107222",
+      "CVE-2026-107223",
+      "CVE-2026-107224",
+      "CVE-2026-107225"
     ],
-    "note": "Pinned Excelize pseudo-version includes the upstream Zip64 size fix. Independent ZIP preflight remains defense-in-depth. Other upstream advisories must be assessed against the exact exposed methods and dependency revision before production."
+    "note": "Pinned to upstream Excelize source commit c5fd73bde8f611a2f9c30eaf7b0494f2189cb79a (2026-10-29), before the formal v2.11.1 release scheduled for 2026-11-02. This source contains the v2.11.1 security hardening; project requires Go 1.26.0. Worker ZIP64 size preflight remains defense-in-depth."
   },
   "api": {
     "inspect": "POST /excel/inspect (raw .xlsx body, bearer-authenticated)",

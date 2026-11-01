@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -171,5 +172,42 @@ func TestPreflightRejectsDuplicateZIPEntries(t *testing.T) {
 	}
 	if err := preflightXLSX(path); err == nil {
 		t.Fatal("preflight accepted duplicate ZIP entries")
+	}
+}
+
+
+func TestPreflightRejectsZip64UncompressedSizeOverflow(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "zip64-overflow.xlsx")
+	output, err := os.Create(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	archive := zip.NewWriter(output)
+	header := &zip.FileHeader{
+		Name:               "xl/worksheets/sheet1.xml",
+		Method:             zip.Store,
+		UncompressedSize64: uint64(1) << 63,
+		CompressedSize64:   0,
+	}
+	entry, err := archive.CreateRaw(header)
+	if err != nil {
+		t.Fatalf("create Zip64 test entry: %v", err)
+	}
+	if _, err := entry.Write(nil); err != nil {
+		t.Fatalf("write Zip64 test entry: %v", err)
+	}
+	if err := archive.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := output.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	err = preflightXLSX(path)
+	if err == nil {
+		t.Fatal("preflight accepted Zip64 uncompressed size with high bit set")
+	}
+	if !strings.Contains(err.Error(), "uncompressed limit") {
+		t.Fatalf("unexpected preflight error: %v", err)
 	}
 }

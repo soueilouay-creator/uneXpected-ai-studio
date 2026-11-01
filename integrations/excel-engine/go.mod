@@ -3,7 +3,7 @@ module github.com/soueilouay-creator/uneXpected-ai-studio/integrations/excel-eng
 go 1.25.0
 
 require (
-	github.com/xuri/excelize/v2 v2.11.0
+	github.com/xuri/excelize/v2 v2.11.1-0.20260805032953-db93f8d89de7
 )
 
 require (
@@ -12,10 +12,10 @@ require (
 	github.com/tiendc/go-deepcopy v1.7.2
 	github.com/xuri/efp v0.0.1
 	github.com/xuri/nfp v0.0.2-0.20250530014748-2ddeb826f9a9
-	golang.org/x/crypto v0.53.0
-	golang.org/x/image v0.38.0
-	golang.org/x/net v0.56.0
-	golang.org/x/text v0.38.0
+	golang.org/x/crypto v0.54.0
+	golang.org/x/image v0.44.0
+	golang.org/x/net v0.57.0
+	golang.org/x/text v0.40.0
 )
 
 require (

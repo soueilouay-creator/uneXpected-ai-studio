@@ -71,3 +71,7 @@ Content-Type: application/json. Body uses the same sheets shape shown for excel_
 ## Failures
 
 401 invalid token; 413 size limit; 415 content type or unsupported extension; 400 invalid workbook/spec/reference; 403 file not attached to this request; 404 unavailable artifact; 410 expired reference; 429 rate or temporary storage capacity limit; 503 worker missing; 504 worker timeout. Do not retry malformed input without correcting it. Rely on actual responses and read-back evidence, not the fact that a route or tool exists.
+
+## Security pin
+
+The worker pins Excelize `v2.11.1-0.20260805032953-db93f8d89de7`, the published patched pseudo-version for CVE-2026-107224. The formal v2.11.1 release is dated November 2, 2026, so this repository does not claim that formal release has already shipped. The worker also performs its own unsigned Zip64 uncompressed-size preflight before opening the workbook.

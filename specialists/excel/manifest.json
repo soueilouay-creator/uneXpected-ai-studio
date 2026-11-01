@@ -1,0 +1,32 @@
+{
+  "id": "unexpected.excel-engineering-specialist",
+  "name": "uneXpected Excel Engineering Specialist",
+  "version": "1.0.0",
+  "status": "repository-role-and-prompt-linked",
+  "scope": "general-purpose-cross-industry",
+  "coordinator": "integrations/excel-engine/agent/EXCEL_COORDINATOR.md",
+  "engines": {
+    "excelize": "integrations/excel-engine/README.md",
+    "vba": "integrations/excel-vba-kit/README.md",
+    "macroFree": ["Excel formulas", "Excel tables", "Power Query"]
+  },
+  "skills": [
+    "skills/workbook-inspection/SKILL.md",
+    "skills/data-quality/SKILL.md",
+    "skills/formula-engineering/SKILL.md",
+    "skills/report-generation/SKILL.md",
+    "skills/large-workbook-processing/SKILL.md",
+    "skills/vba-desktop-automation/SKILL.md",
+    "skills/output-verification/SKILL.md"
+  ],
+  "promptInjection": {
+    "module": "excel-engine.mjs",
+    "providerCalls": ["OpenAI", "Anthropic"],
+    "condition": "Excel-related task detected",
+    "nativeWorkerFunctionTools": false
+  },
+  "runtimeActivation": {
+    "v7Registry": "not verified",
+    "renderDeployment": "not deployed"
+  }
+}

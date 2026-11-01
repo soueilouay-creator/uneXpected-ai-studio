@@ -21,6 +21,11 @@ jobs:
         with:
           go-version: '1.25.x'
           cache-dependency-path: integrations/excel-engine/go.sum
+      - name: Resolve pinned Go module checksums
+        working-directory: integrations/excel-engine
+        run: |
+          go mod download
+          grep 'github.com/xuri/excelize/v2' go.sum
       - name: Run Excelize engine tests
         working-directory: integrations/excel-engine
         run: go test ./...

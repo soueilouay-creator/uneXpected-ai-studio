@@ -11,20 +11,65 @@ const coordinatorGuidance = readFile(
   'utf8'
 ).catch(() => '');
 
+const taskSkills = [
+  {
+    id: 'workbook-inspection',
+    match: /inspect|inventory|audit|structure|sheet names|workbook summary|analy[sz]e.{0,30}(workbook|spreadsheet|xlsx)|read.{0,20}(workbook|spreadsheet)/i
+  },
+  {
+    id: 'data-quality',
+    match: /data quality|duplicate|missing values?|blank cells?|deduplicat|reconcil|validate.{0,30}(data|records|cells)|clean.{0,20}(data|spreadsheet)/i
+  },
+  {
+    id: 'formula-engineering',
+    match: /formula|calculation|vlookup|xlookup|sumif|countif|dynamic array|lookup|financial model/i
+  },
+  {
+    id: 'report-generation',
+    match: /generate|create|build|design|format|dashboard|report|template|tracker|chart|visuali[sz]e.{0,20}(data|spreadsheet|workbook)/i
+  },
+  {
+    id: 'large-workbook-processing',
+    match: /large|massive|many rows|big workbook|stream|memory|performance|hundreds of thousands|millions of rows/i
+  },
+  {
+    id: 'vba-desktop-automation',
+    match: /\bvba\b|macro|desktop excel|office automation|excel event|com automation|add-in/i
+  },
+  {
+    id: 'output-verification',
+    match: /verify|verification|read.?back|test the workbook|check the output|compare before|validate the generated/i
+  }
+];
+
 export function isExcelTask(task) {
-  return /\b(excel|spreadsheet|workbook|worksheet|xlsx|xlsm|vba|power query|pivot table|cell range|formula)\b/i.test(String(task || ''));
+  return /\b(excel|excelize|spreadsheet|workbook|worksheet|xlsx|xlsm|vba|power query|pivot table|cell range|formula)\b/i.test(String(task || ''));
+}
+
+export function selectedExcelSkills(task) {
+  const value = String(task || '');
+  return taskSkills.filter(skill => skill.match.test(value)).map(skill => skill.id);
 }
 
 export async function withExcelCoordinatorInstructions(task, system) {
   if (!isExcelTask(task)) return system;
   const guidance = await coordinatorGuidance;
+  const selected = selectedExcelSkills(task);
+  const skillContents = await Promise.all(selected.map(async id => {
+    try {
+      return await readFile(new URL(`./specialists/excel/skills/${id}/SKILL.md`, import.meta.url), 'utf8');
+    } catch {
+      return '';
+    }
+  }));
   const fallback = [
     'EXCEL TASK ROUTING:',
     'Choose a macro-free, Excelize server-side, or desktop VBA approach based on the actual file format and execution platform.',
     'Never claim to have opened, inspected, generated, changed, or verified a workbook without a real tool result.',
     'Excelize does not execute VBA and is not a full Microsoft Excel formula calculation engine.'
   ].join('\n');
-  return [system, guidance || fallback].filter(Boolean).join('\n\n');
+  const skillHeader = selected.length ? '## Selected Excel task skills\n' + selected.join(', ') : '';
+  return [system, guidance || fallback, skillHeader, ...skillContents].filter(Boolean).join('\n\n');
 }
 
 export function excelWorkerPath() {

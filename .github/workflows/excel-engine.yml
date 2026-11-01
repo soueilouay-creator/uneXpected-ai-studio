@@ -34,8 +34,27 @@ jobs:
           node-version: '22'
       - name: Run Excel API integration tests
         env:
-          EXCEL_WORKER_PATH: ./integrations/excel-engine/bin/ux-excel
+          EXCEL_WORKER_PATH: ${{ github.workspace }}/integrations/excel-engine/bin/ux-excel
         run: node --test test/excel-engine.test.mjs
+      - name: Restore original static site and mobile app assets for regression tests
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ue-source /tmp/ue-extracted
+          base64 -d source.tar.gz.b64 > /tmp/ue-source/source.tar.gz
+          tar -xzf /tmp/ue-source/source.tar.gz -C /tmp/ue-extracted
+          cp -R /tmp/ue-extracted/uneXpected-ai-studio-v1.0.1/public ./public
+          cp app.js public/app.js
+          cat mobile-assets.parts/part-*.b64 > /tmp/mobile-assets.tar.gz.b64
+          printf '%s  %s\\n' 'd9316477b654ea04bc842a2f7ae158b2fffe3eab85f057d7bc3aa7a749f9f55e' /tmp/mobile-assets.tar.gz.b64 | sha256sum -c -
+          base64 -d /tmp/mobile-assets.tar.gz.b64 | tar -xz -C .
+          rm -f /tmp/mobile-assets.tar.gz.b64
+          mkdir -p mobile
+          cp -R mobile-release/. mobile/
+          mkdir -p public
+          rm -rf public/mobile
+          cp -R mobile public/mobile
+          test -f public/index.html
+          test -f public/mobile/index.html
       - name: Run repository regression tests
         run: node --test test/*.test.mjs
       - name: Build production Docker image

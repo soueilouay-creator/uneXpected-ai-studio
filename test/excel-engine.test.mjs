@@ -1,6 +1,6 @@
 import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
-import { isExcelTask, withExcelCoordinatorInstructions } from '../excel-engine.mjs';
+import { isExcelTask, selectedExcelSkills, withExcelCoordinatorInstructions } from '../excel-engine.mjs';
 
 process.env.UNEXPECTED_ACCESS_TOKEN = 'excel-engine-test-token';
 process.env.PORT = '0';
@@ -109,4 +109,15 @@ test('coordinator instructions are injected only for Excel-related provider requ
   assert.match(excel, /Excelize/u);
   assert.match(excel, /VBA/u);
   assert.match(excel, /Never claim to have called an endpoint/u);
+});
+
+test('Excel coordinator loads only the matching reusable task skills', async () => {
+  assert.deepEqual(selectedExcelSkills('Inspect this XLSX workbook and audit duplicate records'), ['workbook-inspection', 'data-quality']);
+  assert.deepEqual(selectedExcelSkills('Create a dashboard workbook with formulas and verify the output'), ['formula-engineering', 'report-generation', 'output-verification']);
+  const inspection = await withExcelCoordinatorInstructions('Inspect this XLSX workbook', 'base system');
+  assert.match(inspection, /Skill: Excel workbook inspection/u);
+  assert.doesNotMatch(inspection, /Skill: Excel formula engineering/u);
+  const report = await withExcelCoordinatorInstructions('Create an Excel report template with formulas', 'base system');
+  assert.match(report, /Skill: Excel report generation/u);
+  assert.match(report, /Skill: Excel formula engineering/u);
 });

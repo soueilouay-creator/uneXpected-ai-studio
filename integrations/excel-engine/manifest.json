@@ -1,0 +1,45 @@
+{
+  "id": "unexpected.excel-engine",
+  "name": "uneXpected Excel Engineering Engine",
+  "version": "0.1.0",
+  "status": "source-integration",
+  "scope": "general-purpose-cross-industry",
+  "engine": {
+    "name": "Excelize",
+    "module": "github.com/xuri/excelize/v2",
+    "version": "v2.11.0",
+    "releaseTag": "v2.11.0",
+    "releaseCommit": "90ff348959dd842cbf3a4fbd93a78afbe18db476",
+    "license": "BSD-3-Clause",
+    "goVersion": "1.25.0"
+  },
+  "operations": [
+    "inspect-xlsx-streaming",
+    "generate-xlsx"
+  ],
+  "limits": {
+    "uploadBytes": 20971520,
+    "unzipBytes": 67108864,
+    "worksheetXmlBytes": 8388608,
+    "sheets": 20,
+    "rowsPerSheet": 50000,
+    "columnsPerSheet": 100,
+    "previewRows": 20,
+    "jsonRequestBytes": 1048576,
+    "workerTimeoutMs": 30000
+  },
+  "api": {
+    "inspect": "POST /excel/inspect (raw .xlsx body, bearer-authenticated)",
+    "generate": "POST /excel/generate (JSON WorkbookSpec, bearer-authenticated; returns .xlsx bytes)"
+  },
+  "routing": {
+    "excelize": "Server-side .xlsx inspection, structured generation and bounded streaming reads",
+    "vba": "Desktop Excel object-model automation only",
+    "macroFree": "Prefer formulas, tables and Power Query when macros are unnecessary"
+  },
+  "verification": {
+    "goTests": "CI go test ./...",
+    "nodeIntegrationTests": "CI node --test test/excel-engine.test.mjs",
+    "excelDesktop": "not executed by this server-side integration"
+  }
+}

@@ -27,7 +27,7 @@ Read-only. The ID must be one of the workbooks explicitly attached to this reque
 ### excel_generate
 Arguments: { sheets: [{ name, headers: string[], rows: scalar[][] }] }
 
-Creates a new .xlsx artifact with structured values. It has no destination path and never overwrites an uploaded source. It does not execute macros or recalculate formulas. The model receives an artifact ID, filename, size, expiry and download path.
+Creates a new .xlsx artifact with structured values. It has no destination path and never overwrites an uploaded source. Before the artifact is exposed, the worker reopens it through the inspect path and verifies the expected sheet count, sheet names and header widths. The artifact metadata includes a `read-back verified` status and bounded sheet summaries. It does not execute macros or recalculate formulas. The model receives an artifact ID, filename, size, expiry, download path and read-back verification summary.
 
 The application executes tool calls with bounded loops: at most 4 tool rounds and 6 function calls per provider request. Unknown tools and malformed arguments are rejected and the tool error is returned to the provider; no simulated output is presented.
 

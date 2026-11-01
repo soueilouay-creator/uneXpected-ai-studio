@@ -16,10 +16,16 @@ function uploadedFileId(task) {
 
 function recordExcelToolResult(raw) {
   try {
-    const parsed = JSON.parse(String(raw || ''));
+    let parsed = JSON.parse(String(raw || ''));
+    if (typeof parsed?.result === 'string') {
+      try { parsed = JSON.parse(parsed.result); } catch {}
+    }
     const serialized = JSON.stringify(parsed);
     const success = parsed?.ok === true;
     const includesWorkbookData = serialized.includes('round trip');
+    if (parsed?.artifact?.verification?.status === 'read-back verified') {
+      process.stdout.write('MOCK_EXCEL_GENERATE_READBACK:ok\\n');
+    }
     process.stdout.write('MOCK_EXCEL_TOOL_RESULT:' + (success ? 'ok' : 'error') + (includesWorkbookData ? ':data' : '') + '\\n');
   } catch {
     process.stdout.write('MOCK_EXCEL_TOOL_RESULT:error\\n');

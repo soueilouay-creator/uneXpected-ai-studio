@@ -10,7 +10,7 @@ function response(status, payload) {
 }
 
 function uploadedFileId(task) {
-  const match = String(task || '').match(/file_id:\\s*([0-9a-f-]{36})/i);
+  const match = String(task || '').match(/file_id:\s*([0-9a-f-]{36})/i);
   return match?.[1] || '00000000-0000-4000-8000-000000000000';
 }
 

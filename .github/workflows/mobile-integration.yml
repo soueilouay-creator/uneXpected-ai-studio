@@ -18,9 +18,12 @@ on:
       - 'openrouter-ui.js'
       - 'README.md'
       - 'render.yaml'
+      - 'docs/v8/**'
       - '.github/workflows/mobile-integration.yml'
   push:
-    branches: [main]
+    branches:
+      - main
+      - 'upgrade/v8-*'
     paths:
       - 'server.js'
       - 'Dockerfile'
@@ -34,6 +37,8 @@ on:
       - 'test/phone-workspace-ui.test.mjs'
       - 'test/mobile-provider-results.test.mjs'
       - '.github/workflows/mobile-integration.yml'
+      - 'docs/v8/**'
+  workflow_dispatch:
 jobs:
   mobile-integration:
     runs-on: ubuntu-latest

@@ -38,3 +38,12 @@
 ## Next increment
 
 Inspect GitHub Actions history and test execution availability, map the archive-backed build composition and mobile IndexedDB schema, then establish a reproducible non-destructive baseline. Continue with the first code-level adapter only after current package/build structure is understood.
+
+
+## Post-commit verification
+
+- Read-back: all five companion documents plus this status file were fetched from `upgrade/v8-foundation`; the GitHub tree confirms six tracked files under `docs/v8/`.
+- Branch tip after the documentation batch: `ec6b72c862d5d983064e05802500097d9b438707`.
+- GitHub Actions history checked: the latest ten listed runs were Excel toolkit runs on `feature/excel-vba-toolkit`, not V8 tests. They are not evidence that this branch passes.
+- The existing mobile integration workflow is triggered by selected source/test paths and pull requests to `main`; it does not include `docs/v8/**`. The TAAFT workflow is likewise scoped to its connector files. Therefore this docs-only branch did not trigger either workflow.
+- No test or Docker build was executed in this environment. Documentation content and branch persistence are read-back verified; runtime integration remains unverified.

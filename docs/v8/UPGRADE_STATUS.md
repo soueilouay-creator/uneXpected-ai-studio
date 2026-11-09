@@ -47,3 +47,14 @@ Inspect GitHub Actions history and test execution availability, map the archive-
 - GitHub Actions history checked: the latest ten listed runs were Excel toolkit runs on `feature/excel-vba-toolkit`, not V8 tests. They are not evidence that this branch passes.
 - The existing mobile integration workflow is triggered by selected source/test paths and pull requests to `main`; it does not include `docs/v8/**`. The TAAFT workflow is likewise scoped to its connector files. Therefore this docs-only branch did not trigger either workflow.
 - No test or Docker build was executed in this environment. Documentation content and branch persistence are read-back verified; runtime integration remains unverified.
+
+
+## CI baseline established on V8 branch
+
+- Extended the existing `.github/workflows/mobile-integration.yml` triggers to include `upgrade/v8-*`, `docs/v8/**` and `workflow_dispatch`. Existing test/build steps were retained.
+- Workflow run: [42618937850 — uneXpected Phone Integration](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42618937850)
+- Run commit: `99cc804764993d691128aa15ca7c93f1dcc487ae`.
+- GitHub recorded the workflow as `completed` with conclusion `success`.
+- Successful steps: restore the archived public/mobile assets; JavaScript syntax checks; mobile and authenticated gateway HTTP tests; production Docker image build.
+- This is a targeted integration workflow, not the complete V8 acceptance suite. The TAAFT-specific workflow was not part of this run, and no live paid provider tests were performed.
+- The workflow output confirms the existing archive-backed build still works on this branch. The archive and original assets remain present; no user data or production deployment was changed.

@@ -122,7 +122,7 @@ The canonical repository's inspected `server.js` does not connect to this Neon p
 
 ## Next audit tasks
 
-1. Locate the source code and migration files that produced the existing Neon schema; map the current task, event, idempotency, approval and agent-version semantics before selecting DBOS or another workflow engine.
+1. Integrate the discovered Python V8 core source from uneXxxx through a reviewed compatibility boundary; map task/event/idempotency recovery semantics before changing runtime code.
 2. Establish a verified, zero-cost backup/export and read-back path for the populated `v8-migration-test` branch. Its existing restore-rehearsal branch is older, the matching backup branch has no endpoint, the project is at its branch cap, and no automatic snapshot schedule is configured.
 3. Inspect Render resources only after the account workspace is explicitly selected; do not infer deployment or database state from `render.yaml`.
 4. Obtain a trusted local archive-extraction environment and inspect the actual IndexedDB schema and role/skill registries before any migration.

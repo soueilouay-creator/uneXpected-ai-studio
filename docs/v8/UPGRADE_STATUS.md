@@ -98,3 +98,15 @@ Inspect GitHub Actions history and test execution availability, map the archive-
 ### Next increment
 
 Locate the source migration/runtime code that produced the Neon schema, then verify a current zero-cost backup/export and restore read-back path for the populated `v8-migration-test` branch before any schema or workflow-engine write.
+
+
+## Run 2 — repository integration map and runtime selection
+
+- Added [REPO_INTEGRATION_MAP.md](./REPO_INTEGRATION_MAP.md) identifying the existing Node Studio/PWA repository, the Python V8 core repository uneXxxx, the V7.3.1 role/workflow source uneXpected-, and the empty uneXpectedworkflow repository.
+- The V8 core repository is at commit 8a67c823292901305cad670a60c2f24f0a047267. Its CI run 42383567744 passed 268 tests with 1 skipped; its hosted verification run 42383567757 passed on 2026-11-07, including completed-task retrieval after a Render restart.
+- The V7 and V8 AGENT_CATALOG.json files are identical; 37 of 38 role profiles are byte-identical. Preserve both versioned manifests.
+- Architecture decision: use the existing Python V8 Coordinator/38-role registry as the core integration candidate. Mastra is not selected as a second runtime. Reuse the existing MCP gateway and provider router. DBOS remains a candidate only for the unverified in-flight recovery gap.
+- The V8 workflow persists completed tasks, but in-flight crash recovery is not proven: the lifecycle runner is in-process and the queue claims only queued tasks. This remains a release blocker.
+- V8 marks industrial-maintenance-sales as an active automatic Skill. The owner has stopped that project; preserve its files but add a dormant-project activation gate before integrating the runtime.
+- The V8 README's earlier exclusion of Node/PWA is superseded by the current preservation requirement. Keep the Node Studio/PWA and its IndexedDB data as clients/data sources.
+- No code was changed in the other owned repositories and no hosted restart was repeated.

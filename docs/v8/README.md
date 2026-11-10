@@ -22,7 +22,7 @@ Evolve uneXpected into one reliable, model-agnostic operating system. uneXpected
 
 ## Current baseline observed
 
-The repository currently contains a Node.js 22 service, Docker/Render configuration, existing browser and mobile PWA surfaces, OpenAI and Anthropic provider adapters, OpenRouter fallback, compare/synthesis behavior, a read-only TAAFT MCP integration, and an existing Node test suite.
+The repository currently contains a Node.js 22 service, Docker/Render configuration, existing browser and mobile PWA surfaces, OpenAI and Anthropic provider adapters, OpenRouter fallback, compare/synthesis behavior, a read-only TAAFT MCP integration, and an existing Node test suite. A separate owned repository, uneXxxx, already contains the Python V8.0.0-preview core with a Coordinator, 38 roles, PostgreSQL state, idempotency/approval ledgers, MCP, subagents and quality evaluation. The integration map preserves both codebases and assigns the Node PWA as a client of the shared control plane.
 
 The repository's tracked root includes `source.tar.gz.b64`, `Dockerfile`, `server.js`, `app.js`, `mobile/`, `mobile-release/`, `mobile-assets.mjs`, `mobile-assets.parts/`, `taaft-integration.mjs`, `openrouter-ui.js`, `docs/` and `test/`. The Dockerfile reconstructs a source bundle and overlays tracked files. This build arrangement needs to be mapped and made reproducible, not destructively replaced.
 
@@ -30,15 +30,15 @@ Existing tests cover orchestration/fallback, provider-fetch stubs, TAAFT allowli
 
 ## Target architecture
 
-1. Existing uneXpected workspace and control plane.
-2. One TypeScript agent runtime, initially evaluating Mastra.
-3. One durable workflow engine, selected only after auditing the existing Neon schema, migrations and backup/restore path; DBOS remains a candidate, not a committed choice.
-4. Capability-aware model registry and router for OpenAI, Anthropic, Google, DeepSeek, xAI and compatible providers.
-5. MCP-based tools with scoped permissions, approvals and audit logs.
-6. Versioned, provenance-aware memory without replacing current PWA data.
-7. Isolated engineering worker, evaluating OpenHands.
-8. Observability and evaluation, evaluating Langfuse/OpenTelemetry and Promptfoo.
-9. A secure CI/release pipeline, rollback procedure and evidence-based completion gate.
+1. Existing uneXpected workspace and control plane, with the Python V8 Coordinator in uneXxxx as the existing core candidate.
+2. One 38-role Python runtime and provider/MCP control plane; do not add Mastra as a second orchestrator.
+3. Existing PostgreSQL StateStore and approval/idempotency ledgers; prove in-flight crash recovery before considering DBOS.
+4. One capability-aware provider registry, currently OpenAI, Anthropic, OpenRouter and OpenOx; add other providers only after official API/model/pricing verification.
+5. Existing MCP gateway and a read-only TAAFT adapter with scoped permissions, approvals and audit logs.
+6. Preserve both server-side V8 memory and the existing PWA IndexedDB workspace; no migration without export and read-back.
+7. Isolated engineering worker only if needed, evaluating OpenHands.
+8. Reuse existing traces, quality evaluation and CI; add external observability/evaluation only for measured gaps.
+9. A secure combined CI/release pipeline, rollback procedure and evidence-based completion gate.
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md), [COMPONENT_DECISIONS.md](./COMPONENT_DECISIONS.md), [REPO_INTEGRATION_MAP.md](./REPO_INTEGRATION_MAP.md), [THREAT_MODEL.md](./THREAT_MODEL.md), [PRESERVATION_AND_MIGRATION.md](./PRESERVATION_AND_MIGRATION.md) and [UPGRADE_STATUS.md](./UPGRADE_STATUS.md). See [REPOSITORY_INVENTORY.md](./REPOSITORY_INVENTORY.md) for the audited repository baseline and [RUN_LOG.md](./RUN_LOG.md) for chronological execution evidence.
 
@@ -46,10 +46,10 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md), [COMPONENT_DECISIONS.md](./COMPONENT_D
 
 - Phase 0 — Inventory current source, build composition, APIs, tests, workflows, data stores and deployment configuration.
 - Phase 1 — Define stable interfaces, threat model, dependency/license decisions, migration plan and benchmark suite.
-- Phase 2 — Add agent runtime and specialist registry, proven with deterministic mocks.
-- Phase 3 — Add durable workflow adapter and PostgreSQL-backed recovery only when a safe existing database is available.
-- Phase 4 — Add model capability registry, provider adapters, routing, budgets and bounded fallback.
-- Phase 5 — Add MCP tool registry, policy checks, approvals and audit trail.
+- Phase 2 — Integrate the existing Python V8 Coordinator and 38-role registry through a versioned API; do not add a second primary runtime.
+- Phase 3 — Prove in-flight recovery using the existing PostgresStateStore; add DBOS only if a measured gap remains and backup/restore is safe.
+- Phase 4 — Unify Node clients with the existing V8 ProviderRouter; add providers only after official API/model/pricing verification.
+- Phase 5 — Reuse the existing V8 MCP gateway and adapt TAAFT as a read-only, allowlisted capability.
 - Phase 6 — Add memory adapters while preserving existing IndexedDB.
 - Phase 7 — Add tracing, evaluations, red-team and regression gates.
 - Phase 8 — Add isolated engineering worker if useful and safe.

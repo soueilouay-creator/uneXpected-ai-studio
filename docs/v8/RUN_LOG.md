@@ -17,7 +17,9 @@ Inventory/CI commit: [`a06cd916a6b02ca76b6b65adba1676c88b72efc0`](https://github
 - Updated `docs/v8/README.md`.
 - Updated `.github/workflows/taaft-integration.yml` additively so V8 branches and V8 docs run TAAFT checks; added manual dispatch while preserving existing triggers.
 
-Architecture/database-audit commit: [\`34b9e7cd4bdc5f0ab96d5cc24592b2ba8dc5b0f6\`](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/34b9e7cd4bdc5f0ab96d5cc24592b2ba8dc5b0f6). Its CI verification also passed: [TAAFT run 42746150540](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42746150540) (3/3) and [mobile run 42746150889](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42746150889) (30/30, syntax checks and Docker build).\n\nThis run's documentation follow-up records the Neon discovery and holds DBOS pending an audit:
+Architecture/database-audit commit: [34b9e7cd4bdc5f0ab96d5cc24592b2ba8dc5b0f6](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/34b9e7cd4bdc5f0ab96d5cc24592b2ba8dc5b0f6). Its CI verification also passed: [TAAFT run 42746150540](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42746150540) (3/3) and [mobile run 42746150889](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42746150889) (30/30, syntax checks and Docker build).
+
+This run's documentation follow-up records the Neon discovery and holds DBOS pending an audit:
 
 - Updated `docs/v8/REPOSITORY_INVENTORY.md`.
 - Updated `docs/v8/ARCHITECTURE.md`.
@@ -61,3 +63,15 @@ No database writes, migrations, branch/snapshot creation, deletions, package ins
 ### Next task
 
 Find the migration and runtime source that created the Neon schema. Map its current task/event/idempotency behavior and establish a verified, zero-cost backup/export plus restore read-back path for the populated `v8-migration-test` branch before any write.
+
+
+### Repository integration and runtime selection — 2026-11-10
+
+- Added [REPO_INTEGRATION_MAP.md](./REPO_INTEGRATION_MAP.md) and aligned the architecture/component decision records in commit [5f1ee7bfeacc737dbc25a87ddfac6c81f2697640](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/5f1ee7bfeacc737dbc25a87ddfac6c81f2697640).
+- Confirmed the existing Python V8 core in [uneXxxx](https://github.com/soueilouay-creator/uneXxxx) at commit 8a67c823292901305cad670a60c2f24f0a047267, and the V7.3.1 source in [uneXpected-](https://github.com/soueilouay-creator/uneXpected-) at commit 59deef5e49208c01d03ccfc6d2e162db54309235.
+- V8 CI [42383567744](https://github.com/soueilouay-creator/uneXxxx/actions/runs/42383567744): 268 tests passed, 1 skipped; ephemeral PostgreSQL 16, migrations, regression/security tests, Docker build and container smoke passed.
+- V8 hosted verification [42383567757](https://github.com/soueilouay-creator/uneXxxx/actions/runs/42383567757) passed on 2026-11-07. It verified health, bearer authentication, 38 roles, MCP and completed-task retrieval after a Render restart. That workflow restarts Render; it was not re-run.
+- V7/V8 AGENT_CATALOG.json files are byte-identical; 37 of 38 role files are identical. The V8 sales-intel profile adds an industrial-maintenance Skill that is active/automatic. It remains dormant by owner policy until explicit restart.
+- Current V8 task persistence is verified, but in-flight workflow recovery is not. WorkflowRunner holds stage state in memory and claim_next only claims queued tasks; no stale-running recovery was found.
+- The owner requirement to preserve the Node PWA supersedes the V8 repository's earlier exclusion of it. Keep all clients and local data; integrate through a shared API.
+- The Node branch CI on commit e7f3b77e5b82eca124984fd24b86e2deea5d0541 passed [30/30 mobile tests](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42746274128) and [3/3 TAAFT tests](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42746274019).

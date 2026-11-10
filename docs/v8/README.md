@@ -40,7 +40,7 @@ Existing tests cover orchestration/fallback, provider-fetch stubs, TAAFT allowli
 8. Observability and evaluation, evaluating Langfuse/OpenTelemetry and Promptfoo.
 9. A secure CI/release pipeline, rollback procedure and evidence-based completion gate.
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md), [COMPONENT_DECISIONS.md](./COMPONENT_DECISIONS.md), [THREAT_MODEL.md](./THREAT_MODEL.md), [PRESERVATION_AND_MIGRATION.md](./PRESERVATION_AND_MIGRATION.md) and [UPGRADE_STATUS.md](./UPGRADE_STATUS.md). See [REPOSITORY_INVENTORY.md](./REPOSITORY_INVENTORY.md) for the audited repository baseline and [RUN_LOG.md](./RUN_LOG.md) for chronological execution evidence.
+See [ARCHITECTURE.md](./ARCHITECTURE.md), [COMPONENT_DECISIONS.md](./COMPONENT_DECISIONS.md), [REPO_INTEGRATION_MAP.md](./REPO_INTEGRATION_MAP.md), [THREAT_MODEL.md](./THREAT_MODEL.md), [PRESERVATION_AND_MIGRATION.md](./PRESERVATION_AND_MIGRATION.md) and [UPGRADE_STATUS.md](./UPGRADE_STATUS.md). See [REPOSITORY_INVENTORY.md](./REPOSITORY_INVENTORY.md) for the audited repository baseline and [RUN_LOG.md](./RUN_LOG.md) for chronological execution evidence.
 
 ## Execution order
 

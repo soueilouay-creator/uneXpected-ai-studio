@@ -1,6 +1,6 @@
 # uneXpected V8 upgrade program
 
-**Status:** Active — foundation and baseline phase  
+**Status:** Active — source inventory complete; crash recovery and backup verification remain release blockers  
 **Branch:** `upgrade/v8-foundation`  
 **Baseline:** `main` at `6f5bc823e1ffd9284abae7dbbb6c1dae97ebf90b` (observed 2026-11-09)  
 **Policy:** Preserve first; extend additively; verify before declaring complete.
@@ -40,7 +40,7 @@ Existing tests cover orchestration/fallback, provider-fetch stubs, TAAFT allowli
 8. Reuse existing traces, quality evaluation and CI; add external observability/evaluation only for measured gaps.
 9. A secure combined CI/release pipeline, rollback procedure and evidence-based completion gate.
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md), [COMPONENT_DECISIONS.md](./COMPONENT_DECISIONS.md), [REPO_INTEGRATION_MAP.md](./REPO_INTEGRATION_MAP.md), [THREAT_MODEL.md](./THREAT_MODEL.md), [PRESERVATION_AND_MIGRATION.md](./PRESERVATION_AND_MIGRATION.md) and [UPGRADE_STATUS.md](./UPGRADE_STATUS.md). See [REPOSITORY_INVENTORY.md](./REPOSITORY_INVENTORY.md) for the audited repository baseline and [RUN_LOG.md](./RUN_LOG.md) for chronological execution evidence.
+See [ARCHITECTURE.md](./ARCHITECTURE.md), [COMPONENT_DECISIONS.md](./COMPONENT_DECISIONS.md), [REPO_INTEGRATION_MAP.md](./REPO_INTEGRATION_MAP.md), [THREAT_MODEL.md](./THREAT_MODEL.md), [PRESERVATION_AND_MIGRATION.md](./PRESERVATION_AND_MIGRATION.md), [DURABILITY_GAP_AUDIT.md](./DURABILITY_GAP_AUDIT.md) and [UPGRADE_STATUS.md](./UPGRADE_STATUS.md). See [REPOSITORY_INVENTORY.md](./REPOSITORY_INVENTORY.md) for the audited repository baseline and [RUN_LOG.md](./RUN_LOG.md) for chronological execution evidence.
 
 ## Execution order
 

@@ -74,10 +74,10 @@ Inspect GitHub Actions history and test execution availability, map the archive-
 
 ### Verified
 
-- Implementation commit: [a06cd916a6b02ca76b6b65adba1676c88b72efc0](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/a06cd916a6b02ca76b6b65adba1676c88b72efc0).
+- Inventory/CI commit: [a06cd916a6b02ca76b6b65adba1676c88b72efc0](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/a06cd916a6b02ca76b6b65adba1676c88b72efc0).
 - [TAAFT workflow 42745182217](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42745182217): 3 tests passed, 0 failed; syntax checks passed.
 - [Mobile workflow 42745182284](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42745182284): 30 tests passed, 0 failed; archive restoration, syntax checks and production Docker image build passed.
-- Combined: 33 deterministic tests passed, 0 failed.
+- Combined: 33 deterministic tests passed, 0 failed. The follow-up documentation commit [34b9e7cd4bdc5f0ab96d5cc24592b2ba8dc5b0f6](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/34b9e7cd4bdc5f0ab96d5cc24592b2ba8dc5b0f6) was also verified by [TAAFT run 42746150540](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42746150540) (3/3) and [mobile run 42746150889](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42746150889) (30/30, syntax checks and Docker build).
 - Neon `main` has the two migration records and zero operational rows in the inspected tables. `v8-migration-test` contains 41 tasks, 261 events, 9 agent-version records, 5 outcomes and idempotency records. Only aggregate counts and migration names were read; no payloads were read.
 
 ### Blocked / not verified

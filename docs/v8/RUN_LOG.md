@@ -11,13 +11,13 @@ This log is append-oriented. Earlier run entries must be retained.
 
 ### Commits and changed paths
 
-Implementation/inventory/CI commit: [`a06cd916a6b02ca76b6b65adba1676c88b72efc0`](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/a06cd916a6b02ca76b6b65adba1676c88b72efc0)
+Inventory/CI commit: [`a06cd916a6b02ca76b6b65adba1676c88b72efc0`](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/a06cd916a6b02ca76b6b65adba1676c88b72efc0)
 
 - Added `docs/v8/REPOSITORY_INVENTORY.md`.
 - Updated `docs/v8/README.md`.
 - Updated `.github/workflows/taaft-integration.yml` additively so V8 branches and V8 docs run TAAFT checks; added manual dispatch while preserving existing triggers.
 
-This run's documentation follow-up records the Neon discovery and holds DBOS pending an audit:
+Architecture/database-audit commit: [\`34b9e7cd4bdc5f0ab96d5cc24592b2ba8dc5b0f6\`](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/34b9e7cd4bdc5f0ab96d5cc24592b2ba8dc5b0f6). Its CI verification also passed: [TAAFT run 42746150540](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42746150540) (3/3) and [mobile run 42746150889](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42746150889) (30/30, syntax checks and Docker build).\n\nThis run's documentation follow-up records the Neon discovery and holds DBOS pending an audit:
 
 - Updated `docs/v8/REPOSITORY_INVENTORY.md`.
 - Updated `docs/v8/ARCHITECTURE.md`.

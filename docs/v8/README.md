@@ -26,13 +26,13 @@ The repository currently contains a Node.js 22 service, Docker/Render configurat
 
 The repository's tracked root includes `source.tar.gz.b64`, `Dockerfile`, `server.js`, `app.js`, `mobile/`, `mobile-release/`, `mobile-assets.mjs`, `mobile-assets.parts/`, `taaft-integration.mjs`, `openrouter-ui.js`, `docs/` and `test/`. The Dockerfile reconstructs a source bundle and overlays tracked files. This build arrangement needs to be mapped and made reproducible, not destructively replaced.
 
-Existing tests observed include orchestration/fallback, provider-fetch stubs, TAAFT allowlist, mobile PWA, mobile workspace and route smoke tests. Existing workflows observed include `.github/workflows/mobile-integration.yml` and `.github/workflows/taaft-integration.yml`. A complete baseline test run has not yet been performed in this first docs-only increment.
+Existing tests cover orchestration/fallback, provider-fetch stubs, TAAFT allowlist, mobile PWA, mobile workspace and route smoke tests. On commit `a06cd916a6b02ca76b6b65adba1676c88b72efc0`, GitHub Actions verified 30/30 mobile/gateway tests and 3/3 TAAFT tests, JavaScript syntax checks and the production Docker image build. These are deterministic mocked/local tests; no real provider API calls were made. The TAAFT workflow now runs on the V8 upgrade branch and V8 documentation changes.
 
 ## Target architecture
 
 1. Existing uneXpected workspace and control plane.
 2. One TypeScript agent runtime, initially evaluating Mastra.
-3. One durable workflow engine, initially evaluating DBOS Transact with PostgreSQL.
+3. One durable workflow engine, selected only after auditing the existing Neon schema, migrations and backup/restore path; DBOS remains a candidate, not a committed choice.
 4. Capability-aware model registry and router for OpenAI, Anthropic, Google, DeepSeek, xAI and compatible providers.
 5. MCP-based tools with scoped permissions, approvals and audit logs.
 6. Versioned, provenance-aware memory without replacing current PWA data.

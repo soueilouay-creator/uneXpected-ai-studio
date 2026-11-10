@@ -58,3 +58,43 @@ Inspect GitHub Actions history and test execution availability, map the archive-
 - Successful steps: restore the archived public/mobile assets; JavaScript syntax checks; mobile and authenticated gateway HTTP tests; production Docker image build.
 - This is a targeted integration workflow, not the complete V8 acceptance suite. The TAAFT-specific workflow was not part of this run, and no live paid provider tests were performed.
 - The workflow output confirms the existing archive-backed build still works on this branch. The archive and original assets remain present; no user data or production deployment was changed.
+
+
+## Run 2 — 2026-11-10
+
+**Status:** Repository baseline and TAAFT CI coverage extended; existing Neon database discovered and audited at metadata/count level. Runtime integration remains blocked pending backup and source-code audit.
+
+### Completed
+
+- Rechecked `main` at `6f5bc823e1ffd9284abae7dbbb6c1dae97ebf90b` and reused `upgrade/v8-foundation`. The branch is now 10 commits ahead and 0 behind main.
+- Added `docs/v8/REPOSITORY_INVENTORY.md` and updated the V8 README with the current CI baseline.
+- Extended `.github/workflows/taaft-integration.yml` to run on `upgrade/v8-*`, `docs/v8/**` and manual dispatch. Existing triggers were retained.
+- Audited the connected Neon project and its public schema without changing data.
+- Updated the architecture and component decision records: DBOS is on hold until the existing custom schema and recovery path are understood.
+
+### Verified
+
+- Implementation commit: [a06cd916a6b02ca76b6b65adba1676c88b72efc0](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/a06cd916a6b02ca76b6b65adba1676c88b72efc0).
+- [TAAFT workflow 42745182217](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42745182217): 3 tests passed, 0 failed; syntax checks passed.
+- [Mobile workflow 42745182284](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42745182284): 30 tests passed, 0 failed; archive restoration, syntax checks and production Docker image build passed.
+- Combined: 33 deterministic tests passed, 0 failed.
+- Neon `main` has the two migration records and zero operational rows in the inspected tables. `v8-migration-test` contains 41 tasks, 261 events, 9 agent-version records, 5 outcomes and idempotency records. Only aggregate counts and migration names were read; no payloads were read.
+
+### Blocked / not verified
+
+- No trusted local clone could be obtained because the execution container could not resolve `github.com`; archive-backed IndexedDB source remains uninspected.
+- The Neon project is on the Free plan and at 10/10 branches. It has one manual snapshot on main, no automatic snapshot schedule on main or v8-migration-test, and a 6-hour history window. The older restore-rehearsal branch has fewer records than the current migration-test branch; the matching cutover-backup branch had no SQL endpoint available. A current rollback path for the populated test branch is not verified.
+- The canonical Node service does not currently connect to the inspected Neon project. The source for `001_initial.sql` and `002_idempotency_claims.sql` has not yet been located.
+- Render resource inventory is blocked because the Render connector requires explicit workspace selection; no workspace was selected in this non-interactive run.
+- Endpoint metadata reports passwordless access enabled, an empty IP allowlist and public connections not blocked. This needs a security review before application use; no settings were changed.
+
+### Preservation / cost
+
+- No database writes, migrations, branch/snapshot creation, deletions, package installs, provider API calls or production deployments occurred.
+- Existing repo files, archives, branches, PWA and TAAFT behavior were retained.
+- Neon read-only metadata and aggregate queries used the existing Free-plan compute allowance; no paid plan or charge was initiated. Exact remaining monthly allowance is not exposed.
+- GitHub Actions ran on the repository's existing CI setup; account-specific billing impact is not visible.
+
+### Next increment
+
+Locate the source migration/runtime code that produced the Neon schema, then verify a current zero-cost backup/export and restore read-back path for the populated `v8-migration-test` branch before any schema or workflow-engine write.

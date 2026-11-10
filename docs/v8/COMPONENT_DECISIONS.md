@@ -5,7 +5,7 @@
 | Capability | Candidate | Initial decision | Why / guardrail |
 |---|---|---|---|
 | TypeScript agent runtime | [Mastra](https://github.com/mastra-ai/mastra) | Preferred to prototype | Native TypeScript stack; supports agents, workflows, providers, MCP, memory and evals. Review license; avoid separately licensed `ee/` directories unless terms are explicitly approved. |
-| Durable workflow execution | [DBOS Transact TS](https://github.com/dbos-inc/dbos-transact-ts) | Preferred to prototype | PostgreSQL-backed durable workflows, queues and recovery. Requires a compatible Postgres database and proof of restart/replay semantics. |
+| Durable workflow execution | [DBOS Transact TS](https://github.com/dbos-inc/dbos-transact-ts) | **Hold pending existing-schema audit** | A connected Neon project already contains custom task/event/idempotency/approval tables and migration history. Do not install DBOS or create a second task store until the existing migrations, restart/replay semantics and backup/restore coverage are verified. |
 | Multi-provider gateway | [LiteLLM](https://github.com/BerriAI/litellm) | Optional, not first dependency | Broad provider compatibility, budgets and routing; adds a Python service. MIT applies outside `enterprise/`; pin and audit version. |
 | MCP interoperability | [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) | Preferred tool protocol | Official TypeScript client/server SDK. Check current license transition and exact package API. Maintain uneXpected-owned allowlists and policy enforcement. |
 | Application connectors | [Composio](https://github.com/ComposioHQ/composio) | Selective evaluation | Useful where a specific application connector is missing. Verify hosted-service costs, authentication model, data scopes and terms before use. |
@@ -13,6 +13,16 @@
 | AI observability | [Langfuse](https://github.com/langfuse/langfuse) | Preferred evaluation candidate | Strong trace, cost, prompt and evaluation visibility. Review enterprise licensing and self-hosting requirements; keep sensitive payloads redacted. |
 | Model/agent evaluation | [Promptfoo](https://github.com/promptfoo/promptfoo) | Preferred test candidate | Model comparison, regression and red-team testing. Use offline/mock tests first; real API tests require a verified free route or approved budget. |
 | Coding worker | [OpenHands SDK](https://github.com/OpenHands/software-agent-sdk) | Optional isolated worker | Repository/terminal coding tasks in ephemeral workspaces. Never grant ambient production secrets or direct production writes. |
+
+## Existing infrastructure finding — 2026-11-10
+
+A connected Neon Free-plan PostgreSQL 17 project named `unexpected-v8-unified` already exists. Its public schema has 15 tables for tasks, events, idempotency claims, consumed approvals, agent versions/memory, capabilities, outcomes and workspace records. The recorded migrations are `001_initial.sql` and `002_idempotency_claims.sql`.
+
+The `v8-migration-test` branch already contains 41 tasks, 261 events, 9 agent-version records and 5 outcomes. The main branch has the two migration records but zero rows in those operational tables. The existing restore-rehearsal branch is older and has lower counts than the current migration-test branch. No database payloads were read and no writes were made.
+
+The Free project is at its 10-branch limit. It has one manual snapshot on main, no automatic snapshot schedule on main or v8-migration-test, and 6-hour history retention. The current backup/recovery branches do not yet provide a verified current rollback for the populated test branch. Therefore no schema migration, DBOS installation, branch creation or endpoint change is approved by this decision record.
+
+The canonical Node service does not yet connect to this Neon project. First find the source migration/runtime code and verify the backup/restore path. The preferred outcome may be a small adapter over the existing schema rather than another workflow engine.
 
 ## Alternatives evaluated
 

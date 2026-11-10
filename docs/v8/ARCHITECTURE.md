@@ -26,9 +26,13 @@ Agents may propose actions. Only the policy-enforced executor can authorize and 
 
 ### 3. Durable execution
 
-DBOS Transact is the leading candidate for durable TypeScript workflows, backed by PostgreSQL. It should own workflow checkpoints, queue state, retries, schedules and recovery. The agent runtime must not become a second scheduler or independent source of task truth.
+A connected Neon project named `unexpected-v8-unified` already exists on the Free plan with PostgreSQL 17. Its public schema contains 15 tables, including `tasks`, `events`, `idempotency`, `idempotency_claims`, `consumed_approvals`, `agent_versions` and `agent_memory`. The canonical repository's inspected `server.js` does not currently connect to this project.
 
-Before adoption, inspect existing database resources and current cost/limits. Reuse an existing authorized PostgreSQL instance. If none is available at zero incremental cost, retain a workflow interface and deterministic local test adapter; do not claim production durability.
+The populated `v8-migration-test` branch contains 41 tasks, 261 events, 9 agent-version records, 5 outcomes and idempotency records. These are existing records, not disposable test fixtures. The project is at its 10-branch Free-plan limit; only one manual snapshot exists (on main), no automatic snapshot schedule was returned for main or v8-migration-test, and history retention is 6 hours.
+
+DBOS Transact remains a candidate, not a selected dependency. First locate and audit the existing migration source and the current task/event/idempotency semantics. Prefer a narrow uneXpected-owned adapter over the existing schema if it already provides the required durability. Add DBOS only if a deterministic comparison proves a material recovery benefit without creating a second source of task truth.
+
+Do not write to any Neon branch or alter endpoint/network settings until a current backup/export and restore read-back path is verified. The current test/recovery branches do not yet establish that guarantee. Keep the deterministic local workflow adapter as the safe development path meanwhile.
 
 ### 4. Agent runtime and specialist registry
 

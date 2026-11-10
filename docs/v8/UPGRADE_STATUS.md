@@ -110,3 +110,45 @@ Locate the source migration/runtime code that produced the Neon schema, then ver
 - V8 marks industrial-maintenance-sales as an active automatic Skill. The owner has stopped that project; preserve its files but add a dormant-project activation gate before integrating the runtime.
 - The V8 README's earlier exclusion of Node/PWA is superseded by the current preservation requirement. Keep the Node Studio/PWA and its IndexedDB data as clients/data sources.
 - No code was changed in the other owned repositories and no hosted restart was repeated.
+
+
+## Run 3 — 2026-11-10: durability source and hosted topology audit
+
+**Core source:** `uneXxxx/main` at `8a67c823292901305cad670a60c2f24f0a047267`.  
+**Integration branch before this increment:** `upgrade/v8-foundation` at `100423a87828f13af448aeff0297934d332477ae`.
+
+### Completed
+
+- Located and inspected the exact core migration source: `migrations/001_initial.sql` and `migrations/002_idempotency_claims.sql`.
+- Mapped the Python and SQLite state-store implementations, the coordinator queue, the seven-stage lifecycle and the generic workflow runner.
+- Added [DURABILITY_GAP_AUDIT.md](./DURABILITY_GAP_AUDIT.md) with code-level recovery findings, test coverage, Render topology, Neon backup constraints and the next implementation contract.
+- Rechecked Render using the previously confirmed My Workspace. The existing V8 core service is configured from `uneXxxx/main`, auto-deploy off, Free plan, one instance, `/health`; latest listed deployment remains live at commit `8a67c823...` from 2026-11-07. The Node Studio/PWA is a separate service from `uneXpected-ai-studio/main`, with auto-deploy on. No Render-managed PostgreSQL instance was listed.
+- Rechecked Neon branch and snapshot metadata. The project remains at 10/10 branches; only the manual snapshot of the empty main branch exists, and main plus v8-migration-test have no automatic snapshot schedule.
+- Verified the existing V8 integration branch checks on commit `100423a87828f13af448aeff0297934d332477ae`: mobile integration **30 passed, 0 failed**, TAAFT **3 passed, 0 failed**. Docker build completed successfully in the mobile workflow.
+
+### Verified
+
+- Migration and state-store source read-back: `uneXxxx/migrations/001_initial.sql`, `002_idempotency_claims.sql`, `unexpected_runtime/postgres_storage.py`, `storage.py`, `coordinator.py` and `workflow.py`.
+- Core main CI historical run [42383567744](https://github.com/soueilouay-creator/uneXxxx/actions/runs/42383567744): 268 tests passed, 1 skipped, including ephemeral PostgreSQL, migrations, Docker build and container smoke.
+- Core hosted verification historical run [42383567757](https://github.com/soueilouay-creator/uneXxxx/actions/runs/42383567757): successful completed-task persistence check after a Render restart on 2026-11-07. This restart workflow was not rerun.
+- Current integration-branch mobile run [42747940453](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42747940453): 30 passed, 0 failed; Docker build passed.
+- Current integration-branch TAAFT run [42747940655](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42747940655): 3 passed, 0 failed.
+- Render service metadata and deployment list read back; current HTTP health, private environment values and active Neon DATABASE_URL target were not read.
+- Neon aggregate/metadata reads only; no task/event/memory payloads were queried.
+
+### Blocked / not verified
+
+- In-flight task/workflow recovery is not implemented: `claim_next` only claims queued rows; workflow state is held in memory; there is no durable checkpoint/resume API.
+- The populated Neon `v8-migration-test` branch has no verified current backup/export plus independent restore/read-back. The existing backup-named child branch lacks a currently listed endpoint; do not treat its name as proof of a usable backup.
+- Neon remains at 10/10 branches, has only one manual snapshot on the empty main branch, and no automatic snapshot schedule on main or v8-migration-test.
+- Neon endpoint metadata still reports passwordless access enabled, no IP allowlist and public connections not blocked. Security review remains required before application use.
+- Current provider authentication and current HTTP health were not freshly tested. No billable provider test was sent.
+- Exact IndexedDB schema remains unverified because the supporting module is archive-backed and no trusted local extraction environment was available.
+
+### Preservation / cost
+
+No changes were made to the Python core repository, open PRs #13/#14, Render services, Neon data/branches/snapshots, provider secrets, user data or PWA source. No migrations, package installs, paid infrastructure, provider API calls, production restarts or deployments occurred. Only read-only GitHub, Render and Neon inspection was performed. Neon read-only queries used existing Free-plan compute allowance; remaining quota and account-specific GitHub Actions billing are not exposed.
+
+### Next increment
+
+Create a dedicated feature branch in `uneXxxx`. Add a deterministic crash-during-stage test using the existing ephemeral PostgreSQL CI service and SQLite adapter, then implement additive checkpoint/resume semantics with stable stage idempotency and fail-closed protected-action handling. Keep the populated Neon branch read-only until a current backup/export and restore read-back are verified.

@@ -75,3 +75,43 @@ Find the migration and runtime source that created the Neon schema. Map its curr
 - Current V8 task persistence is verified, but in-flight workflow recovery is not. WorkflowRunner holds stage state in memory and claim_next only claims queued tasks; no stale-running recovery was found.
 - The owner requirement to preserve the Node PWA supersedes the V8 repository's earlier exclusion of it. Keep all clients and local data; integrate through a shared API.
 - The Node branch CI on commit e7f3b77e5b82eca124984fd24b86e2deea5d0541 passed [30/30 mobile tests](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42746274128) and [3/3 TAAFT tests](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42746274019).
+
+
+## Run 3 — 2026-11-10
+
+**Phase:** Phase 0 source/runtime audit; Phase 1 architecture and durability decisions.  
+**Integration repository:** [soueilouay-creator/uneXpected-ai-studio](https://github.com/soueilouay-creator/uneXpected-ai-studio)  
+**Core repository inspected:** [soueilouay-creator/uneXxxx](https://github.com/soueilouay-creator/uneXxxx), `main` at `8a67c823292901305cad670a60c2f24f0a047267`.  
+**Working branch:** `upgrade/v8-foundation`; pre-increment head `100423a87828f13af448aeff0297934d332477ae`.
+
+### Completed
+
+- Located the exact PostgreSQL migrations and inspected the PostgreSQL/SQLite state stores, idempotency claims, coordinator queue, lifecycle implementation and workflow runner.
+- Added `docs/v8/DURABILITY_GAP_AUDIT.md`; updated the V8 README, upgrade status and this append-only run log.
+- Rechecked the existing Render workspace and service metadata. V8 core service source is `uneXxxx/main`, auto-deploy disabled; Node Studio/PWA remains a separate service from `uneXpected-ai-studio/main`, auto-deploy enabled. Render lists no managed PostgreSQL instance.
+- Rechecked Neon branches, endpoints and snapshots without writing data. Project has 10/10 branches; one manual snapshot is on the empty main branch; no automatic schedule is configured on main or v8-migration-test.
+- Confirmed the current Node integration branch has a successful mobile workflow (30/30, Docker build) and TAAFT workflow (3/3).
+
+### Verified findings
+
+- Core code persists tasks/events and has idempotency claims, but `claim_next` only selects queued tasks. A task left running by a process crash is not selected by the next worker.
+- The generic `WorkflowRunner` and `Coordinator.run_lifecycle` retain intermediate stage state in memory. Stage outcome events are persisted, but no durable workflow checkpoint/resume API was found.
+- The existing idempotency lease test only proves that a claim can be reclaimed; it does not recover the old task or prevent duplicate stage side effects.
+- The core CI and hosted restart evidence prove completed-task persistence, not crash-during-stage recovery.
+- The populated Neon migration-test branch still has no independently verified backup/export and restore read-back. The backup-named child branch has no current compute endpoint in the endpoint inventory and cannot be treated as a verified backup.
+- Render service configuration/deployment metadata was read. Current HTTP health, private environment values and active Neon DATABASE_URL branch remain unverified.
+
+### Evidence
+
+- [Current mobile workflow 42747940453](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42747940453): 30 tests passed, 0 failed; Docker image build succeeded.
+- [Current TAAFT workflow 42747940655](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42747940655): 3 tests passed, 0 failed.
+- [Core CI 42383567744](https://github.com/soueilouay-creator/uneXxxx/actions/runs/42383567744): 268 passed, 1 skipped, on 2026-11-07.
+- [Core hosted verification 42383567757](https://github.com/soueilouay-creator/uneXxxx/actions/runs/42383567757): completed-task persistence after a Render restart, on 2026-11-07.
+
+### Preservation and cost
+
+No core source files, open core PRs, Render resources, Neon branches/snapshots/rows, PWA stores, provider secrets or user data were changed. No provider API calls, migrations, database writes, deployments, restarts, package installs or paid services were used. Read-only Neon inspection consumed existing Free-plan compute allowance; exact remaining quota and account-level GitHub Actions billing are not visible.
+
+### Next increment
+
+Create a feature branch in `uneXxxx` and implement a deterministic crash-during-stage recovery test plus an additive checkpoint/resume contract. Keep Neon production/test data read-only until a current backup/export and independent restore/read-back path is verified.

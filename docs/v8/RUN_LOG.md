@@ -115,3 +115,44 @@ No core source files, open core PRs, Render resources, Neon branches/snapshots/r
 ### Next increment
 
 Create a feature branch in `uneXxxx` and implement a deterministic crash-during-stage recovery test plus an additive checkpoint/resume contract. Keep Neon production/test data read-only until a current backup/export and independent restore/read-back path is verified.
+
+
+## Run 4 — 2026-11-11: additive workflow checkpoint ledger
+
+**Phase:** Phase 3 — durable execution foundation.  
+**Integration repository:** [uneXpected-ai-studio](https://github.com/soueilouay-creator/uneXpected-ai-studio), branch `upgrade/v8-foundation`.  
+**Core repository:** [uneXxxx](https://github.com/soueilouay-creator/uneXxxx), `main` base `d04b651774b7699f3430dc36972c2de74c587839`.  
+**Core feature branch:** `upgrade/v8-workflow-checkpoint-ledger-20261111`.  
+**Core draft PR:** [#16 — durable workflow checkpoint ledger](https://github.com/soueilouay-creator/uneXxxx/pull/16).  
+**Core head:** `e395158de06bd733aff8db2a13495bffc5d62d52`.
+
+### Completed
+
+- Added PostgreSQL migration `migrations/004_workflow_checkpoints.sql` with new workflow and stage checkpoint tables. The migration is additive and uses `ON DELETE RESTRICT`; it does not update or delete existing application rows.
+- Added matching local SQLite schema and methods to `unexpected_runtime/storage.py`.
+- Added PostgreSQL checkpoint methods to `unexpected_runtime/postgres_storage.py`.
+- Added request-hash validation, idempotent checkpoint creation, unique stage identity, fail-closed duplicate stage acquisition, attempt-token-bound completion and optimistic revision updates.
+- Added `tests/test_workflow_checkpoint_storage.py` and `docs/v8/WORKFLOW_CHECKPOINT_LEDGER.md`.
+- Updated `FILE_INVENTORY_SHA256.txt` for all changed source/test/migration/documentation files.
+- Opened the work as draft PR #16; no merge or deployment was performed.
+
+### Verified so far
+
+- The PR diff contains six changed files and no deleted files.
+- The CI run [42946106338](https://github.com/soueilouay-creator/uneXxxx/actions/runs/42946106338) started on the exact head SHA above.
+- Runtime job completed Python dependency installation, Python compilation, JavaScript syntax checks, workflow YAML/Bash validation, resource/quality contract validation, PostgreSQL migration application to the ephemeral CI database, source fixture creation and SHA-256 inventory validation.
+- At log time, the full regression/security suite was still running; renderer image build was also still running. No test/build pass is claimed yet.
+
+### Safety and preservation
+
+- The populated Neon project, all live branches/snapshots/rows, Render services, environment secrets, provider routes, existing task/event/memory/approval records and user data were not modified.
+- The new migration was applied only by the GitHub Actions ephemeral PostgreSQL CI job.
+- Existing code is still not wired to call the new checkpoint API. This is storage groundwork, not a completed crash-resume implementation.
+- A stage left in `started` remains ambiguous and cannot be automatically re-executed through this API. No exactly-once provider-call claim is made.
+- No provider API, paid generation service, new infrastructure or production deployment was used. GitHub Actions account-level billing impact is not exposed.
+
+### Blockers / next increment
+
+- Await the complete runtime regression/security suite, Docker build/container smoke and renderer E2E result. Fix any failures on the feature branch and rerun CI.
+- Then integrate the ledger into `Coordinator.run_lifecycle` and `WorkflowRunner`, persisting stage state/results and adding a restart test that resumes only from verified completed checkpoints while blocking ambiguous or protected stages.
+- Keep Neon read-only until a current backup/export and independent restore/read-back path is verified.

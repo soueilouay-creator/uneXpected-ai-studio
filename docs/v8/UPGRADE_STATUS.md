@@ -152,3 +152,30 @@ No changes were made to the Python core repository, open PRs #13/#14, Render ser
 ### Next increment
 
 Create a dedicated feature branch in `uneXxxx`. Add a deterministic crash-during-stage test using the existing ephemeral PostgreSQL CI service and SQLite adapter, then implement additive checkpoint/resume semantics with stable stage idempotency and fail-closed protected-action handling. Keep the populated Neon branch read-only until a current backup/export and restore read-back are verified.
+
+
+## Latest status — 2026-11-11
+
+**Current phase:** Phase 3 — durable execution foundation.  
+**Core implementation:** [uneXxxx PR #16](https://github.com/soueilouay-creator/uneXxxx/pull/16), draft, feature branch `upgrade/v8-workflow-checkpoint-ledger-20261111`.  
+**Core base:** `main` at `d04b651774b7699f3430dc36972c2de74c587839`.  
+**Core head:** `e395158de06bd733aff8db2a13495bffc5d62d52`.
+
+### Current verified state
+
+- Added an additive workflow/stage checkpoint ledger to both SQLite and PostgreSQL state-store adapters, plus PostgreSQL migration 004.
+- New tests prove local-store reopen persistence, preservation of pre-existing task/memory/event records, request-hash mismatch rejection, stage acquisition without duplicate re-execution, attempt-token-bound completion and optimistic revision conflict handling.
+- Core runtime CI job [42946106338](https://github.com/soueilouay-creator/uneXxxx/actions/runs/42946106338) passed: **375 tests run, 0 failures, 3 skipped** (372 passed). The PostgreSQL checkpoint test ran successfully against ephemeral PostgreSQL 16.
+- Core runtime CI also passed Python compilation, JavaScript syntax, workflow YAML/Bash validation, resource contracts, migration application, SHA-256 inventory, Docker image build, container health/UI/auth/38-role/task smoke and CLI smoke.
+- The separate renderer E2E job is still building its immutable worker image; the overall CI run remains in progress until that job finishes.
+
+### Explicit limitations
+
+- The checkpoint API is not yet connected to `Coordinator.run_lifecycle` or `WorkflowRunner`; no automatic workflow resume is claimed.
+- A stage left in `started` remains ambiguous and must not be automatically replayed.
+- The populated Neon branch remains read-only; a current backup/export and independent restore/read-back path is still unverified.
+- No production migration, Render deployment/restart, provider API call or paid generation was performed.
+
+### Next
+
+Finish the renderer E2E job, then integrate checkpoint writes into the existing coordinator and add a deterministic crash/restart test that resumes only from verified completed stages and blocks ambiguous or protected work.

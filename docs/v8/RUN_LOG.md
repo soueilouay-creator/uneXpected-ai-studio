@@ -164,3 +164,10 @@ Create a feature branch in `uneXxxx` and implement a deterministic crash-during-
 - Full runtime suite: **375 tests run, 0 failures, 3 skipped**. The three new checkpoint tests all passed: SQLite reopen/preservation, SQLite hash/identity rejection, and PostgreSQL checkpoint persistence with duplicate-stage replay refusal.
 - CI successfully applied migrations 001–004 to the ephemeral PostgreSQL 16 service, verified the SHA-256 source inventory, built the V8 Docker image, booted the actual image and passed health/UI/authentication/38-role/task invocation smoke checks, then passed CLI smoke checks.
 - The separate renderer E2E job was still building its immutable worker image at this update. The overall workflow therefore remains in progress; no full-workflow success is claimed yet.
+
+
+### Preserved Studio/PWA surface verification update — 2026-11-11
+
+- The latest integration-branch head `7d33f92354c0be1784f178caae78235a25941857` was verified by [mobile integration run 42946597768](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42946597768): **30 tests passed, 0 failed**, and the existing Docker image build completed successfully.
+- The same head passed [TAAFT integration run 42946597781](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42946597781): **3 tests passed, 0 failed**.
+- These are regression checks on the preserved Node Studio/PWA and TAAFT integration branch. They do not establish that the Node service has been deployed or that its local IndexedDB records were migrated; no such action was performed.

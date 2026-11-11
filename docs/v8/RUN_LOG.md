@@ -156,3 +156,11 @@ Create a feature branch in `uneXxxx` and implement a deterministic crash-during-
 - Await the complete runtime regression/security suite, Docker build/container smoke and renderer E2E result. Fix any failures on the feature branch and rerun CI.
 - Then integrate the ledger into `Coordinator.run_lifecycle` and `WorkflowRunner`, persisting stage state/results and adding a restart test that resumes only from verified completed checkpoints while blocking ambiguous or protected stages.
 - Keep Neon read-only until a current backup/export and independent restore/read-back path is verified.
+
+
+### Run 4 verification update — 2026-11-11
+
+- Core runtime job [42946106338](https://github.com/soueilouay-creator/uneXxxx/actions/runs/42946106338) completed successfully.
+- Full runtime suite: **375 tests run, 0 failures, 3 skipped**. The three new checkpoint tests all passed: SQLite reopen/preservation, SQLite hash/identity rejection, and PostgreSQL checkpoint persistence with duplicate-stage replay refusal.
+- CI successfully applied migrations 001–004 to the ephemeral PostgreSQL 16 service, verified the SHA-256 source inventory, built the V8 Docker image, booted the actual image and passed health/UI/authentication/38-role/task invocation smoke checks, then passed CLI smoke checks.
+- The separate renderer E2E job was still building its immutable worker image at this update. The overall workflow therefore remains in progress; no full-workflow success is claimed yet.

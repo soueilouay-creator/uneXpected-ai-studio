@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import { buildGridCropFilters } from './storyboard.mjs';
+import { parseSilenceIntervals } from './silence.mjs';
 
 function requiredPath(value, name) {
   if (typeof value !== 'string' || !value.trim()) throw new TypeError(name + ' is required.');
@@ -46,11 +47,36 @@ export function buildRenderArgs({ audioPath, scenePaths, cues, outputPath, optio
     filters.push('[' + index + ':v]scale=' + width + ':' + height + ':force_original_aspect_ratio=decrease,pad=' + width + ':' + height + ':(ow-iw)/2:(oh-ih)/2,setsar=1,fps=' + fps + '[v' + index + ']');
   });
   args.push('-i', audioPath);
+  const audioInputIndex = scenePaths.length;
   const subtitlePath = options.subtitlePath ? requiredPath(options.subtitlePath, 'Subtitle file path') : null;
   if (subtitlePath) args.push('-i', subtitlePath);
   const inputs = scenePaths.map((_, index) => '[v' + index + ']').join('');
   filters.push(inputs + 'concat=n=' + scenePaths.length + ':v=1:a=0[vout]');
-  args.push('-filter_complex', filters.join(';'), '-map', '[vout]', '-map', scenePaths.length + ':a:0');
+
+  let audioOutput = audioInputIndex + ':a:0';
+  if (options.audioSegments !== undefined) {
+    const segments = options.audioSegments;
+    if (!Array.isArray(segments) || !segments.length || segments.length > 256) {
+      throw new RangeError('Trimmed narration must contain between 1 and 256 audio segments.');
+    }
+    let lastEnd = -1;
+    const labels = [];
+    segments.forEach((segment, index) => {
+      if (!segment || !Number.isSafeInteger(segment.startMs) || !Number.isSafeInteger(segment.endMs) ||
+          segment.startMs < 0 || segment.endMs <= segment.startMs || segment.startMs < lastEnd) {
+        throw new RangeError('Trimmed audio segments must be ordered, non-overlapping, and have positive duration.');
+      }
+      lastEnd = segment.endMs;
+      const label = '[atrim' + index + ']';
+      filters.push('[' + audioInputIndex + ':a]atrim=start=' + (segment.startMs / 1000).toFixed(3) +
+        ':end=' + (segment.endMs / 1000).toFixed(3) + ',asetpts=PTS-STARTPTS' + label);
+      labels.push(label);
+    });
+    if (labels.length > 1) filters.push(labels.join('') + 'concat=n=' + labels.length + ':v=0:a=1[aout]');
+    else filters.push(labels[0] + 'anull[aout]');
+    audioOutput = '[aout]';
+  }
+  args.push('-filter_complex', filters.join(';'), '-map', '[vout]', '-map', audioOutput);
   if (subtitlePath) args.push('-map', (scenePaths.length + 1) + ':s:0', '-c:s', 'mov_text');
   args.push('-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-r', String(fps), '-c:a', 'aac', '-b:a', '128k', '-shortest', '-movflags', '+faststart', outputPath);
   return args;
@@ -208,4 +234,30 @@ export function probeAudioDuration(inputPath, { spawnImpl = spawn, binary = 'ffp
       }
     });
   });
+}
+
+
+export async function detectSilenceIntervals(inputPath, {
+  spawnImpl = spawn,
+  binary = 'ffmpeg',
+  timeoutMs = 30000,
+  minSilenceMs = 450,
+  noiseDb = -42,
+  durationMs
+} = {}) {
+  requiredPath(inputPath, 'Narration audio path');
+  if (!Number.isSafeInteger(minSilenceMs) || minSilenceMs < 100 || minSilenceMs > 10000) {
+    throw new RangeError('Minimum silence duration must be between 100 and 10000 milliseconds.');
+  }
+  if (!Number.isFinite(noiseDb) || noiseDb < -90 || noiseDb > 0) throw new RangeError('Silence detection threshold must be between -90 and 0 dB.');
+  if (!Number.isSafeInteger(durationMs) || durationMs <= 0) throw new RangeError('Narration duration must be a positive integer.');
+  const result = await runFfmpeg([
+    '-hide_banner',
+    '-nostats',
+    '-i', inputPath,
+    '-af', 'silencedetect=noise=' + noiseDb + 'dB:d=' + (minSilenceMs / 1000).toFixed(3),
+    '-f', 'null',
+    '-'
+  ], { spawnImpl, binary, timeoutMs });
+  return parseSilenceIntervals(result.stderr, durationMs);
 }

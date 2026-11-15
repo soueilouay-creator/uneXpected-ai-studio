@@ -89,8 +89,8 @@ test('voice modules support recognition, speech synthesis and user-selected lang
 test('Video Studio update increments the phone asset cache version',async()=>{
  const worker=await read('mobile/sw.js');
  assert.match(worker,/unexpected-mobile-v0\.4\.1/);
- assert.match(worker,/\/mobile\/app\\.js/);
- assert.match(worker,/\/mobile\/styles\\.css/);
+ assert.match(worker,/\/mobile\/app\.js/);
+ assert.match(worker,/\/mobile\/styles\.css/);
 });
 
 test('offline service worker caches only same-origin mobile GET resources',async()=>{

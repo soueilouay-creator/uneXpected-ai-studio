@@ -1,10 +1,13 @@
 import http from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdtemp, rm, stat } from 'node:fs/promises';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { resolveMobileAsset } from './mobile-assets.mjs';
 import { fileURLToPath } from 'node:url';
 import { parseSrt } from './media-studio/srt.mjs';
 import { timingSafeEqual } from 'node:crypto';
+import { buildSplitArgs, buildRenderArgs, runFfmpeg, probeImageDimensions } from './media-studio/ffmpeg.mjs';
+import { validateRenderManifest } from './media-studio/validation.mjs';
 import { TAAFT_MCP_URL, TAAFT_MCP_BETA, TAAFT_ALLOWED_TOOLS, buildOpenAITaaftTool, buildAnthropicTaaftConfig, withTaaftGuidance } from './taaft-integration.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
@@ -22,6 +25,11 @@ const rateBuckets = new Map();
 const RATE_WINDOW_MS = 60_000;
 const RATE_LIMIT = 30;
 const MAX_BODY = 64 * 1024;
+const MAX_MEDIA_BODY = 28 * 1024 * 1024;
+const MAX_MEDIA_OUTPUT = 64 * 1024 * 1024;
+const FFMPEG_BINARY = String(process.env.MEDIA_STUDIO_FFMPEG || 'ffmpeg').trim() || 'ffmpeg';
+const FFPROBE_BINARY = String(process.env.MEDIA_STUDIO_FFPROBE || 'ffprobe').trim() || 'ffprobe';
+const mediaRateBuckets = new Map();
 const TIMEOUT_MS = 90_000;
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json; charset=utf-8' };
 
@@ -85,6 +93,50 @@ async function readBody(req) {
   }
   try { return JSON.parse(data || '{}'); }
   catch { throw Object.assign(new Error('Request body must be valid JSON.'), { status: 400 }); }
+}
+
+async function readLimitedJson(req, maxBytes) {
+  const contentType = String(req.headers['content-type'] || '').toLowerCase();
+  if (!contentType.startsWith('application/json')) throw Object.assign(new Error('Content-Type must be application/json.'), { status: 415 });
+  const chunks = [];
+  let total = 0;
+  for await (const chunk of req) {
+    const data = Buffer.from(chunk);
+    total += data.length;
+    if (total > maxBytes) throw Object.assign(new Error('Request body exceeds the media upload limit.'), { status: 413 });
+    chunks.push(data);
+  }
+  try { return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'); }
+  catch { throw Object.assign(new Error('Request body must be valid JSON.'), { status: 400 }); }
+}
+function mediaRateLimited(req) {
+  const now = Date.now();
+  const key = req.socket.remoteAddress || 'unknown';
+  const bucket = mediaRateBuckets.get(key) || { start: now, count: 0 };
+  if (now - bucket.start >= RATE_WINDOW_MS) { bucket.start = now; bucket.count = 0; }
+  bucket.count += 1;
+  mediaRateBuckets.set(key, bucket);
+  if (mediaRateBuckets.size > 5000) {
+    for (const [address, value] of mediaRateBuckets) if (now - value.start > RATE_WINDOW_MS) mediaRateBuckets.delete(address);
+  }
+  return bucket.count > 3;
+}
+async function mediaToolStatus() {
+  const [ffmpeg, ffprobe] = await Promise.all([
+    runFfmpeg(['-version'], { binary: FFMPEG_BINARY, timeoutMs: 4000 }).then(() => true).catch(() => false),
+    runFfmpeg(['-version'], { binary: FFPROBE_BINARY, timeoutMs: 4000 }).then(() => true).catch(() => false)
+  ]);
+  return {
+    ffmpegAvailable: ffmpeg,
+    ffprobeAvailable: ffprobe,
+    renderAvailable: ffmpeg && ffprobe,
+    reason: ffmpeg && ffprobe ? null : 'Rendering requires FFmpeg and FFprobe in the server runtime.'
+  };
+}
+function mediaSafeError(error, workspace) {
+  const message = String(error?.message || 'Media rendering failed');
+  const redacted = workspace ? message.split(workspace).join('[temporary media workspace]') : message;
+  return safeError(redacted);
 }
 async function fetchTimed(url, options) {
   const controller = new AbortController();
@@ -350,6 +402,76 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && url.pathname === '/styles.css') {
       res.writeHead(200, { 'content-type': MIME['.css'], 'cache-control': 'no-store' });
       return res.end(await readFile(join(ROOT, 'public', 'styles.css')));
+    }
+
+    if (req.method === 'GET' && url.pathname === '/media-studio/status') {
+      if (rateLimited(req)) return json(res, 429, { error: 'Rate limit exceeded. Wait one minute and try again.' });
+      if (!authorized(req)) return json(res, 401, { error: ACCESS_TOKEN ? 'Unauthorized. Provide the configured bearer token.' : 'Server is locked: set UNEXPECTED_ACCESS_TOKEN before using protected endpoints.' });
+      const tools = await mediaToolStatus();
+      return json(res, 200, { ok: true, ...tools, inputLimits: { storyboardBytes: 8 * 1024 * 1024, narrationBytes: 12 * 1024 * 1024, requestBytes: MAX_MEDIA_BODY }, outputLimitBytes: MAX_MEDIA_OUTPUT });
+    }
+    if (req.method === 'POST' && url.pathname === '/media-studio/render') {
+      if (mediaRateLimited(req)) return json(res, 429, { error: 'Media render limit reached. Try again in one minute.' });
+      if (!authorized(req)) return json(res, 401, { error: ACCESS_TOKEN ? 'Unauthorized. Provide the configured bearer token.' : 'Server is locked: set UNEXPECTED_ACCESS_TOKEN before using protected endpoints.' });
+      const body = await readLimitedJson(req, MAX_MEDIA_BODY);
+      let manifest;
+      try { manifest = validateRenderManifest(body); }
+      catch (error) { return json(res, 400, { error: safeError(error) }); }
+      const tools = await mediaToolStatus();
+      if (!tools.renderAvailable) return json(res, 503, { ok: false, error: tools.reason, ...tools });
+      const workspace = await mkdtemp(join(tmpdir(), 'ue-media-studio-'));
+      try {
+        const storyboardPath = join(workspace, 'storyboard.' + manifest.storyboard.extension);
+        const narrationPath = join(workspace, 'narration.' + manifest.narration.extension);
+        const subtitlePath = join(workspace, 'captions.srt');
+        const outputPath = join(workspace, 'uneXpected-video.mp4');
+        await Promise.all([
+          writeFile(storyboardPath, manifest.storyboard.bytes, { flag: 'wx', mode: 0o600 }),
+          writeFile(narrationPath, manifest.narration.bytes, { flag: 'wx', mode: 0o600 }),
+          writeFile(subtitlePath, manifest.srt, { flag: 'wx', mode: 0o600 })
+        ]);
+        const dimensions = await probeImageDimensions(storyboardPath, { binary: FFPROBE_BINARY, timeoutMs: 10000 });
+        const scenePattern = join(workspace, 'scene-%d.png');
+        const splitArgs = buildSplitArgs({
+          inputPath: storyboardPath,
+          outputPattern: scenePattern,
+          width: dimensions.width,
+          height: dimensions.height,
+          rows: 3,
+          columns: 3
+        });
+        await runFfmpeg(splitArgs, { binary: FFMPEG_BINARY, timeoutMs: 60000 });
+        const scenePaths = manifest.cues.map((_, index) => join(workspace, 'scene-' + String(index + 1).padStart(2, '0') + '.png'));
+        const renderArgs = buildRenderArgs({
+          audioPath: narrationPath,
+          scenePaths,
+          cues: manifest.cues,
+          outputPath,
+          options: { width: 1080, height: 1920, fps: 30, subtitlePath }
+        });
+        await runFfmpeg(renderArgs, { binary: FFMPEG_BINARY, timeoutMs: 120000 });
+        const outputStat = await stat(outputPath);
+        if (outputStat.size < 12 || outputStat.size > MAX_MEDIA_OUTPUT) {
+          return json(res, 502, { ok: false, error: 'Rendered MP4 is empty or exceeds the 64 MB download limit.' });
+        }
+        const video = await readFile(outputPath);
+        if (video.subarray(4, 8).toString('ascii') !== 'ftyp') {
+          return json(res, 502, { ok: false, error: 'FFmpeg output did not pass MP4 container verification.' });
+        }
+        res.writeHead(200, {
+          'content-type': 'video/mp4',
+          'content-disposition': 'attachment; filename="uneXpected-video.mp4"',
+          'content-length': String(video.length),
+          'cache-control': 'no-store',
+          'x-content-type-options': 'nosniff'
+        });
+        res.end(video);
+        return;
+      } catch (error) {
+        return json(res, 502, { ok: false, error: mediaSafeError(error, workspace) });
+      } finally {
+        await rm(workspace, { recursive: true, force: true }).catch(() => {});
+      }
     }
     if (req.method === 'POST' && url.pathname === '/media-studio/inspect-srt') {
       if (rateLimited(req)) return json(res, 429, { error: 'Rate limit exceeded. Wait one minute and try again.' });

@@ -160,6 +160,7 @@ async function renderStudioVideo() {
       body: JSON.stringify({
         storyboard: { data: storyboardData, mimeType: mediaFileMime(storyboard) },
         narration: { data: narrationData, mimeType: mediaFileMime(narration) },
+        trimSilence: $('#studioTrimSilence')?.checked === true,
         srt
       })
     });
@@ -181,7 +182,9 @@ async function renderStudioVideo() {
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    status.textContent = 'MP4 exported · ' + (video.size / (1024 * 1024)).toFixed(2) + ' MB. Check your phone Downloads.';
+    const removedMs = Number(response.headers.get('x-ue-silence-removed-ms') || 0);
+    const trimNote = removedMs > 0 ? ' · Trimmed ' + (removedMs / 1000).toFixed(2) + 's of long pauses' : '';
+    status.textContent = 'MP4 exported · ' + (video.size / (1024 * 1024)).toFixed(2) + ' MB' + trimNote + '. Check your phone Downloads.';
   } catch (error) {
     status.textContent = error.message;
   } finally {

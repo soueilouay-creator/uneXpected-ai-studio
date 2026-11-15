@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { EventEmitter } from 'node:events';
 import { parseSrt, formatSrtTimestamp } from '../media-studio/srt.mjs';
 import { buildGridCropFilters } from '../media-studio/storyboard.mjs';
+import { buildSplitArgs, buildRenderArgs, runFfmpeg } from '../media-studio/ffmpeg.mjs';
 
 test('parses LF and CRLF SRT cues with multiline text and comma timestamps', () => {
   const cues = parseSrt('1\r\n00:00:01,250 --> 00:00:03,500\r\nFirst line\r\nSecond line\r\n\r\n2\n00:00:04.000 --> 00:00:05.125\nNext cue');
@@ -42,4 +44,65 @@ test('creates a complete 3x3 grid and assigns remainder pixels without gaps', ()
 test('rejects invalid storyboard dimensions and grid sizes', () => {
   assert.throws(() => buildGridCropFilters({ width: 0, height: 900, rows: 3, columns: 3 }), /dimensions/i);
   assert.throws(() => buildGridCropFilters({ width: 100, height: 100, rows: 0, columns: 3 }), /grid/i);
+});
+
+test('builds one argument-safe FFmpeg command for all storyboard cells', () => {
+  const args = buildSplitArgs({ inputPath: '/tmp/story board;1.png', outputPattern: '/tmp/cell-%d.png', width: 100, height: 90 });
+  assert.equal(args[args.indexOf('-i') + 1], '/tmp/story board;1.png');
+  assert.equal(args.filter(value => value === '-map').length, 9);
+  assert.ok(args.includes('/tmp/cell-09.png'));
+  assert.ok(args.some(value => value.includes('crop=34:30:0:0')));
+});
+
+test('builds a vertical MP4 render with per-scene durations and audio mapping', () => {
+  const args = buildRenderArgs({
+    audioPath: '/tmp/narration track.wav',
+    scenePaths: ['/tmp/scene 1.png', '/tmp/scene2.png'],
+    cues: [{ startMs: 0, endMs: 1500 }, { startMs: 1500, endMs: 4000 }],
+    outputPath: '/tmp/final video.mp4'
+  });
+  assert.equal(args[args.indexOf('-i') + 1], '/tmp/scene 1.png');
+  assert.ok(args.includes('1.500'));
+  assert.ok(args.includes('2.500'));
+  assert.ok(args.includes('1080:1920'));
+  assert.ok(args.includes('libx264'));
+  assert.equal(args.at(-1), '/tmp/final video.mp4');
+});
+
+test('rejects render manifests with mismatched scene and cue counts', () => {
+  assert.throws(() => buildRenderArgs({ audioPath: 'voice.wav', scenePaths: ['one.png'], cues: [], outputPath: 'out.mp4' }), /exactly one/i);
+});
+
+test('runs FFmpeg with argv and reports success or process failures', async () => {
+  const fakeSpawn = () => {
+    const child = new EventEmitter();
+    child.stderr = new EventEmitter();
+    queueMicrotask(() => child.emit('close', 0));
+    return child;
+  };
+  assert.deepEqual(await runFfmpeg(['-version'], { spawnImpl: fakeSpawn }), { code: 0, stderr: '' });
+  const failingSpawn = () => {
+    const child = new EventEmitter();
+    child.stderr = new EventEmitter();
+    queueMicrotask(() => child.emit('close', 2));
+    return child;
+  };
+  await assert.rejects(runFfmpeg(['-version'], { spawnImpl: failingSpawn }), /exited with code 2/);
+});
+
+test('reports missing FFmpeg and enforces a timeout', async () => {
+  const missingSpawn = () => {
+    const child = new EventEmitter();
+    child.stderr = new EventEmitter();
+    queueMicrotask(() => child.emit('error', new Error('ENOENT')));
+    return child;
+  };
+  await assert.rejects(runFfmpeg([], { spawnImpl: missingSpawn }), /unavailable/);
+  const hangingSpawn = () => {
+    const child = new EventEmitter();
+    child.stderr = new EventEmitter();
+    child.kill = () => child.emit('close', 137);
+    return child;
+  };
+  await assert.rejects(runFfmpeg([], { spawnImpl: hangingSpawn, timeoutMs: 5 }), /timed out/);
 });

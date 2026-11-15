@@ -73,5 +73,5 @@ test('rejects subtitle gaps, overlaps, non-zero starts, and more than nine scene
   assert.throws(() => validateRenderManifest({ ...base, srt: validSrt.replace('00:00:02,000 --> 00:00:04,000', '00:00:03,000 --> 00:00:04,000') }), /continuous/i);
   assert.throws(() => validateRenderManifest({ ...base, srt: validSrt.replace('00:00:00,000', '00:00:01,000') }), /start at zero/i);
   const nine = Array.from({ length: 10 }, (_, index) => `${index + 1}\n${String(Math.floor(index / 60)).padStart(2, '0')}:00:${String(index % 60).padStart(2, '0')},000 --> ${String(Math.floor(index / 60)).padStart(2, '0')}:00:${String(index % 60 + 1).padStart(2, '0')},000\nScene ${index + 1}`).join('\n\n');
-  assert.throws(() => validateRenderManifest({ ...base, srt: nine }), /nine|9 scenes/i);
+  assert.throws(() => validateRenderManifest({ ...base, srt: nine }), /nine|9 subtitle scenes/i);
 });

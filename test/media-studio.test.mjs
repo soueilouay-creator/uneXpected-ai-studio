@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { parseSrt, formatSrtTimestamp } from '../media-studio/srt.mjs';
 import { buildGridCropFilters } from '../media-studio/storyboard.mjs';
-import { buildSplitArgs, buildRenderArgs, runFfmpeg } from '../media-studio/ffmpeg.mjs';
+import { buildSplitArgs, buildRenderArgs, runFfmpeg, probeImageDimensions } from '../media-studio/ffmpeg.mjs';
 
 test('parses LF and CRLF SRT cues with multiline text and comma timestamps', () => {
   const cues = parseSrt('1\r\n00:00:01,250 --> 00:00:03,500\r\nFirst line\r\nSecond line\r\n\r\n2\n00:00:04.000 --> 00:00:05.125\nNext cue');
@@ -105,4 +105,44 @@ test('reports missing FFmpeg and enforces a timeout', async () => {
     return child;
   };
   await assert.rejects(runFfmpeg([], { spawnImpl: hangingSpawn, timeoutMs: 5 }), /timed out/);
+});
+
+
+test('embeds the normalized SRT as a movable MP4 subtitle track', () => {
+  const args = buildRenderArgs({
+    audioPath: '/tmp/narration.wav',
+    scenePaths: ['/tmp/one.png', '/tmp/two.png'],
+    cues: [{ startMs: 0, endMs: 1000 }, { startMs: 1000, endMs: 2500 }],
+    outputPath: '/tmp/video.mp4',
+    options: { subtitlePath: '/tmp/captions.srt' }
+  });
+  assert.equal(args[args.indexOf('-i', args.indexOf('-i') + 1) + 1], '/tmp/captions.srt');
+  assert.ok(args.includes('3:s:0'));
+  assert.ok(args.includes('mov_text'));
+});
+
+test('probes storyboard dimensions with argv and rejects unsafe metadata', async () => {
+  const fakeSpawn = (_binary, args) => {
+    assert.deepEqual(args.slice(0, 3), ['-v', 'error', '-select_streams']);
+    const child = new EventEmitter();
+    child.stdout = new EventEmitter();
+    child.stderr = new EventEmitter();
+    queueMicrotask(() => {
+      child.stdout.emit('data', Buffer.from('{"streams":[{"width":1001,"height":1000}]}'));
+      child.emit('close', 0);
+    });
+    return child;
+  };
+  assert.deepEqual(await probeImageDimensions('/tmp/storyboard.png', { spawnImpl: fakeSpawn }), { width: 1001, height: 1000 });
+  const unsafeSpawn = () => {
+    const child = new EventEmitter();
+    child.stdout = new EventEmitter();
+    child.stderr = new EventEmitter();
+    queueMicrotask(() => {
+      child.stdout.emit('data', Buffer.from('{"streams":[{"width":20000,"height":20000}]}'));
+      child.emit('close', 0);
+    });
+    return child;
+  };
+  await assert.rejects(probeImageDimensions('/tmp/huge.png', { spawnImpl: unsafeSpawn }), /40-megapixel/i);
 });

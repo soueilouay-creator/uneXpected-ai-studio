@@ -83,6 +83,8 @@ jobs:
           node --check test/mobile-provider-results.test.mjs
           node --check test/phone-workspace-ui.test.mjs
       - name: Mobile and authenticated gateway HTTP tests
-        run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/media-studio.test.mjs test/media-studio-render.test.mjs test/media-studio-e2e.test.mjs test/media-studio-http.test.mjs test/openrouter-ui.test.mjs test/orchestrator.test.mjs test/phone-workspace-ui.test.mjs test/mobile-provider-results.test.mjs
+        run: node --test test/*.test.mjs
       - name: Build the production Docker image
-        run: docker build --tag unexpected-ai-studio:openrouter-test .
+        run: |
+          docker build --tag unexpected-ai-studio:openrouter-test .
+          docker run --rm --entrypoint node unexpected-ai-studio:openrouter-test --input-type=module -e "await Promise.all([import('./media-studio/srt.mjs'), import('./media-studio/storyboard.mjs'), import('./media-studio/ffmpeg.mjs'), import('./media-studio/validation.mjs')])"

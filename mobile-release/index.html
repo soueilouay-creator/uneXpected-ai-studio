@@ -32,6 +32,7 @@
         <button class="nav-item" data-view="memory" type="button"><span class="nav-icon">⌘</span><span>Memory</span></button>
         <div class="nav-label nav-label-spaced">Tools</div>
         <button class="nav-item" data-view="agents" type="button"><span class="nav-icon">✳</span><span>Profiles</span><span class="nav-count">40</span></button>
+        <button class="nav-item" data-view="studio" type="button"><span class="nav-icon">▶</span><span>Video Studio</span><span class="nav-count">NEW</span></button>
         <div class="nav-label nav-label-spaced">Preferences</div>
         <button class="nav-item" data-view="settings" type="button"><span class="nav-icon">⚙</span><span>Control center</span></button>
       </nav>
@@ -159,6 +160,25 @@
         <div class="profile-tabs"><button id="showAgentsBtn" class="profile-tab active" type="button">40 Profiles</button><button id="showSkillsBtn" class="profile-tab" type="button">2 Skills</button></div>
         <label class="agent-search"><span>⌕</span><input id="agentSearch" type="search" placeholder="Search workflows…" aria-label="Search profiles"></label>
         <div class="agent-grid" id="agentGrid"></div>
+      </section>
+
+      <section class="view standard-view" id="view-studio">
+        <div class="view-heading"><div><h1>Mobile Video Studio</h1><p>Turn a script, subtitles and storyboard into a production-ready video plan.</p></div><span class="count-pill">0-cost workflow</span></div>
+        <div class="settings-layout">
+          <section class="settings-section">
+            <div class="settings-section-head"><span class="settings-section-icon">▤</span><div><h2>1 · Inspect subtitles</h2><p>Paste an SRT file to check cue timing before rendering.</p></div></div>
+            <label class="form-field"><span>SRT subtitle text</span><textarea id="studioSrtInput" rows="10" maxlength="48000" placeholder="1&#10;00:00:00,000 --> 00:00:02,000&#10;Your first subtitle line"></textarea></label>
+            <div class="button-row"><button class="button button-primary" id="studioInspectSrtBtn" type="button">Inspect SRT</button><span class="field-note" id="studioSrtStatus" role="status" aria-live="polite">Your SRT is sent only to your configured uneXpected gateway when you press Inspect.</span></div>
+            <div class="result-box hidden" id="studioSrtResults" role="status" aria-live="polite"></div>
+          </section>
+          <section class="settings-section">
+            <div class="settings-section-head"><span class="settings-section-icon">▦</span><div><h2>2 · Storyboard planning</h2></div></div>
+            <p class="field-note">The creator's 3×3 method maps nine storyboard cells to nine scene images. The image splitter and FFmpeg export stage are being added as separate, testable capabilities.</p>
+            <div class="data-status-row"><span>Storyboard layout</span><strong>3 × 3 · 9 scenes</strong></div>
+            <div class="data-status-row"><span>Target format</span><strong>Vertical 1080 × 1920</strong></div>
+            <div class="data-status-row"><span>Video export</span><strong>Not enabled yet</strong></div>
+          </section>
+        </div>
       </section>
 
       <section class="view standard-view" id="view-settings">

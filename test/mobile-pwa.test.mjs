@@ -102,3 +102,14 @@ test('gateway status uses text output and safely escapes status labels',async()=
  assert.match(app,/box\.textContent =/);
  assert.match(app,/Gateway check failed:/);
 });
+
+test('phone exposes the Video Studio and keeps SRT inspection behind the session bearer token',async()=>{
+ const html=await read('mobile/index.html');
+ const app=await read('mobile/app.js');
+ assert.match(html,/data-view="studio"/);
+ assert.match(html,/id="view-studio"/);
+ assert.match(html,/id="studioSrtInput"/);
+ assert.match(app,/function inspectStudioSrt\(/);
+ assert.match(app,/authorization: 'Bearer ' \+ sessionToken/);
+ assert.match(app,/media-studio\/inspect-srt/);
+});

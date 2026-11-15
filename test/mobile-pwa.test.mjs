@@ -112,4 +112,13 @@ test('phone exposes the Video Studio and keeps SRT inspection behind the session
  assert.match(app,/function inspectStudioSrt\(/);
  assert.match(app,/authorization: 'Bearer ' \+ sessionToken/);
  assert.match(app,/media-studio\/inspect-srt/);
+ assert.match(html,/id="studioStoryboardFile"/);
+ assert.match(html,/id="studioNarrationFile"/);
+ assert.match(html,/id="studioRenderBtn"/);
+ assert.match(html,/id="studioCheckEngineBtn"/);
+ assert.match(app,/function renderStudioVideo\(/);
+ assert.match(app,/media-studio\/render/);
+ assert.match(app,/media-studio\/status/);
+ assert.match(app,/video\.mp4/);
+ assert.match(app,/authorization: 'Bearer ' \+ sessionToken/);
 });

@@ -6,7 +6,7 @@ import { resolveMobileAsset } from './mobile-assets.mjs';
 import { fileURLToPath } from 'node:url';
 import { parseSrt } from './media-studio/srt.mjs';
 import { timingSafeEqual } from 'node:crypto';
-import { buildSplitArgs, buildRenderArgs, runFfmpeg, probeImageDimensions } from './media-studio/ffmpeg.mjs';
+import { buildSplitArgs, buildRenderArgs, runFfmpeg, probeImageDimensions, probeAudioDuration } from './media-studio/ffmpeg.mjs';
 import { validateRenderManifest } from './media-studio/validation.mjs';
 import { TAAFT_MCP_URL, TAAFT_MCP_BETA, TAAFT_ALLOWED_TOOLS, buildOpenAITaaftTool, buildAnthropicTaaftConfig, withTaaftGuidance } from './taaft-integration.mjs';
 
@@ -431,6 +431,15 @@ const server = http.createServer(async (req, res) => {
           writeFile(subtitlePath, manifest.srt, { flag: 'wx', mode: 0o600 })
         ]);
         const dimensions = await probeImageDimensions(storyboardPath, { binary: FFPROBE_BINARY, timeoutMs: 10000 });
+        const narrationDurationMs = await probeAudioDuration(narrationPath, { binary: FFPROBE_BINARY, timeoutMs: 10000 });
+        if (narrationDurationMs + 100 < manifest.durationMs) {
+          return json(res, 422, {
+            ok: false,
+            error: 'Narration audio is shorter than the SRT timeline. Extend the narration or shorten the final subtitle cue.',
+            narrationDurationMs,
+            subtitleDurationMs: manifest.durationMs
+          });
+        }
         const scenePattern = join(workspace, 'scene-%d.png');
         const splitArgs = buildSplitArgs({
           inputPath: storyboardPath,

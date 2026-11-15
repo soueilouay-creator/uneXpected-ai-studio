@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { parseSrt, formatSrtTimestamp } from '../media-studio/srt.mjs';
 import { buildGridCropFilters } from '../media-studio/storyboard.mjs';
-import { buildSplitArgs, buildRenderArgs, runFfmpeg, probeImageDimensions, probeAudioDuration } from '../media-studio/ffmpeg.mjs';
+import { buildSplitArgs, buildRenderArgs, runFfmpeg, probeImageDimensions, probeAudioDuration, detectSilenceIntervals } from '../media-studio/ffmpeg.mjs';
 
 test('parses LF and CRLF SRT cues with multiline text and comma timestamps', () => {
   const cues = parseSrt('1\r\n00:00:01,250 --> 00:00:03,500\r\nFirst line\r\nSecond line\r\n\r\n2\n00:00:04.000 --> 00:00:05.125\nNext cue');
@@ -173,3 +173,54 @@ test('probes narration duration and rejects invalid ffprobe metadata', async () 
   await assert.rejects(probeAudioDuration('/tmp/invalid.wav', { spawnImpl: invalidSpawn }), /duration/i);
 });
 
+
+
+test('builds a synchronized concat graph for trimmed narration segments', () => {
+  const args = buildRenderArgs({
+    audioPath: '/tmp/narration.wav',
+    scenePaths: ['/tmp/one.png', '/tmp/two.png'],
+    cues: [{ startMs: 0, endMs: 1100 }, { startMs: 1100, endMs: 2700 }],
+    outputPath: '/tmp/trimmed.mp4',
+    options: {
+      subtitlePath: '/tmp/retimed.srt',
+      audioSegments: [{ startMs: 0, endMs: 1100 }, { startMs: 2400, endMs: 4000 }]
+    }
+  });
+  const graph = args[args.indexOf('-filter_complex') + 1];
+  assert.match(graph, /\[2:a\]atrim=start=0\.000:end=1\.100/);
+  assert.match(graph, /\[2:a\]atrim=start=2\.400:end=4\.000/);
+  assert.match(graph, /concat=n=2:v=0:a=1\[aout\]/);
+  assert.ok(args.includes('[aout]'));
+  assert.ok(args.includes('3:s:0'));
+  assert.ok(args.includes('mov_text'));
+});
+
+test('rejects unordered or overlapping trimmed narration segments', () => {
+  assert.throws(() => buildRenderArgs({
+    audioPath: 'voice.wav',
+    scenePaths: ['one.png'],
+    cues: [{ startMs: 0, endMs: 1000 }],
+    outputPath: 'out.mp4',
+    options: { audioSegments: [{ startMs: 0, endMs: 700 }, { startMs: 600, endMs: 1000 }] }
+  }), /ordered, non-overlapping/i);
+});
+
+test('detects long silence using FFmpeg and parses the stderr events', async () => {
+  const fakeSpawn = (binary, args) => {
+    assert.equal(binary, 'ffmpeg-test');
+    assert.ok(args.includes('silencedetect=noise=-42dB:d=0.450'));
+    assert.equal(args.at(-1), '-');
+    const child = new EventEmitter();
+    child.stderr = new EventEmitter();
+    queueMicrotask(() => {
+      child.stderr.emit('data', Buffer.from('[silencedetect] silence_start: 0.500\\n[silencedetect] silence_end: 1.000 | silence_duration: 0.500'));
+      child.emit('close', 0);
+    });
+    return child;
+  };
+  assert.deepEqual(await detectSilenceIntervals('/tmp/narration.wav', {
+    spawnImpl: fakeSpawn,
+    binary: 'ffmpeg-test',
+    durationMs: 2000
+  }), [{ startMs: 500, endMs: 1000 }]);
+});

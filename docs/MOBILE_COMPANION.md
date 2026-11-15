@@ -26,3 +26,18 @@ Microphone and speech output depend on the browser and device language packs. Vo
 The gateway retains its existing bearer authentication, rate limiting, request size limits and provider routing. The PWA calls the gateway same-origin; no permissive CORS policy or unauthenticated AI endpoint is added. No API provider call is made by the installation itself. A configured provider is not described as verified until a real, successful request is recorded.
 
 Improvement proposals are stored locally. Approval in the app authorizes only planning context; it does not authorize code writes, protected instruction changes, commits, merges or deployments.
+
+
+## Video Studio (feature branch)
+
+The additive Video Studio view can inspect SRT timing and, when the gateway has FFmpeg plus FFprobe, export a vertical MP4 from user-selected media:
+1. Paste an SRT whose first cue starts at zero and whose cues are contiguous. One to nine cues are supported, up to 120 seconds.
+2. Select a PNG/JPEG 3×3 storyboard image (maximum 8 MB).
+3. Select a supported narration file (MP3, WAV, M4A/MP4, AAC, OGG or WebM; maximum 12 MB).
+4. Check the render engine, then choose **Render MP4**. The gateway splits the storyboard into scene images, assembles a 1080×1920 H.264/AAC video, embeds the SRT as a selectable subtitle track, and returns an MP4 download.
+
+The gateway request is bearer-authenticated and bounded to 28 MB. Files are held in a private temporary workspace and the workspace is removed after the response. The gateway does not persist source media. The phone UI retains the access token in memory only.
+
+**Runtime dependency:** FFmpeg and FFprobe must already exist in the server runtime. The current Docker image does not install them; the status endpoint reports this condition and the export endpoint returns an unavailable response rather than simulating an MP4. No production runtime has been changed or deployed from this feature branch.
+
+Narration generation, silence trimming, audio enhancement, automatic clip selection, livestream monitoring and publishing are not included in this stage. CI uses controlled fake FFmpeg/FFprobe binaries to verify the gateway workflow; it is not a substitute for a real encoded-media QA run.

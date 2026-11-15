@@ -135,8 +135,8 @@ else process.stdout.write(JSON.stringify({ streams: [{ width: 900, height: 900 }
       srt: '1\\n00:00:00,000 --> 00:00:05,000\\nLonger scene'
     })
   });
-  assert.equal(mismatch.status, 422);
   const mismatchData = await mismatch.json();
+  assert.equal(mismatch.status, 422, JSON.stringify(mismatchData));
   assert.equal(mismatchData.narrationDurationMs, 4000);
   assert.equal(mismatchData.subtitleDurationMs, 5000);
   assert.equal((await readdir(runtimeTmp)).length, 0, 'rejected jobs must also clean temporary media');

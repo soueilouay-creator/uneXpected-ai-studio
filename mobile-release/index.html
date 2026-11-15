@@ -176,7 +176,16 @@
             <p class="field-note">The creator's 3×3 method maps nine storyboard cells to nine scene images. The image splitter and FFmpeg export stage are being added as separate, testable capabilities.</p>
             <div class="data-status-row"><span>Storyboard layout</span><strong>3 × 3 · 9 scenes</strong></div>
             <div class="data-status-row"><span>Target format</span><strong>Vertical 1080 × 1920</strong></div>
-            <div class="data-status-row"><span>Video export</span><strong>Not enabled yet</strong></div>
+            <div class="data-status-row"><span>Video export</span><strong>Ready when FFmpeg is available</strong></div>
+          </section>
+          <section class="settings-section">
+            <div class="settings-section-head"><span class="settings-section-icon">▣</span><div><h2>3 · Render and export</h2><p>Upload one 3×3 storyboard image and your narration to create a vertical MP4.</p></div></div>
+            <label class="form-field"><span>Storyboard image (PNG or JPEG · max 8 MB)</span><input id="studioStoryboardFile" type="file" accept="image/png,image/jpeg"></label>
+            <label class="form-field"><span>Narration audio (MP3, WAV, M4A, OGG or WebM · max 12 MB)</span><input id="studioNarrationFile" type="file" accept="audio/*"></label>
+            <p class="field-note">Use 1–9 continuous SRT cues starting at 00:00:00,000. Each cue controls one storyboard cell. Rendering requires FFmpeg and FFprobe on the gateway; uploads are processed in a temporary folder and deleted after export.</p>
+            <div class="button-row"><button class="button button-secondary" id="studioCheckEngineBtn" type="button">Check render engine</button><button class="button button-primary" id="studioRenderBtn" type="button">Render MP4</button></div>
+            <div class="result-box" id="studioEngineStatus" role="status" aria-live="polite">Render engine not checked.</div>
+            <div class="result-box" id="studioRenderStatus" role="status" aria-live="polite">Your source files are sent to your configured gateway only after you press Render MP4.</div>
           </section>
         </div>
       </section>

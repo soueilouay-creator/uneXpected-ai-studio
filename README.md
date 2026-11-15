@@ -64,3 +64,16 @@ Phone conversations support a per-message route selector:
 The selected route applies to the next message only. Earlier conversation turns keep their original provider attribution. Assistant responses display their provider, actual returned model, requested route when different, latency, and whether OpenRouter was used as a fallback. A direct OpenRouter request is made once and does not start a second OpenRouter fallback attempt. The automatic OpenRouter fallback remains enabled for primary-provider routes when no requested primary provider returns usable text.
 
 The phone interface uses a responsive left navigation drawer on narrow screens and a persistent sidebar on wider screens. Local projects, conversations, memories, improvements, profile browsing, voice controls, and backup export/import remain on-device. The mobile gateway access token stays in memory only; it is not written to IndexedDB, browser storage, or backups. Provider API keys remain server-side.
+
+## uneXpected Mobile Video Studio (feature branch)
+
+The additive Video Studio view is available in the phone PWA source at `mobile-release/`. Its current implemented slice includes authenticated SRT inspection, strict cue timing checks, deterministic 3×3 storyboard crop geometry, and safe FFmpeg argument builders for image splitting and vertical MP4 assembly.
+
+The media engine is in `media-studio/`:
+- `srt.mjs` parses SRT cues and formats timestamps.
+- `storyboard.mjs` divides a 3×3 storyboard into exact crop rectangles, assigning remainder pixels without gaps.
+- `ffmpeg.mjs` builds argument arrays (never shell strings) for splitting and 1080×1920 H.264/AAC video assembly, and runs FFmpeg with a bounded timeout.
+
+The authenticated `POST /media-studio/inspect-srt` endpoint accepts up to 48 KB of SRT text and returns parsed cues. The phone UI uses the existing in-memory bearer token and does not persist it. The APKs remain uninstalled and are treated only as behavioral references.
+
+**Current limitation:** the current slice does not yet provide binary media upload, actual FFmpeg invocation from the phone UI, narration generation, silence detection/removal, or downloadable MP4 export. The FFmpeg runner and render command are tested with process fakes; no real MP4 export is claimed. A runtime FFmpeg binary must be provisioned and verified before rendering is enabled. No paid services are introduced. This branch is not deployed or merged.

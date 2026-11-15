@@ -125,6 +125,9 @@ test('phone exposes the Video Studio and keeps SRT inspection behind the session
  assert.match(html,/id="studioCheckEngineBtn"/);
  assert.match(app,/function renderStudioVideo\(/);
  assert.match(app,/media-studio\/render/);
+ assert.match(html,/id="studioRenderBtn" type="button" disabled/);
+ assert.match(app,/studioEngineAvailable = data\.renderAvailable === true/);
+ assert.match(app,/button\.disabled = !studioEngineAvailable/);
  assert.match(app,/media-studio\/status/);
  assert.match(app,/video\.mp4/);
  assert.match(app,/authorization: 'Bearer ' \+ sessionToken/);

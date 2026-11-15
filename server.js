@@ -458,6 +458,8 @@ const server = http.createServer(async (req, res) => {
         if (video.subarray(4, 8).toString('ascii') !== 'ftyp') {
           return json(res, 502, { ok: false, error: 'FFmpeg output did not pass MP4 container verification.' });
         }
+        // Remove private temporary source media before the client receives the export.
+        await rm(workspace, { recursive: true, force: true });
         res.writeHead(200, {
           'content-type': 'video/mp4',
           'content-disposition': 'attachment; filename="uneXpected-video.mp4"',

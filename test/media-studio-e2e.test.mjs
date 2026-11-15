@@ -65,7 +65,8 @@ fs.writeFileSync(output, mp4);
   const ffprobeSource = `#!/usr/bin/env node
 const args = process.argv.slice(2);
 if (args.includes('-version')) process.exit(0);
-process.stdout.write(JSON.stringify({ streams: [{ width: 900, height: 900 }] }));
+if (args.includes('format=duration')) process.stdout.write(JSON.stringify({ format: { duration: '4.0' } }));
+else process.stdout.write(JSON.stringify({ streams: [{ width: 900, height: 900 }] }));
 `;
   await writeFile(ffmpeg, ffmpegSource, { mode: 0o700 });
   await writeFile(ffprobe, ffprobeSource, { mode: 0o700 });

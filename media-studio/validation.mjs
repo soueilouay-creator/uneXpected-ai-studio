@@ -22,6 +22,7 @@ function detectAudio(bytes) {
     return { mimeType: 'audio/wav', extension: 'wav' };
   }
   if (bytes.length >= 3 && bytes.subarray(0, 3).toString('ascii') === 'ID3') return { mimeType: 'audio/mpeg', extension: 'mp3' };
+  if (bytes.length >= 2 && bytes[0] === 0xff && (bytes[1] & 0xf6) === 0xf0) return { mimeType: 'audio/aac', extension: 'aac' };
   if (bytes.length >= 2 && bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0) return { mimeType: 'audio/mpeg', extension: 'mp3' };
   if (bytes.length >= 12 && bytes.subarray(4, 8).toString('ascii') === 'ftyp') return { mimeType: 'audio/mp4', extension: 'm4a' };
   if (bytes.length >= 4 && bytes.subarray(0, 4).toString('ascii') === 'OggS') return { mimeType: 'audio/ogg', extension: 'ogg' };
@@ -42,11 +43,12 @@ export function decodeMediaPayload({ data, mimeType, kind, maxBytes } = {}) {
   if (!bytes.length || bytes.toString('base64') !== data) fail('Upload must contain canonical base64 data.', TypeError);
   const detected = kind === 'image' ? detectImage(bytes) : detectAudio(bytes);
   if (!detected) fail('Unsupported ' + kind + ' file signature.', TypeError);
-  const declaredMime = String(mimeType || '').split(';')[0].trim().toLowerCase();
+  const rawMime = String(mimeType || '').split(';')[0].trim().toLowerCase();
+  const declaredMime = ({ 'image/jpg': 'image/jpeg', 'audio/mp3': 'audio/mpeg', 'audio/x-wav': 'audio/wav', 'audio/wave': 'audio/wav', 'audio/x-m4a': 'audio/mp4' })[rawMime] || rawMime;
   const acceptable = kind === 'image'
-    ? new Set(['image/png', 'image/jpeg', 'image/jpg'])
-    : new Set(['audio/wav', 'audio/x-wav', 'audio/wave', 'audio/mpeg', 'audio/mp3', 'audio/mp4', 'audio/aac', 'audio/ogg', 'audio/webm']);
-  if (!acceptable.has(declaredMime) || (declaredMime === 'image/jpg' ? 'image/jpeg' : declaredMime) !== detected.mimeType) {
+    ? new Set(['image/png', 'image/jpeg'])
+    : new Set(['audio/wav', 'audio/mpeg', 'audio/mp4', 'audio/aac', 'audio/ogg', 'audio/webm']);
+  if (!acceptable.has(declaredMime) || declaredMime !== detected.mimeType) {
     fail('Declared MIME type does not match the uploaded ' + kind + ' file signature.', TypeError);
   }
   return { bytes, mimeType: detected.mimeType, extension: detected.extension, size: bytes.length };

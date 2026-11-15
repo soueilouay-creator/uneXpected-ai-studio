@@ -95,6 +95,16 @@ async function refreshStudioStatus() {
   }
 }
 
+function mediaFileMime(file) {
+  if (file.type) return file.type;
+  const extension = String(file.name || '').toLowerCase().split('.').pop();
+  return ({
+    png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg',
+    mp3: 'audio/mpeg', wav: 'audio/wav', m4a: 'audio/mp4',
+    aac: 'audio/aac', ogg: 'audio/ogg', webm: 'audio/webm'
+  })[extension] || '';
+}
+
 function encodeFileBase64(buffer) {
   const bytes = new Uint8Array(buffer);
   const chunkSize = 0x8000;
@@ -136,8 +146,8 @@ async function renderStudioVideo() {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: 'Bearer ' + sessionToken },
       body: JSON.stringify({
-        storyboard: { data: storyboardData, mimeType: storyboard.type },
-        narration: { data: narrationData, mimeType: narration.type },
+        storyboard: { data: storyboardData, mimeType: mediaFileMime(storyboard) },
+        narration: { data: narrationData, mimeType: mediaFileMime(narration) },
         srt
       })
     });

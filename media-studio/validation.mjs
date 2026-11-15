@@ -39,9 +39,6 @@ export function decodeMediaPayload({ data, mimeType, kind, maxBytes } = {}) {
   if (!Number.isSafeInteger(limit) || limit <= 0) fail('Upload byte limit must be a positive integer.', RangeError);
   const estimatedBytes = Math.floor(data.length * 3 / 4) - (data.endsWith('==') ? 2 : data.endsWith('=') ? 1 : 0);
   if (estimatedBytes > limit) fail('Upload exceeds the ' + limit + ' byte limit.', RangeError);
-  if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(data)) {
-    fail('Upload must contain valid standard base64 data.', TypeError);
-  }
   const bytes = Buffer.from(data, 'base64');
   if (!bytes.length || bytes.toString('base64') !== data) fail('Upload must contain canonical base64 data.', TypeError);
   const detected = kind === 'image' ? detectImage(bytes) : detectAudio(bytes);
@@ -59,8 +56,20 @@ export function decodeMediaPayload({ data, mimeType, kind, maxBytes } = {}) {
 
 export function validateRenderManifest(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) fail('Render manifest must be an object.', TypeError);
-  const storyboard = decodeMediaPayload({ ...input.storyboard, kind: 'image' });
-  const narration = decodeMediaPayload({ ...input.narration, kind: 'audio' });
+  const storyboardInput = input.storyboard || {};
+  const narrationInput = input.narration || {};
+  const storyboard = decodeMediaPayload({
+    data: storyboardInput.data,
+    mimeType: storyboardInput.mimeType,
+    kind: 'image',
+    maxBytes: IMAGE_LIMIT
+  });
+  const narration = decodeMediaPayload({
+    data: narrationInput.data,
+    mimeType: narrationInput.mimeType,
+    kind: 'audio',
+    maxBytes: AUDIO_LIMIT
+  });
   if (typeof input.srt !== 'string' || Buffer.byteLength(input.srt, 'utf8') > SRT_LIMIT) {
     fail('SRT text is required and must not exceed 48 KB.', RangeError);
   }

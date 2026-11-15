@@ -67,13 +67,21 @@ The phone interface uses a responsive left navigation drawer on narrow screens a
 
 ## uneXpected Mobile Video Studio (feature branch)
 
-The additive Video Studio view is available in the phone PWA source at `mobile-release/`. Its current implemented slice includes authenticated SRT inspection, strict cue timing checks, deterministic 3×3 storyboard crop geometry, and safe FFmpeg argument builders for image splitting and vertical MP4 assembly.
+The phone PWA now has an authenticated media export flow. The Video Studio accepts one 3×3 storyboard image, a narration audio file and SRT captions. It divides the storyboard into up to nine scene images, assembles a 1080×1920 H.264/AAC MP4, embeds the SRT as a selectable MP4 subtitle track, and returns the file to the phone for download.
 
-The media engine is in `media-studio/`:
-- `srt.mjs` parses SRT cues and formats timestamps.
-- `storyboard.mjs` divides a 3×3 storyboard into exact crop rectangles, assigning remainder pixels without gaps.
-- `ffmpeg.mjs` builds argument arrays (never shell strings) for splitting and 1080×1920 H.264/AAC video assembly, and runs FFmpeg with a bounded timeout.
+The media engine lives in `media-studio/`:
+- `srt.mjs` parses and formats subtitle cues.
+- `storyboard.mjs` generates deterministic 3×3 crop geometry without losing remainder pixels.
+- `validation.mjs` checks base64 payloads, image/audio signatures, MIME types, file limits, scene counts and a continuous zero-based subtitle timeline.
+- `ffmpeg.mjs` builds argument arrays (never shell strings), probes image dimensions, and runs FFmpeg with bounded timeouts.
 
-The authenticated `POST /media-studio/inspect-srt` endpoint accepts up to 48 KB of SRT text and returns parsed cues. The phone UI uses the existing in-memory bearer token and does not persist it. The APKs remain uninstalled and are treated only as behavioral references.
+The same-origin, bearer-authenticated endpoints are:
+- `GET /media-studio/status` — checks whether both FFmpeg and FFprobe are available without returning binary paths.
+- `POST /media-studio/inspect-srt` — validates SRT and returns cue timing.
+- `POST /media-studio/render` — accepts a JSON manifest containing base64 storyboard and narration uploads plus SRT, then returns `video/mp4`.
 
-**Current limitation:** the current slice does not yet provide binary media upload, actual FFmpeg invocation from the phone UI, narration generation, silence detection/removal, or downloadable MP4 export. The FFmpeg runner and render command are tested with process fakes; no real MP4 export is claimed. A runtime FFmpeg binary must be provisioned and verified before rendering is enabled. No paid services are introduced. This branch is not deployed or merged.
+Render limits are intentionally conservative: 8 MB storyboard image, 12 MB narration, 28 MB encoded request, 1–9 continuous SRT cues starting at zero, a 120-second maximum timeline, and a 64 MB MP4 response. Accepted storyboard types are PNG/JPEG; narration supports MP3, WAV, M4A/MP4, AAC, OGG and WebM signatures. The gateway uses a private temporary directory, never trusts uploaded filenames or extensions, runs media commands without a shell, and removes temporary media after the response. Rendering is rate-limited.
+
+**Runtime boundary:** the Docker image does not currently bundle FFmpeg/FFprobe. The app checks for both binaries at runtime and disables rendering when either is missing. This keeps the free deployment image and resource use unchanged until the target runtime's CPU/memory/disk budget is confirmed. No Render configuration or production deployment was changed. The APKs remain uninstalled and are used only as behavioral references.
+
+**What this does not do yet:** generate narration, trim silence, monitor streams, automatically select viral clips, or perform a real media-quality review. CI verifies validation, request security, the command builders and the complete gateway orchestration using temporary fake media tools; it does not prove that a real FFmpeg build is installed or that a real MP4 has been encoded. A real export still requires a runtime with compatible FFmpeg and FFprobe binaries. This feature branch is not merged or deployed.

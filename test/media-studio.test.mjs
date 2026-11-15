@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { parseSrt, formatSrtTimestamp } from '../media-studio/srt.mjs';
 import { buildGridCropFilters } from '../media-studio/storyboard.mjs';
-import { buildSplitArgs, buildRenderArgs, runFfmpeg, probeImageDimensions } from '../media-studio/ffmpeg.mjs';
+import { buildSplitArgs, buildRenderArgs, runFfmpeg, probeImageDimensions, probeAudioDuration } from '../media-studio/ffmpeg.mjs';
 
 test('parses LF and CRLF SRT cues with multiline text and comma timestamps', () => {
   const cues = parseSrt('1\r\n00:00:01,250 --> 00:00:03,500\r\nFirst line\r\nSecond line\r\n\r\n2\n00:00:04.000 --> 00:00:05.125\nNext cue');
@@ -146,3 +146,30 @@ test('probes storyboard dimensions with argv and rejects unsafe metadata', async
   };
   await assert.rejects(probeImageDimensions('/tmp/huge.png', { spawnImpl: unsafeSpawn }), /40-megapixel/i);
 });
+
+test('probes narration duration and rejects invalid ffprobe metadata', async () => {
+  const fakeSpawn = (_binary, args) => {
+    assert.ok(args.includes('format=duration'));
+    const child = new EventEmitter();
+    child.stdout = new EventEmitter();
+    child.stderr = new EventEmitter();
+    queueMicrotask(() => {
+      child.stdout.emit('data', Buffer.from('{"format":{"duration":"4.125"}}'));
+      child.emit('close', 0);
+    });
+    return child;
+  };
+  assert.equal(await probeAudioDuration('/tmp/narration.wav', { spawnImpl: fakeSpawn }), 4125);
+  const invalidSpawn = () => {
+    const child = new EventEmitter();
+    child.stdout = new EventEmitter();
+    child.stderr = new EventEmitter();
+    queueMicrotask(() => {
+      child.stdout.emit('data', Buffer.from('{"format":{"duration":"N/A"}}'));
+      child.emit('close', 0);
+    });
+    return child;
+  };
+  await assert.rejects(probeAudioDuration('/tmp/invalid.wav', { spawnImpl: invalidSpawn }), /duration/i);
+});
+

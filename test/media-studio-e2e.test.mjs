@@ -49,6 +49,13 @@ test('authenticated render route splits, assembles, returns MP4 and cleans tempo
 const fs = require('node:fs');
 const args = process.argv.slice(2);
 if (args.includes('-version')) process.exit(0);
+if (args.some(arg => arg.startsWith('silencedetect='))) {
+  process.stderr.write([
+    '[silencedetect] silence_start: 0.500',
+    '[silencedetect] silence_end: 1.000 | silence_duration: 0.500'
+  ].join('\\n'));
+  process.exit(0);
+}
 const outputs = [];
 for (let i = 0; i < args.length; i += 1) if (args[i] === '-frames:v') outputs.push(args[i + 2]);
 if (outputs.length) {
@@ -116,11 +123,13 @@ else process.stdout.write(JSON.stringify({ streams: [{ width: 900, height: 900 }
     body: JSON.stringify({
       storyboard: { data: image.toString('base64'), mimeType: 'image/png' },
       narration: { data: audio.toString('base64'), mimeType: 'audio/wav' },
+      trimSilence: true,
       srt: '1\n00:00:00,000 --> 00:00:02,000\nScene one'
     })
   });
   assert.equal(response.status, 200, response.ok ? '' : await response.text());
   assert.equal(response.headers.get('content-type'), 'video/mp4');
+  assert.equal(response.headers.get('x-ue-silence-removed-ms'), '300');
   assert.match(response.headers.get('content-disposition'), /uneXpected-video\.mp4/);
   const video = Buffer.from(await response.arrayBuffer());
   assert.equal(video.subarray(4, 8).toString('ascii'), 'ftyp');
@@ -132,6 +141,7 @@ else process.stdout.write(JSON.stringify({ streams: [{ width: 900, height: 900 }
     body: JSON.stringify({
       storyboard: { data: image.toString('base64'), mimeType: 'image/png' },
       narration: { data: audio.toString('base64'), mimeType: 'audio/wav' },
+      trimSilence: false,
       srt: '1\n00:00:00,000 --> 00:00:05,000\nLonger scene'
     })
   });

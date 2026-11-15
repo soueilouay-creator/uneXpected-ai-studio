@@ -126,6 +126,9 @@ test('phone exposes the Video Studio and keeps SRT inspection behind the session
  assert.match(app,/function renderStudioVideo\(/);
  assert.match(app,/media-studio\/render/);
  assert.match(html,/id="studioRenderBtn" type="button" disabled/);
+ assert.match(html,/id="studioTrimSilence" type="checkbox" checked/);
+ assert.match(app,/trimSilence: \$\('#studioTrimSilence'\)\?\.checked === true/);
+ assert.match(app,/x-ue-silence-removed-ms/);
  assert.match(app,/studioEngineAvailable = data\.renderAvailable === true/);
  assert.match(app,/button\.disabled = !studioEngineAvailable/);
  assert.match(app,/media-studio\/status/);

@@ -10,6 +10,7 @@ RUN base64 -d /tmp/source.tar.gz.b64 > /tmp/source.tar.gz \
 WORKDIR /app
 COPY app.js /app/public/app.js
 COPY server.js /app/server.js
+COPY media-studio/ /app/media-studio/
 COPY openrouter-ui.js /app/openrouter-ui.js
 COPY taaft-integration.mjs /app/taaft-integration.mjs
 COPY mobile-assets.mjs /app/mobile-assets.mjs

@@ -47,6 +47,30 @@ function formatDate(value, options = { month: 'short', day: 'numeric' }) {
   return new Intl.DateTimeFormat(undefined, options).format(date);
 }
 
+async function inspectStudioSrt() {
+  const source = $('#studioSrtInput').value;
+  const status = $('#studioSrtStatus');
+  const results = $('#studioSrtResults');
+  results.classList.add('hidden');
+  if (!source.trim()) { status.textContent = 'Paste SRT subtitle text first.'; return; }
+  if (!sessionToken) { status.textContent = 'Add your app access token in Settings before inspecting SRT.'; showView('settings'); return; }
+  status.textContent = 'Inspecting subtitle timing…';
+  try {
+    const response = await fetch(gatewayBase() + '/media-studio/inspect-srt', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: 'Bearer ' + sessionToken },
+      body: JSON.stringify({ srt: source })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'SRT inspection failed (' + response.status + ').');
+    status.textContent = data.cueCount + ' subtitle cues · ' + (data.durationMs / 1000).toFixed(2) + ' seconds';
+    results.innerHTML = '<strong>Subtitle timing is valid.</strong><ol>' + data.cues.map(cue => '<li><span>' + escapeHtml((cue.startMs / 1000).toFixed(3)) + 's–' + escapeHtml((cue.endMs / 1000).toFixed(3)) + 's</span><p>' + escapeHtml(cue.text).replace(/\n/g, '<br>') + '</p></li>').join('') + '</ol>';
+    results.classList.remove('hidden');
+  } catch (error) {
+    status.textContent = error.message;
+  }
+}
+
 function gatewayBase() {
   const raw = $('#gatewayUrl')?.value.trim() || appSettings.gatewayUrl || '';
   return raw ? raw.replace(/\/$/, '') : location.origin;
@@ -147,6 +171,7 @@ function showView(name) {
   if (name === 'projects') refreshProjects();
   if (name === 'memory') refreshMemories();
   if (name === 'agents') renderAgents();
+  if (name === 'studio') $('#studioSrtInput')?.focus({ preventScroll: true });
   if (name === 'settings') refreshSettings();
   if (name !== 'chat') window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1028,6 +1053,7 @@ function bindEvents() {
     await refreshChats();
     toast('Conversation deleted.');
   });
+  $('#studioInspectSrtBtn').addEventListener('click', inspectStudioSrt);
   $('#chatForm').addEventListener('submit', sendChat);
   $('#chatInput').addEventListener('input', resizeComposer);
   $('#chatSearch').addEventListener('input', refreshChats);

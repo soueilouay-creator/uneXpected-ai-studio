@@ -433,6 +433,7 @@ const server = http.createServer(async (req, res) => {
         const dimensions = await probeImageDimensions(storyboardPath, { binary: FFPROBE_BINARY, timeoutMs: 10000 });
         const narrationDurationMs = await probeAudioDuration(narrationPath, { binary: FFPROBE_BINARY, timeoutMs: 10000 });
         if (narrationDurationMs + 100 < manifest.durationMs) {
+          await rm(workspace, { recursive: true, force: true });
           return json(res, 422, {
             ok: false,
             error: 'Narration audio is shorter than the SRT timeline. Extend the narration or shorten the final subtitle cue.',

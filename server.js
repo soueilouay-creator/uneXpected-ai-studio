@@ -4,10 +4,11 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { resolveMobileAsset } from './mobile-assets.mjs';
 import { fileURLToPath } from 'node:url';
-import { parseSrt } from './media-studio/srt.mjs';
+import { parseSrt, formatSrtTimestamp } from './media-studio/srt.mjs';
 import { timingSafeEqual } from 'node:crypto';
-import { buildSplitArgs, buildRenderArgs, runFfmpeg, probeImageDimensions, probeAudioDuration } from './media-studio/ffmpeg.mjs';
+import { buildSplitArgs, buildRenderArgs, runFfmpeg, probeImageDimensions, probeAudioDuration, detectSilenceIntervals } from './media-studio/ffmpeg.mjs';
 import { validateRenderManifest } from './media-studio/validation.mjs';
+import { buildSilenceTrimPlan } from './media-studio/silence.mjs';
 import { TAAFT_MCP_URL, TAAFT_MCP_BETA, TAAFT_ALLOWED_TOOLS, buildOpenAITaaftTool, buildAnthropicTaaftConfig, withTaaftGuidance } from './taaft-integration.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
@@ -427,8 +428,7 @@ const server = http.createServer(async (req, res) => {
         const outputPath = join(workspace, 'uneXpected-video.mp4');
         await Promise.all([
           writeFile(storyboardPath, manifest.storyboard.bytes, { flag: 'wx', mode: 0o600 }),
-          writeFile(narrationPath, manifest.narration.bytes, { flag: 'wx', mode: 0o600 }),
-          writeFile(subtitlePath, manifest.srt, { flag: 'wx', mode: 0o600 })
+          writeFile(narrationPath, manifest.narration.bytes, { flag: 'wx', mode: 0o600 })
         ]);
         const dimensions = await probeImageDimensions(storyboardPath, { binary: FFPROBE_BINARY, timeoutMs: 10000 });
         const narrationDurationMs = await probeAudioDuration(narrationPath, { binary: FFPROBE_BINARY, timeoutMs: 10000 });
@@ -440,6 +440,34 @@ const server = http.createServer(async (req, res) => {
             subtitleDurationMs: manifest.durationMs
           });
         }
+        let renderCues = manifest.cues;
+        let renderSrt = manifest.srt;
+        let audioSegments;
+        let removedSilenceMs = 0;
+        if (body.trimSilence === true) {
+          const intervals = await detectSilenceIntervals(narrationPath, {
+            binary: FFMPEG_BINARY,
+            timeoutMs: 30000,
+            minSilenceMs: 450,
+            noiseDb: -42,
+            durationMs: manifest.durationMs
+          });
+          const trimPlan = buildSilenceTrimPlan(manifest.cues, manifest.durationMs, intervals, {
+            minSilenceMs: 450,
+            keepMs: 100,
+            minimumCueDurationMs: 250
+          });
+          if (trimPlan.removedMs > 0) {
+            renderCues = trimPlan.cues;
+            audioSegments = trimPlan.audioSegments;
+            removedSilenceMs = trimPlan.removedMs;
+            renderSrt = renderCues.map(cue =>
+              String(cue.index) + '\\n' + formatSrtTimestamp(cue.startMs) + ' --> ' +
+              formatSrtTimestamp(cue.endMs) + '\\n' + cue.text
+            ).join('\\n\\n') + '\\n';
+          }
+        }
+        await writeFile(subtitlePath, renderSrt, { flag: 'wx', mode: 0o600 });
         const scenePattern = join(workspace, 'scene-%d.png');
         const splitArgs = buildSplitArgs({
           inputPath: storyboardPath,
@@ -454,9 +482,9 @@ const server = http.createServer(async (req, res) => {
         const renderArgs = buildRenderArgs({
           audioPath: narrationPath,
           scenePaths,
-          cues: manifest.cues,
+          cues: renderCues,
           outputPath,
-          options: { width: 1080, height: 1920, fps: 30, subtitlePath }
+          options: { width: 1080, height: 1920, fps: 30, subtitlePath, ...(audioSegments ? { audioSegments } : {}) }
         });
         await runFfmpeg(renderArgs, { binary: FFMPEG_BINARY, timeoutMs: 120000 });
         const outputStat = await stat(outputPath);
@@ -474,7 +502,8 @@ const server = http.createServer(async (req, res) => {
           'content-disposition': 'attachment; filename="uneXpected-video.mp4"',
           'content-length': String(video.length),
           'cache-control': 'no-store',
-          'x-content-type-options': 'nosniff'
+          'x-content-type-options': 'nosniff',
+          'x-ue-silence-removed-ms': String(removedSilenceMs)
         });
         res.end(video);
         return;

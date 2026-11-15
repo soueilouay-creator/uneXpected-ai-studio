@@ -64,7 +64,7 @@ test('builds a vertical MP4 render with per-scene durations and audio mapping', 
   assert.equal(args[args.indexOf('-i') + 1], '/tmp/scene 1.png');
   assert.ok(args.includes('1.500'));
   assert.ok(args.includes('2.500'));
-  assert.ok(args.includes('1080:1920'));
+  assert.ok(args.some(value => value.includes('scale=1080:1920')));
   assert.ok(args.includes('libx264'));
   assert.equal(args.at(-1), '/tmp/final video.mp4');
 });

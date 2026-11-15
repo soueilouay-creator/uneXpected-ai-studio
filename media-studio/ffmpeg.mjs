@@ -150,3 +150,62 @@ export function probeImageDimensions(inputPath, { spawnImpl = spawn, binary = 'f
     });
   });
 }
+
+
+export function probeAudioDuration(inputPath, { spawnImpl = spawn, binary = 'ffprobe', timeoutMs = 10000, maxOutputBytes = 4096 } = {}) {
+  requiredPath(inputPath, 'Narration audio path');
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) throw new RangeError('Probe timeout must be a positive integer.');
+  if (!Number.isSafeInteger(maxOutputBytes) || maxOutputBytes <= 0) throw new RangeError('Probe output limit must be a positive integer.');
+  return new Promise((resolve, reject) => {
+    let child;
+    let stdout = '';
+    let stderr = '';
+    let settled = false;
+    const finish = (error, value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (error) reject(error);
+      else resolve(value);
+    };
+    const timer = setTimeout(() => {
+      finish(new Error('FFprobe timed out after ' + timeoutMs + ' ms.'));
+      child?.kill('SIGKILL');
+    }, timeoutMs);
+    try {
+      child = spawnImpl(binary, [
+        '-v', 'error',
+        '-show_entries', 'format=duration',
+        '-of', 'json',
+        inputPath
+      ], { stdio: ['ignore', 'pipe', 'pipe'] });
+    } catch (error) {
+      finish(new Error('FFprobe is unavailable: ' + error.message));
+      return;
+    }
+    child.stdout?.on('data', chunk => {
+      stdout += chunk.toString();
+      if (Buffer.byteLength(stdout) > maxOutputBytes) {
+        finish(new Error('FFprobe output exceeded its safety limit.'));
+        child.kill('SIGKILL');
+      }
+    });
+    child.stderr?.on('data', chunk => { stderr = (stderr + chunk.toString()).slice(-2000); });
+    child.once('error', error => finish(new Error('FFprobe is unavailable: ' + error.message)));
+    child.once('close', code => {
+      if (settled) return;
+      if (code !== 0) return finish(new Error('FFprobe exited with code ' + code + ': ' + stderr));
+      try {
+        const durationSeconds = Number(JSON.parse(stdout)?.format?.duration);
+        if (!Number.isFinite(durationSeconds) || durationSeconds <= 0 || durationSeconds > 3600) {
+          throw new Error('Narration duration is invalid or exceeds the 60-minute probe limit.');
+        }
+        const durationMs = Math.round(durationSeconds * 1000);
+        if (!Number.isSafeInteger(durationMs) || durationMs <= 0) throw new Error('Narration duration is invalid.');
+        finish(null, durationMs);
+      } catch (error) {
+        finish(error instanceof SyntaxError ? new Error('FFprobe returned invalid audio metadata.') : error);
+      }
+    });
+  });
+}

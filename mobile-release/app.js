@@ -23,6 +23,7 @@ let activeRecognition = null;
 let voiceModeEnabled = false;
 let voiceBusy = false;
 let requestBusy = false;
+let studioEngineAvailable = false;
 let toastTimer;
 
 function toast(message) {
@@ -74,7 +75,10 @@ async function inspectStudioSrt() {
 
 async function refreshStudioStatus() {
   const node = $('#studioEngineStatus');
+  const button = $('#studioRenderBtn');
   if (!node) return;
+  studioEngineAvailable = false;
+  if (button) button.disabled = true;
   if (!sessionToken) {
     node.textContent = 'Add your app access token in Settings to check the render engine.';
     return;
@@ -87,10 +91,14 @@ async function refreshStudioStatus() {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || 'Render engine check failed (' + response.status + ').');
-    node.textContent = data.renderAvailable
+    studioEngineAvailable = data.renderAvailable === true;
+    if (button) button.disabled = !studioEngineAvailable;
+    node.textContent = studioEngineAvailable
       ? 'Render engine ready · FFmpeg and FFprobe detected. Upload limits: 8 MB image, 12 MB narration.'
       : (data.reason || 'Rendering is not available on this gateway yet.');
   } catch (error) {
+    studioEngineAvailable = false;
+    if (button) button.disabled = true;
     node.textContent = error.message;
   }
 }
@@ -126,6 +134,10 @@ async function renderStudioVideo() {
     showView('settings');
     return;
   }
+  if (!studioEngineAvailable) {
+    status.textContent = 'The render engine is not ready. Check FFmpeg and FFprobe status first.';
+    return;
+  }
   if (!storyboard || !narration || !srt.trim()) {
     status.textContent = 'Choose a storyboard image, narration audio and paste the SRT subtitles first.';
     return;
@@ -153,6 +165,10 @@ async function renderStudioVideo() {
     });
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
+      if (response.status === 503) {
+        studioEngineAvailable = false;
+        button.disabled = true;
+      }
       throw new Error(data.error || 'Video export failed (' + response.status + ').');
     }
     const video = await response.blob();
@@ -169,7 +185,7 @@ async function renderStudioVideo() {
   } catch (error) {
     status.textContent = error.message;
   } finally {
-    button.disabled = false;
+    button.disabled = !studioEngineAvailable;
   }
 }
 

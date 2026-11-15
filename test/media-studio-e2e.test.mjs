@@ -125,4 +125,19 @@ else process.stdout.write(JSON.stringify({ streams: [{ width: 900, height: 900 }
   const video = Buffer.from(await response.arrayBuffer());
   assert.equal(video.subarray(4, 8).toString('ascii'), 'ftyp');
   assert.equal((await readdir(runtimeTmp)).length, 0, 'temporary media directory should be removed after download');
+
+  const mismatch = await fetch(base + '/media-studio/render', {
+    method: 'POST',
+    headers: { ...headers, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      storyboard: { data: image.toString('base64'), mimeType: 'image/png' },
+      narration: { data: audio.toString('base64'), mimeType: 'audio/wav' },
+      srt: '1\\n00:00:00,000 --> 00:00:05,000\\nLonger scene'
+    })
+  });
+  assert.equal(mismatch.status, 422);
+  const mismatchData = await mismatch.json();
+  assert.equal(mismatchData.narrationDurationMs, 4000);
+  assert.equal(mismatchData.subtitleDurationMs, 5000);
+  assert.equal((await readdir(runtimeTmp)).length, 0, 'rejected jobs must also clean temporary media');
 });

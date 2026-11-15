@@ -116,7 +116,7 @@ test('embeds the normalized SRT as a movable MP4 subtitle track', () => {
     outputPath: '/tmp/video.mp4',
     options: { subtitlePath: '/tmp/captions.srt' }
   });
-  assert.equal(args[args.indexOf('-i', args.indexOf('-i') + 1) + 1], '/tmp/captions.srt');
+  assert.equal(args[args.lastIndexOf('-i') + 1], '/tmp/captions.srt');
   assert.ok(args.includes('3:s:0'));
   assert.ok(args.includes('mov_text'));
 });

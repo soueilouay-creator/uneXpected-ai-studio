@@ -79,6 +79,7 @@ jobs:
           node --check test/media-studio.test.mjs
           node --check test/media-studio-render.test.mjs
           node --check test/media-studio-e2e.test.mjs
+          node --check test/media-studio-silence.test.mjs
           node --check test/media-studio-http.test.mjs
           node --check test/mobile-provider-results.test.mjs
           node --check test/phone-workspace-ui.test.mjs
@@ -87,4 +88,4 @@ jobs:
       - name: Build the production Docker image
         run: |
           docker build --tag unexpected-ai-studio:openrouter-test .
-          docker run --rm --entrypoint node unexpected-ai-studio:openrouter-test --input-type=module -e "await Promise.all([import('./media-studio/srt.mjs'), import('./media-studio/storyboard.mjs'), import('./media-studio/ffmpeg.mjs'), import('./media-studio/validation.mjs')])"
+          docker run --rm --entrypoint node unexpected-ai-studio:openrouter-test --input-type=module -e "await Promise.all([import('./media-studio/srt.mjs'), import('./media-studio/storyboard.mjs'), import('./media-studio/ffmpeg.mjs'), import('./media-studio/validation.mjs'), import('./media-studio/silence.mjs')])"

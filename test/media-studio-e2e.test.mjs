@@ -115,7 +115,7 @@ process.stdout.write(JSON.stringify({ streams: [{ width: 900, height: 900 }] }))
     body: JSON.stringify({
       storyboard: { data: image.toString('base64'), mimeType: 'image/png' },
       narration: { data: audio.toString('base64'), mimeType: 'audio/wav' },
-      srt: '1\\n00:00:00,000 --> 00:00:02,000\\nScene one'
+      srt: '1\n00:00:00,000 --> 00:00:02,000\nScene one'
     })
   });
   assert.equal(response.status, 200, response.ok ? '' : await response.text());

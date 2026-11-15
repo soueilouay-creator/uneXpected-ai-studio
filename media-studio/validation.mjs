@@ -32,13 +32,16 @@ function detectAudio(bytes) {
 
 export function decodeMediaPayload({ data, mimeType, kind, maxBytes } = {}) {
   if (!['image', 'audio'].includes(kind)) fail('Upload kind must be image or audio.', TypeError);
-  if (typeof data !== 'string' || !data.length || data.length % 4 !== 0 || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(data)) {
+  if (typeof data !== 'string' || !data.length || data.length % 4 !== 0) {
     fail('Upload must contain valid standard base64 data.', TypeError);
   }
   const limit = maxBytes ?? (kind === 'image' ? IMAGE_LIMIT : AUDIO_LIMIT);
   if (!Number.isSafeInteger(limit) || limit <= 0) fail('Upload byte limit must be a positive integer.', RangeError);
   const estimatedBytes = Math.floor(data.length * 3 / 4) - (data.endsWith('==') ? 2 : data.endsWith('=') ? 1 : 0);
   if (estimatedBytes > limit) fail('Upload exceeds the ' + limit + ' byte limit.', RangeError);
+  if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(data)) {
+    fail('Upload must contain valid standard base64 data.', TypeError);
+  }
   const bytes = Buffer.from(data, 'base64');
   if (!bytes.length || bytes.toString('base64') !== data) fail('Upload must contain canonical base64 data.', TypeError);
   const detected = kind === 'image' ? detectImage(bytes) : detectAudio(bytes);

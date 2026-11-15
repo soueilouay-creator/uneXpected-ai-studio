@@ -71,6 +71,98 @@ async function inspectStudioSrt() {
   }
 }
 
+
+async function refreshStudioStatus() {
+  const node = $('#studioEngineStatus');
+  if (!node) return;
+  if (!sessionToken) {
+    node.textContent = 'Add your app access token in Settings to check the render engine.';
+    return;
+  }
+  node.textContent = 'Checking FFmpeg and FFprobe on the gateway…';
+  try {
+    const response = await fetch(gatewayBase() + '/media-studio/status', {
+      headers: { authorization: 'Bearer ' + sessionToken },
+      cache: 'no-store'
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'Render engine check failed (' + response.status + ').');
+    node.textContent = data.renderAvailable
+      ? 'Render engine ready · FFmpeg and FFprobe detected. Upload limits: 8 MB image, 12 MB narration.'
+      : (data.reason || 'Rendering is not available on this gateway yet.');
+  } catch (error) {
+    node.textContent = error.message;
+  }
+}
+
+function encodeFileBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  const chunkSize = 0x8000;
+  let binary = '';
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(offset, Math.min(offset + chunkSize, bytes.length)));
+  }
+  return btoa(binary);
+}
+
+async function renderStudioVideo() {
+  const status = $('#studioRenderStatus');
+  const button = $('#studioRenderBtn');
+  const storyboard = $('#studioStoryboardFile').files?.[0];
+  const narration = $('#studioNarrationFile').files?.[0];
+  const srt = $('#studioSrtInput').value;
+  if (!sessionToken) {
+    status.textContent = 'Add your app access token in Settings before rendering.';
+    showView('settings');
+    return;
+  }
+  if (!storyboard || !narration || !srt.trim()) {
+    status.textContent = 'Choose a storyboard image, narration audio and paste the SRT subtitles first.';
+    return;
+  }
+  if (storyboard.size > 8 * 1024 * 1024 || narration.size > 12 * 1024 * 1024) {
+    status.textContent = 'The storyboard must be at most 8 MB and narration at most 12 MB.';
+    return;
+  }
+  button.disabled = true;
+  status.textContent = 'Preparing your files securely…';
+  try {
+    const [storyboardData, narrationData] = await Promise.all([
+      storyboard.arrayBuffer().then(encodeFileBase64),
+      narration.arrayBuffer().then(encodeFileBase64)
+    ]);
+    status.textContent = 'Rendering your vertical MP4. Keep this screen open until the export finishes…';
+    const response = await fetch(gatewayBase() + '/media-studio/render', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: 'Bearer ' + sessionToken },
+      body: JSON.stringify({
+        storyboard: { data: storyboardData, mimeType: storyboard.type },
+        narration: { data: narrationData, mimeType: narration.type },
+        srt
+      })
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || 'Video export failed (' + response.status + ').');
+    }
+    const video = await response.blob();
+    if (video.size < 12 || video.type !== 'video/mp4') throw new Error('The gateway response was not a verified MP4 file.');
+    const url = URL.createObjectURL(video);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'uneXpected-video.mp4';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    status.textContent = 'MP4 exported · ' + (video.size / (1024 * 1024)).toFixed(2) + ' MB. Check your phone Downloads.';
+  } catch (error) {
+    status.textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+}
+
 function gatewayBase() {
   const raw = $('#gatewayUrl')?.value.trim() || appSettings.gatewayUrl || '';
   return raw ? raw.replace(/\/$/, '') : location.origin;
@@ -171,7 +263,7 @@ function showView(name) {
   if (name === 'projects') refreshProjects();
   if (name === 'memory') refreshMemories();
   if (name === 'agents') renderAgents();
-  if (name === 'studio') $('#studioSrtInput')?.focus({ preventScroll: true });
+  if (name === 'studio') { $('#studioSrtInput')?.focus({ preventScroll: true }); refreshStudioStatus(); }
   if (name === 'settings') refreshSettings();
   if (name !== 'chat') window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1054,6 +1146,8 @@ function bindEvents() {
     toast('Conversation deleted.');
   });
   $('#studioInspectSrtBtn').addEventListener('click', inspectStudioSrt);
+  $('#studioCheckEngineBtn').addEventListener('click', refreshStudioStatus);
+  $('#studioRenderBtn').addEventListener('click', renderStudioVideo);
   $('#chatForm').addEventListener('submit', sendChat);
   $('#chatInput').addEventListener('input', resizeComposer);
   $('#chatSearch').addEventListener('input', refreshChats);

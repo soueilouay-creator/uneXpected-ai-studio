@@ -34,10 +34,10 @@ The additive Video Studio view can inspect SRT timing and, when the gateway has 
 1. Paste an SRT whose first cue starts at zero and whose cues are contiguous. One to nine cues are supported, up to 120 seconds. The uploaded narration must cover the final cue; the gateway rejects an audio file more than 100 ms shorter than the SRT timeline.
 2. Select a PNG/JPEG 3×3 storyboard image (maximum 8 MB).
 3. Select a supported narration file (MP3, WAV, M4A/MP4, AAC, OGG or WebM; maximum 12 MB).
-4. Check the render engine, then choose **Render MP4**. The gateway splits the storyboard into scene images, assembles a 1080×1920 H.264/AAC video, embeds the SRT as a selectable subtitle track, and returns an MP4 download.
+4. Leave **Trim long pauses** checked (or turn it off), check the render engine, then choose **Render MP4**. Pauses of at least 0.45 seconds are reduced while retaining 0.10 seconds at their edges; SRT timings are recalculated, and captions are kept at or above 0.25 seconds. The gateway splits the storyboard into scene images, assembles a 1080×1920 H.264/AAC video, embeds the adjusted SRT as a selectable subtitle track, and returns an MP4 download.
 
 The gateway request is bearer-authenticated and bounded to 28 MB. Files are held in a private temporary workspace and the workspace is removed after the response. The gateway does not persist source media. The phone UI retains the access token in memory only.
 
 **Runtime dependency:** FFmpeg and FFprobe must already exist in the server runtime. The current Docker image does not install them; the status endpoint reports this condition and the export endpoint returns an unavailable response rather than simulating an MP4. No production runtime has been changed or deployed from this feature branch.
 
-Narration generation, silence trimming, audio enhancement, automatic clip selection, livestream monitoring and publishing are not included in this stage. CI uses controlled fake FFmpeg/FFprobe binaries to verify the gateway workflow; it is not a substitute for a real encoded-media QA run.
+Narration generation, audio enhancement, automatic clip selection, livestream monitoring and publishing are not included in this stage. Silence trimming is a conservative pause-reduction pass, not full audio mastering; always review the exported video. CI uses controlled fake FFmpeg/FFprobe binaries to verify the gateway workflow; it is not a substitute for a real encoded-media QA run.

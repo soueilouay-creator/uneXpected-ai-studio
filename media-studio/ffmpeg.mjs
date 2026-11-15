@@ -67,8 +67,8 @@ export function runFfmpeg(args, { spawnImpl = spawn, timeoutMs = 120000, binary 
       else resolve(value);
     };
     const timer = setTimeout(() => {
-      child?.kill('SIGKILL');
       finish(new Error('FFmpeg timed out after ' + timeoutMs + ' ms.'));
+      child?.kill('SIGKILL');
     }, timeoutMs);
     try {
       child = spawnImpl(binary, args, { stdio: ['ignore', 'ignore', 'pipe'] });

@@ -525,3 +525,25 @@ body.drawer-open { overflow: hidden; }
   #view-studio .button-row { flex-wrap: wrap; }
   #studioRenderBtn { min-height: 44px; }
 }
+
+
+#view-studio .studio-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid var(--line, rgba(255,255,255,.14));
+  border-radius: 12px;
+  background: rgba(255,255,255,.035);
+  cursor: pointer;
+}
+#view-studio .studio-option input {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  margin: 2px 0 0;
+  accent-color: var(--accent, #8b7cff);
+}
+#view-studio .studio-option span { display: grid; gap: 4px; }
+#view-studio .studio-option small { color: var(--muted, #999); line-height: 1.4; }

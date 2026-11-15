@@ -6,10 +6,12 @@ on:
       - 'server.js'
       - 'Dockerfile'
       - 'mobile-release/**'
+      - 'media-studio/**'
       - 'mobile-assets.mjs'
       - 'mobile-assets.parts/**'
       - 'source.tar.gz.b64'
       - 'test/mobile*.test.mjs'
+      - 'test/media-studio*.test.mjs'
       - 'test/openrouter-ui.test.mjs'
       - 'test/orchestrator.test.mjs'
       - 'test/provider-fetch-stub.mjs'
@@ -20,15 +22,17 @@ on:
       - 'render.yaml'
       - '.github/workflows/mobile-integration.yml'
   push:
-    branches: [main]
+    branches: [feat/mobile-video-studio]
     paths:
       - 'server.js'
       - 'Dockerfile'
       - 'mobile-release/**'
+      - 'media-studio/**'
       - 'mobile-assets.mjs'
       - 'mobile-assets.parts/**'
       - 'source.tar.gz.b64'
       - 'test/mobile*.test.mjs'
+      - 'test/media-studio*.test.mjs'
       - 'test/orchestrator.test.mjs'
       - 'test/provider-fetch-stub.mjs'
       - 'test/phone-workspace-ui.test.mjs'
@@ -72,9 +76,10 @@ jobs:
           node --check mobile-assets.mjs
           node --check mobile-release/app.js
           node --check mobile-release/providers.js
+          node --check test/media-studio.test.mjs
           node --check test/mobile-provider-results.test.mjs
           node --check test/phone-workspace-ui.test.mjs
       - name: Mobile and authenticated gateway HTTP tests
-        run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/openrouter-ui.test.mjs test/orchestrator.test.mjs test/phone-workspace-ui.test.mjs test/mobile-provider-results.test.mjs
+        run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/media-studio.test.mjs test/openrouter-ui.test.mjs test/orchestrator.test.mjs test/phone-workspace-ui.test.mjs test/mobile-provider-results.test.mjs
       - name: Build the production Docker image
         run: docker build --tag unexpected-ai-studio:openrouter-test .

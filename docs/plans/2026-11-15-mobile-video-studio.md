@@ -1,6 +1,6 @@
 # uneXpected Mobile Video Studio Implementation Plan
 
-**Status:** Implementation milestone complete on `feat/mobile-video-studio`; production runtime activation remains blocked on FFmpeg/FFprobe availability and resource verification.
+**Status:** Phone media-export milestone and opt-in synchronized silence trimming implemented on `feat/mobile-video-studio`; production runtime activation remains blocked on FFmpeg/FFprobe availability and resource verification.
 
 **Goal:** Add a $0-first, phone-oriented media pipeline that converts SRT timing and 3×3 storyboard images plus narration audio into a downloadable vertical MP4 without installing the creator's unverified APKs.
 
@@ -36,11 +36,12 @@
 - `runFfmpeg(...)` uses argument arrays, a bounded timeout, and no shell interpolation.
 - `probeImageDimensions(...)` and `probeAudioDuration(...)` validate media metadata with bounded FFprobe output and timeouts.
 
-- [x] Test spaces and special characters in paths, unavailable binaries, timeouts, process failures, render options, image metadata, and narration duration.
+- [x] Test spaces and special characters in paths, unavailable binaries, timeouts, process failures, render options, image metadata, narration duration, silence detection and cue retiming.
 - [x] Implement deterministic split/render command construction and bounded process execution.
 - [x] Include `media-studio/` in the Docker image and verify module imports inside the built container.
 - [x] Keep FFmpeg/FFprobe optional instead of adding them to the production image. Their size and CPU/memory/disk cost have not been established against the target free Render runtime; the app reports unavailable instead of fabricating output.
-- [x] Verify a real local 9-scene render using FFmpeg/FFprobe installed in the QA environment: 9 storyboard crops, 1080×1920 H.264 video, AAC audio, 30 fps, 9-second duration, and an embedded `mov_text` subtitle stream.
+- [x] Verify a real local 9-scene render using FFmpeg/FFprobe installed in the QA environment: 9 storyboard crops, 1080×1920 H.264 video, AAC audio, 30 fps, and an embedded `mov_text` subtitle stream.
+- [x] Add opt-in long-pause removal: detect pauses >=450 ms at -42 dB; preserve 100 ms at detected edges; never shrink a subtitle cue below 250 ms; recalculate subtitle times and report milliseconds removed.
 
 ## Task 3: Authenticated gateway and phone Studio — complete
 
@@ -62,9 +63,9 @@
 ## Task 4: Verification and handoff — complete for the feature branch
 
 - [x] Document the workflow, zero-cost scope, APK non-installation decision, runtime dependency, input limits, and known limitations.
-- [x] Run syntax checks and `node --test test/*.test.mjs`: **56 tests passed, 0 failed**.
-- [x] Build the Docker image in CI and import all four media modules inside the built container.
-- [x] Perform a real local 9-scene FFmpeg/FFprobe smoke render and inspect the MP4 streams.
+- [x] Run syntax checks and `node --test test/*.test.mjs`: **63 tests passed, 0 failed** (at CI run 43730303905 before final media-quality QA).
+- [x] Build the Docker image in CI and import all five media modules inside the built container.
+- [ ] Perform a real local 9-scene FFmpeg/FFprobe render with a deliberately inserted silent pause; verify shortened audio duration and all retimed subtitle cues.
 - [x] Inspect the branch diff: feature work remains isolated from `main`; no APK, generated video, provider secret, or production configuration change was added.
 - [x] Keep the work on `feat/mobile-video-studio`; do not merge, deploy, or publish.
 
@@ -72,5 +73,5 @@
 
 - The Docker image does **not** bundle FFmpeg/FFprobe. Real rendering on the deployed gateway will remain disabled until a compatible runtime provides both binaries. No Render production service was modified or redeployed.
 - Narration is supplied as an audio file; the Studio does not generate TTS narration.
-- Silence detection/removal, automatic clip selection, stream monitoring, and publishing are not included in this milestone.
+- Automatic clip selection, stream monitoring, and publishing are not included in this milestone.
 - CI's end-to-end server test uses fake FFmpeg/FFprobe tools to verify gateway orchestration. The separate local render verifies the command builders with real FFmpeg, but does not prove that Render has the same binaries or resources.

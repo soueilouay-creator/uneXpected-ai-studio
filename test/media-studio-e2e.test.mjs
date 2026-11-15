@@ -120,7 +120,7 @@ process.stdout.write(JSON.stringify({ streams: [{ width: 900, height: 900 }] }))
   });
   assert.equal(response.status, 200, response.ok ? '' : await response.text());
   assert.equal(response.headers.get('content-type'), 'video/mp4');
-  assert.match(response.headers.get('content-disposition'), /uneXpected-video\\.mp4/);
+  assert.match(response.headers.get('content-disposition'), /uneXpected-video\.mp4/);
   const video = Buffer.from(await response.arrayBuffer());
   assert.equal(video.subarray(4, 8).toString('ascii'), 'ftyp');
   assert.equal((await readdir(runtimeTmp)).length, 0, 'temporary media directory should be removed after download');

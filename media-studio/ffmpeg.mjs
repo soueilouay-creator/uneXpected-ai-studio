@@ -46,9 +46,13 @@ export function buildRenderArgs({ audioPath, scenePaths, cues, outputPath, optio
     filters.push('[' + index + ':v]scale=' + width + ':' + height + ':force_original_aspect_ratio=decrease,pad=' + width + ':' + height + ':(ow-iw)/2:(oh-ih)/2,setsar=1,fps=' + fps + '[v' + index + ']');
   });
   args.push('-i', audioPath);
+  const subtitlePath = options.subtitlePath ? requiredPath(options.subtitlePath, 'Subtitle file path') : null;
+  if (subtitlePath) args.push('-i', subtitlePath);
   const inputs = scenePaths.map((_, index) => '[v' + index + ']').join('');
   filters.push(inputs + 'concat=n=' + scenePaths.length + ':v=1:a=0[vout]');
-  args.push('-filter_complex', filters.join(';'), '-map', '[vout]', '-map', scenePaths.length + ':a:0', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-r', String(fps), '-c:a', 'aac', '-b:a', '128k', '-shortest', '-movflags', '+faststart', outputPath);
+  args.push('-filter_complex', filters.join(';'), '-map', '[vout]', '-map', scenePaths.length + ':a:0');
+  if (subtitlePath) args.push('-map', (scenePaths.length + 1) + ':s:0', '-c:s', 'mov_text');
+  args.push('-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-r', String(fps), '-c:a', 'aac', '-b:a', '128k', '-shortest', '-movflags', '+faststart', outputPath);
   return args;
 }
 
@@ -81,6 +85,68 @@ export function runFfmpeg(args, { spawnImpl = spawn, timeoutMs = 120000, binary 
     child.once('close', code => {
       if (code !== 0) finish(new Error('FFmpeg exited with code ' + code + ': ' + stderr.slice(-2000)));
       else finish(null, { code, stderr });
+    });
+  });
+}
+
+
+export function probeImageDimensions(inputPath, { spawnImpl = spawn, binary = 'ffprobe', timeoutMs = 10000, maxOutputBytes = 4096 } = {}) {
+  requiredPath(inputPath, 'Input image path');
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) throw new RangeError('Probe timeout must be a positive integer.');
+  if (!Number.isSafeInteger(maxOutputBytes) || maxOutputBytes <= 0) throw new RangeError('Probe output limit must be a positive integer.');
+  return new Promise((resolve, reject) => {
+    let child;
+    let stdout = '';
+    let stderr = '';
+    let settled = false;
+    const finish = (error, value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (error) reject(error);
+      else resolve(value);
+    };
+    const timer = setTimeout(() => {
+      finish(new Error('FFprobe timed out after ' + timeoutMs + ' ms.'));
+      child?.kill('SIGKILL');
+    }, timeoutMs);
+    try {
+      child = spawnImpl(binary, [
+        '-v', 'error',
+        '-select_streams', 'v:0',
+        '-show_entries', 'stream=width,height',
+        '-of', 'json',
+        inputPath
+      ], { stdio: ['ignore', 'pipe', 'pipe'] });
+    } catch (error) {
+      finish(new Error('FFprobe is unavailable: ' + error.message));
+      return;
+    }
+    child.stdout?.on('data', chunk => {
+      stdout += chunk.toString();
+      if (Buffer.byteLength(stdout) > maxOutputBytes) {
+        finish(new Error('FFprobe output exceeded its safety limit.'));
+        child.kill('SIGKILL');
+      }
+    });
+    child.stderr?.on('data', chunk => { stderr = (stderr + chunk.toString()).slice(-2000); });
+    child.once('error', error => finish(new Error('FFprobe is unavailable: ' + error.message)));
+    child.once('close', code => {
+      if (settled) return;
+      if (code !== 0) return finish(new Error('FFprobe exited with code ' + code + ': ' + stderr));
+      try {
+        const data = JSON.parse(stdout);
+        const stream = data?.streams?.[0];
+        const width = stream?.width;
+        const height = stream?.height;
+        if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width <= 0 || height <= 0 ||
+            width > 8192 || height > 8192 || width * height > 40000000) {
+          throw new Error('Storyboard dimensions are invalid or exceed the 40-megapixel limit.');
+        }
+        finish(null, { width, height });
+      } catch (error) {
+        finish(error instanceof SyntaxError ? new Error('FFprobe returned invalid image metadata.') : error);
+      }
     });
   });
 }

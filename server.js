@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { resolveMobileAsset } from './mobile-assets.mjs';
 import { fileURLToPath } from 'node:url';
+import { parseSrt } from './media-studio/srt.mjs';
 import { timingSafeEqual } from 'node:crypto';
 import { TAAFT_MCP_URL, TAAFT_MCP_BETA, TAAFT_ALLOWED_TOOLS, buildOpenAITaaftTool, buildAnthropicTaaftConfig, withTaaftGuidance } from './taaft-integration.mjs';
 
@@ -349,6 +350,19 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && url.pathname === '/styles.css') {
       res.writeHead(200, { 'content-type': MIME['.css'], 'cache-control': 'no-store' });
       return res.end(await readFile(join(ROOT, 'public', 'styles.css')));
+    }
+    if (req.method === 'POST' && url.pathname === '/media-studio/inspect-srt') {
+      if (rateLimited(req)) return json(res, 429, { error: 'Rate limit exceeded. Wait one minute and try again.' });
+      if (!authorized(req)) return json(res, 401, { error: ACCESS_TOKEN ? 'Unauthorized. Provide the configured bearer token.' : 'Server is locked: set UNEXPECTED_ACCESS_TOKEN before using protected endpoints.' });
+      const body = await readBody(req);
+      if (typeof body.srt !== 'string') return json(res, 400, { error: 'srt must be a text string.' });
+      if (Buffer.byteLength(body.srt, 'utf8') > 48 * 1024) return json(res, 413, { error: 'SRT text exceeds 48 KB.' });
+      try {
+        const cues = parseSrt(body.srt);
+        return json(res, 200, { ok: true, cueCount: cues.length, durationMs: cues.reduce((max, cue) => Math.max(max, cue.endMs), 0), cues });
+      } catch (error) {
+        return json(res, 400, { error: safeError(error) });
+      }
     }
     if (req.method === 'POST' && ['/orchestrate', '/test-provider'].includes(url.pathname)) {
       if (rateLimited(req)) return json(res, 429, { error: 'Rate limit exceeded. Wait one minute and try again.' });

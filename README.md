@@ -73,15 +73,18 @@ The media engine lives in `media-studio/`:
 - `srt.mjs` parses and formats subtitle cues.
 - `storyboard.mjs` generates deterministic 3×3 crop geometry without losing remainder pixels.
 - `validation.mjs` checks base64 payloads, image/audio signatures, MIME types, file limits, scene counts and a continuous zero-based subtitle timeline.
-- `ffmpeg.mjs` builds argument arrays (never shell strings), probes image dimensions, and runs FFmpeg with bounded timeouts.
+- `ffmpeg.mjs` builds argument arrays (never shell strings), probes image/audio metadata, detects long pauses, and runs FFmpeg with bounded timeouts.
+- `silence.mjs` plans safe pause removal, retains short edges, protects subtitle cue minimums, and recalculates subtitle timing against the edited audio.
 
 The same-origin, bearer-authenticated endpoints are:
 - `GET /media-studio/status` — checks whether both FFmpeg and FFprobe are available without returning binary paths.
 - `POST /media-studio/inspect-srt` — validates SRT and returns cue timing.
 - `POST /media-studio/render` — accepts a JSON manifest containing base64 storyboard and narration uploads plus SRT, then returns `video/mp4`.
 
+Silence trimming is opt-in in the phone UI (enabled by default): detected pauses of at least 0.45 seconds are shortened by retaining 0.10 seconds at each detected edge. Subtitle cue timestamps are recalculated with the audio; a cue is never reduced below 0.25 seconds. The detector defaults to -42 dB. The UI reports the total removed time.
+
 Render limits are intentionally conservative: 8 MB storyboard image, 12 MB narration, 28 MB encoded request, 1–9 continuous SRT cues starting at zero, a 120-second maximum timeline, and a 64 MB MP4 response. Accepted storyboard types are PNG/JPEG; narration supports MP3, WAV, M4A/MP4, AAC, OGG and WebM signatures. The gateway probes the narration duration and rejects audio more than 100 ms shorter than the final SRT cue, preventing FFmpeg's shortest-stream rule from silently truncating the video. It uses a private temporary directory, never trusts uploaded filenames or extensions, runs media commands without a shell, and removes temporary media before returning the response. Rendering is rate-limited.
 
 **Runtime boundary:** the Docker image does not currently bundle FFmpeg/FFprobe. The app checks for both binaries at runtime and disables rendering when either is missing. This keeps the free deployment image and resource use unchanged until the target runtime's CPU/memory/disk budget is confirmed. No Render configuration or production deployment was changed. The APKs remain uninstalled and are used only as behavioral references.
 
-**What this does not do yet:** generate narration, trim silence, monitor streams, automatically select viral clips, or perform a real media-quality review. CI verifies validation, request security, the command builders and the complete gateway orchestration using temporary fake media tools; it does not prove that a real FFmpeg build is installed or that a real MP4 has been encoded. A real export still requires a runtime with compatible FFmpeg and FFprobe binaries. This feature branch is not merged or deployed.
+**What this does not do yet:** generate narration, monitor streams, automatically select viral clips, or publish content. Pause trimming is conservative, opt-in and timeline-aware; it is not a voice editor or a replacement for listening to the final export. CI verifies validation, request security, the command builders and the complete gateway orchestration using temporary fake media tools; it does not prove that a real FFmpeg build is installed or that a real MP4 has been encoded. A real export still requires a runtime with compatible FFmpeg and FFprobe binaries. This feature branch is not merged or deployed.

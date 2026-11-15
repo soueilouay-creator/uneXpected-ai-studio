@@ -66,18 +66,15 @@ test('validates a continuous zero-based SRT timeline and bounded storyboard mani
 });
 
 test('does not allow a client manifest to raise server-side storyboard or narration limits', () => {
-  const storyboard = pngHeader();
+  const storyboard = Buffer.alloc(8 * 1024 * 1024 + 1);
+  pngHeader().copy(storyboard, 0);
   const narration = wavHeader();
   const manifest = {
-    storyboard: { data: storyboard.toString('base64'), mimeType: 'image/png', maxBytes: 1024 * 1024 },
+    storyboard: { data: storyboard.toString('base64'), mimeType: 'image/png', maxBytes: 10 * 1024 * 1024 },
     narration: { data: narration.toString('base64'), mimeType: 'audio/wav', maxBytes: 1024 * 1024 },
     srt: validSrt
   };
-  const { validateRenderManifest } = await import('../media-studio/validation.mjs');
-  assert.throws(() => validateRenderManifest({
-    ...manifest,
-    storyboard: { ...manifest.storyboard, data: Buffer.alloc(900).toString('base64') }
-  }), /exceeds/i);
+  assert.throws(() => validateRenderManifest(manifest), /exceeds/i);
 });
 
 test('rejects subtitle gaps, overlaps, non-zero starts, and more than nine scenes', () => {

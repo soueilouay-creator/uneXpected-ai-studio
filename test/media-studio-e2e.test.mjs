@@ -118,7 +118,7 @@ process.stdout.write(JSON.stringify({ streams: [{ width: 900, height: 900 }] }))
       srt: '1\\n00:00:00,000 --> 00:00:02,000\\nScene one'
     })
   });
-  assert.equal(response.status, 200);
+  assert.equal(response.status, 200, response.ok ? '' : await response.text());
   assert.equal(response.headers.get('content-type'), 'video/mp4');
   assert.match(response.headers.get('content-disposition'), /uneXpected-video\\.mp4/);
   const video = Buffer.from(await response.arrayBuffer());

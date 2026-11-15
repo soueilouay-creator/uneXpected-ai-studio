@@ -19,7 +19,7 @@ test('SRT inspection is authenticated, bounded and returns parsed cues', async t
   const token = 'media-studio-test-token-32-characters';
   const child = spawn(process.execPath, ['server.js'], {
     cwd: process.cwd(),
-    env: { ...process.env, PORT: String(port), NODE_ENV: 'test', UNEXPECTED_ACCESS_TOKEN: token },
+    env: { ...process.env, PORT: String(port), NODE_ENV: 'test', UNEXPECTED_ACCESS_TOKEN: token, MEDIA_STUDIO_FFMPEG: '/missing-test-ffmpeg', MEDIA_STUDIO_FFPROBE: '/missing-test-ffprobe' },
     stdio: ['ignore', 'ignore', 'pipe']
   });
   let stderr = '';
@@ -49,4 +49,60 @@ test('SRT inspection is authenticated, bounded and returns parsed cues', async t
   });
   const oversized = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token }, body: JSON.stringify({ srt: 'x'.repeat(49 * 1024) }) });
   assert.equal(oversized.status, 413);
+
+  const statusDenied = await fetch(base + '/media-studio/status');
+  assert.equal(statusDenied.status, 401);
+  const engine = await fetch(base + '/media-studio/status', { headers: { authorization: 'Bearer ' + token } });
+  assert.equal(engine.status, 200);
+  const engineData = await engine.json();
+  assert.equal(engineData.renderAvailable, false);
+  assert.equal(engineData.ffmpegAvailable, false);
+  assert.equal(engineData.ffprobeAvailable, false);
+  assert.equal(JSON.stringify(engineData).includes('/missing-test'), false);
+
+  const png = Buffer.alloc(24);
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(png);
+  png.writeUInt32BE(13, 8);
+  png.write('IHDR', 12);
+  png.writeUInt32BE(900, 16);
+  png.writeUInt32BE(900, 20);
+  const wav = Buffer.alloc(44);
+  wav.write('RIFF', 0);
+  wav.write('WAVE', 8);
+  wav.write('fmt ', 12);
+  wav.writeUInt32LE(16, 16);
+  wav.writeUInt16LE(1, 20);
+  wav.writeUInt16LE(1, 22);
+  wav.writeUInt32LE(44100, 24);
+  wav.writeUInt32LE(88200, 28);
+  wav.writeUInt16LE(2, 32);
+  wav.writeUInt16LE(16, 34);
+  wav.write('data', 36);
+  const renderEndpoint = base + '/media-studio/render';
+  const renderPayload = {
+    storyboard: { data: png.toString('base64'), mimeType: 'image/png' },
+    narration: { data: wav.toString('base64'), mimeType: 'audio/wav' },
+    srt: '1\n00:00:00,000 --> 00:00:02,000\nHello world'
+  };
+  const renderDenied = await fetch(renderEndpoint, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(renderPayload)
+  });
+  assert.equal(renderDenied.status, 401);
+  const badUpload = await fetch(renderEndpoint, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token },
+    body: JSON.stringify({ ...renderPayload, storyboard: { ...renderPayload.storyboard, mimeType: 'image/jpeg' } })
+  });
+  assert.equal(badUpload.status, 400);
+  const unavailable = await fetch(renderEndpoint, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token },
+    body: JSON.stringify(renderPayload)
+  });
+  assert.equal(unavailable.status, 503);
+  const unavailableData = await unavailable.json();
+  assert.equal(unavailableData.renderAvailable, false);
+  assert.match(unavailableData.error, /FFmpeg and FFprobe/i);
 });

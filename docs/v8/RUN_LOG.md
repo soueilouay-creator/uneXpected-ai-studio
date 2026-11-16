@@ -234,3 +234,12 @@ Create a feature branch in `uneXxxx` and implement a deterministic crash-during-
 ### Next increment
 
 - Verify the final-head CI result for `16abeac70ce4a854ca220d38f2342b344b6269c0`, inspect the exact runtime test count and renderer E2E output, then record the result. Keep the populated Neon project read-only until a current export, independent restore/read-back and access hardening are proven.
+
+
+
+### Run 6 verification update — 2026-11-16
+
+- Runtime CI [43796453632](https://github.com/soueilouay-creator/uneXxxx/actions/runs/43796453632), exact head `16abeac70ce4a854ca220d38f2342b344b6269c0`: runtime job completed successfully. The regression/security suite ran **441 tests, 0 failures, 3 skipped** in 84.751 seconds.
+- The formerly failing PostgreSQL recovery test now passes. The separate-process abrupt-exit test and the 20-connection revision-winner test also pass on the ephemeral PostgreSQL 16 service.
+- The PostgreSQL migration/preservation step and source SHA-256 inventory check completed successfully. The V8 Docker image built, the container smoke passed health/UI/authentication/38-agent/task-invocation checks, and CLI smoke tests completed.
+- The independent renderer E2E job in the same workflow is still building its immutable worker image. The full workflow is therefore not yet green; no renderer MP4 or full-workflow pass is claimed at this point.

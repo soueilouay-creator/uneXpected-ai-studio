@@ -209,3 +209,13 @@ Finish the renderer E2E job, then integrate checkpoint writes into the existing 
 - Production PostgreSQL durability is not connected or verified. The existing Neon project must remain read-only.
 - Multi-provider live API compatibility, memory migration, MCP scope/security audit, observability/evaluation, engineering sandbox and complete release/rollback checks remain open.
 - No production deploy, DNS change, branch merge, user-data migration or paid resource creation is authorized by this status update.
+
+
+
+## Run 6 update — 2026-11-16
+
+- Studio integration PR [#13](https://github.com/soueilouay-creator/uneXpected-ai-studio/pull/13) remains a draft on `upgrade/v8-foundation`; main remains unchanged. Current Studio branch checks passed: mobile **30/30**, TAAFT **3/3**, mobile asset integrity and Docker build.
+- Runtime PR [#16](https://github.com/soueilouay-creator/uneXxxx/pull/16) received a deterministic test-fixture isolation fix after final-head CI exposed shared-queue contamination in one PostgreSQL recovery test. The test's own synthetic task is now ordered first; the source SHA-256 manifest was updated and read back.
+- Rerun [43796453632](https://github.com/soueilouay-creator/uneXxxx/actions/runs/43796453632) is pending. The earlier 441-test run had one test failure and 3 skips; do not treat the PostgreSQL recovery increment as verified until the rerun and renderer E2E both pass.
+- Production durability remains blocked: no authorized/verified Neon backup and restore, no migration to the populated Neon project, and no hosted crash-recovery proof.
+- No production deployment, Render restart, provider call, user-data migration or paid resource creation occurred.

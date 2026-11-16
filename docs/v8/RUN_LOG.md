@@ -201,3 +201,36 @@ Create a feature branch in `uneXxxx` and implement a deterministic crash-during-
 
 ### Next increment
 - Confirm the final-head CI run, then update the approval/checkpoint decision log with verified test counts. Continue the PostgreSQL process-recovery and exact-once/idempotency audit. Keep the existing Neon project read-only until backup, schema compatibility and access hardening are independently proven.
+
+
+
+## Run 6 — 2026-11-16 — PostgreSQL recovery test isolation
+
+**Phase:** Phase 3 — durable execution and approval-bound recovery.  
+**Studio repository:** `uneXpected-ai-studio`, main remains at `6f5bc823e1ffd9284abae7dbbb6c1dae97ebf90b`; integration branch `upgrade/v8-foundation` at `af137273512730881aba22edf6a53837892b0764`, draft PR [#13](https://github.com/soueilouay-creator/uneXpected-ai-studio/pull/13).  
+**Runtime repository:** [`uneXxxx` PR #16](https://github.com/soueilouay-creator/uneXxxx/pull/16), branch `upgrade/v8-workflow-checkpoint-ledger-20261111`.
+
+### Completed this run
+
+- Rechecked the live Studio default branch and existing integration branch/PR before changes. The integration branch is 27 commits ahead and 0 behind main; its current diff has 12 paths and no deleted files (one existing workflow line was adjusted while adding path coverage).
+- Verified the Studio integration checks on commit `af137273512730881aba22edf6a53837892b0764`: mobile suite **30/30 passed**, source-archive/mobile-assets SHA check passed, and the Docker image build completed; TAAFT suite **3/3 passed**. No production deployment was run.
+- Inspected the final-head runtime CI failure on `uneXxxx` commit `ecbb92b34dc292d82baac92ab86c6883ade1364a`. The suite ran 441 tests with 3 skipped and one failure in `test_restart_readback_blocks_queued_consumed_approval_instead_of_replaying`: the shared ephemeral PostgreSQL queue let the worker claim an older queued fixture before the task created by that test.
+- Fixed the test isolation defect on the existing runtime feature branch. The test now moves only its own synthetic queued row to the front of the ephemeral test queue before starting the recovery worker. No runtime production behavior or hosted data was changed.
+- Updated `FILE_INVENTORY_SHA256.txt` for the modified test and read both the test and manifest back. The recorded digest matches the SHA-256 calculated before commit.
+- Commits: `7912aac8e07c8f592bff975c7e11194295cca3c2` (test fixture isolation) and `16abeac70ce4a854ca220d38f2342b344b6269c0` (inventory digest).
+
+### Verification / pending
+
+- The failed baseline run was [43795567835](https://github.com/soueilouay-creator/uneXxxx/actions/runs/43795567835); its renderer E2E job passed, but the runtime job failed on the queue-fixture assertion above.
+- Fresh final-head CI [43796453632](https://github.com/soueilouay-creator/uneXxxx/actions/runs/43796453632) is running on `16abeac70ce4a854ca220d38f2342b344b6269c0`. At log time, the PostgreSQL/runtime regression suite and immutable renderer-image build had not completed. No green result is claimed.
+- Studio integration CI evidence is separate from runtime CI and does not prove the Python runtime has been deployed or that PWA IndexedDB data has been migrated.
+
+### Preservation and cost
+
+- No main-branch changes, deleted files, production migrations, Neon writes, Render changes/restarts/deployments, provider API calls, user-data migrations, or changes to PWA IndexedDB records were made.
+- The existing source archive, mobile PWA, TAAFT connector, legacy routes and production deployment remain untouched.
+- No package or infrastructure was added and no paid provider/API service was used. GitHub Actions account-level billing is not exposed by the repository checks.
+
+### Next increment
+
+- Verify the final-head CI result for `16abeac70ce4a854ca220d38f2342b344b6269c0`, inspect the exact runtime test count and renderer E2E output, then record the result. Keep the populated Neon project read-only until a current export, independent restore/read-back and access hardening are proven.

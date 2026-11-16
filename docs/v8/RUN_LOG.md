@@ -171,3 +171,33 @@ Create a feature branch in `uneXxxx` and implement a deterministic crash-during-
 - The latest integration-branch head `7d33f92354c0be1784f178caae78235a25941857` was verified by [mobile integration run 42946597768](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42946597768): **30 tests passed, 0 failed**, and the existing Docker image build completed successfully.
 - The same head passed [TAAFT integration run 42946597781](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/42946597781): **3 tests passed, 0 failed**.
 - These are regression checks on the preserved Node Studio/PWA and TAAFT integration branch. They do not establish that the Node service has been deployed or that its local IndexedDB records were migrated; no such action was performed.
+
+
+## Run 5 — 2026-11-16 — Approval-bound execution and database-topology audit
+
+**Primary repository:** `main` at `6f5bc823e1ffd9284abae7dbbb6c1dae97ebf90b`; integration branch `upgrade/v8-foundation` remains a separate draft PR.  
+**Runtime repository:** [`uneXxxx` PR #16](https://github.com/soueilouay-creator/uneXxxx/pull/16), draft branch `upgrade/v8-workflow-checkpoint-ledger-20261111`; current reviewed head `ecbb92b34dc292d82baac92ab86c6883ade1364a`.
+
+### Completed this run
+- Repaired the runtime's lifecycle HTTP approval parser: lifecycle stage approvals are now initialized and validated in the lifecycle branch rather than an unreachable nested non-lifecycle branch. This removed the unbound `stage_approvals` failure and restores the safe pause/resume API path.
+- Preserved optional `execution_id` and `approval_reference` fields through both SQLite and PostgreSQL generic task enqueue payloads so restart recovery can reconcile queued protected tasks with their execution intent.
+- Tightened regression coverage for approval binding to workflow, stage, execution, task, permission and action digest; corrected adapter-shape expectations and made protected-stage recovery denial explicitly require human review.
+- Added PostgreSQL recovery coverage that runs the protected-queue recovery worker in a separate OS process and a crash-after-stage-claim test that proves a restarted process does not replay an ambiguous started stage.
+- Kept all work on the existing feature branch. No merge, production deploy, Render restart, provider API call, Neon write or user-data migration was performed.
+
+### Verified / pending
+- The existing branch already contains additive PostgreSQL migrations 004–007 and SQLite/PostgreSQL checkpoint, approval-intent and stage-intent adapters. The ephemeral PostgreSQL migration-preservation step passed in CI run [43795068890](https://github.com/soueilouay-creator/uneXxxx/actions/runs/43795068890); that run later stopped at the then-stale SHA inventory, so it is not a full regression pass.
+- A fresh final-head CI run is in progress for `ecbb92b34dc292d82baac92ab86c6883ade1364a`. Do not mark the full suite or renderer E2E complete until that run reports success.
+- Earlier full regression on the previous branch head reported 438 tests with 3 failures and 3 errors. The failures were traced to a lifecycle HTTP parser bug, omitted task binding fields, test-fixture binding gaps and adapter/parameter mismatches; fixes are now included but remain pending final CI evidence.
+
+### Resource and cost audit
+- Render workspace `My Workspace`: no Render Postgres instances. Existing V8 command-center and unified-test web services are Free plan with auto-deploy disabled; the command-center's latest live deploy remains commit `8a67c823...` from 2026-11-07. The primary Studio service remains Free plan, auto-deploying from `main`, with latest live deploy at `6f5bc823...`.
+- Neon organization plan is Free. Existing project `unexpected-v8-unified` is in `aws-eu-central-1` with 9 existing branches and idle/suspended compute endpoints. Main and `v8-migration-test` table listings show the existing legacy workspace/task/memory schema; the new runtime approval/checkpoint tables were not listed. Branches are unprotected. No endpoint was started and no SQL write was issued.
+- Neon consumption details are unavailable on the Free plan (the usage endpoint returned 403), so exact remaining quota/cost cannot be verified. No database, branch, endpoint, service, dependency or paid infrastructure was created.
+
+### Preservation
+- Current primary and runtime branches remain separate from `main`; no deleted paths were present in the last branch comparisons. Existing Render deployments, Neon branches, PWA files and user data were left untouched.
+- The populated Neon project remains unsuitable for automatic migration until its existing schema is mapped, a current backup/export is verified, and an independent restore/read-back rehearsal is approved.
+
+### Next increment
+- Confirm the final-head CI run, then update the approval/checkpoint decision log with verified test counts. Continue the PostgreSQL process-recovery and exact-once/idempotency audit. Keep the existing Neon project read-only until backup, schema compatibility and access hardening are independently proven.

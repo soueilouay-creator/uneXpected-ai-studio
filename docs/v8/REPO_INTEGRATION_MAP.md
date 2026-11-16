@@ -74,3 +74,28 @@ The Node Phone PWA's IndexedDB database name, version, stores and migration beha
 ## Explicit non-actions in this audit
 
 No changes were made to uneXxxx, uneXpected- or uneXpectedworkflow. No provider API was called, no Render restart was triggered, no Skill was invoked, no database was written, no branch was created/deleted, and no PWA data was migrated.
+
+
+## Runtime and database audit update — 2026-11-16
+
+This section supersedes the earlier in-flight-workflow gap snapshot above; it does **not** declare V8 complete.
+
+### Runtime branch changes now present
+- `uneXxxx` PR #16 adds the checkpoint ledger to both SQLite and PostgreSQL and connects it to the coordinator lifecycle and generic `WorkflowRunner`.
+- Additive migrations 005–007 add approval-execution intents, exact approval/task binding and workflow-stage approval intents. No existing migration is dropped or rewritten.
+- The lifecycle HTTP route now parses and validates stage permissions and structured approvals in its lifecycle branch. The prior nested lifecycle parser was unreachable and could leave the `stage_approvals` variable undefined.
+- SQLite and PostgreSQL task enqueue payloads now preserve optional `execution_id` and `approval_reference` metadata. Protected tasks recovered from the queue fail closed and mark their associated execution/stage intents blocked instead of replaying automatically.
+- The branch adds separate-process PostgreSQL recovery tests for a queued protected task and a process terminated after a workflow stage is marked started. A started/ambiguous stage is expected to remain blocked after reopening.
+- These changes remain on draft PR #16. The final-head CI run is pending; the new recovery tests are not yet accepted as passing evidence.
+
+### Current hosted resource facts
+- Render workspace `My Workspace` has no managed PostgreSQL instance. The existing `unexpected-v8-command-center` and `unexpected-v8-unified-test` services are Free plan and have auto-deploy disabled. The command-center's latest live deploy remains commit `8a67c823...` from 2026-11-07; the new PR branch is not deployed.
+- The primary `unexpected-ai-studio` service is Free plan, auto-deploys from `uneXpected-ai-studio/main`, and its latest live deploy is commit `6f5bc823...`. Main was not modified by this work.
+- Neon organization `Loup` is on the Free plan. Existing project `unexpected-v8-unified` has 9 branches, including migration/recovery rehearsal branches; its endpoints are currently idle/suspended. Main and `v8-migration-test` table listings show the existing `agent_memory`, `tasks`, `events`, `idempotency`, `schema_migrations` and related legacy workspace tables. The new approval/checkpoint tables were not present in those listings.
+- Neon branch protection is not enabled for the listed branches. The project usage endpoint is unavailable on Free (HTTP 403), so exact remaining compute/storage quota and account cost are not verified.
+
+### Consequences
+- Do not connect the current runtime to the existing Neon default branch or apply migrations 005–007 there yet. The existing schema and branch history need a reviewed mapping, a current backup/export, an independent restore/read-back rehearsal and access hardening first.
+- Do not create additional Neon branches or endpoints as a workaround: the existing project already has 9 branches, and exact remaining Free-plan quota is not exposed.
+- Continue using the ephemeral PostgreSQL 16 service in GitHub Actions for deterministic migration, concurrency and crash-recovery tests. It is isolated from user data and is not production durability.
+- The Python runtime remains a separate service/repository from the Node Studio/PWA. Shared API contracts, IndexedDB export/read-back, user-scoped memory integration, provider API verification and end-to-end UI compatibility remain release blockers.

@@ -219,3 +219,11 @@ Finish the renderer E2E job, then integrate checkpoint writes into the existing 
 - Rerun [43796453632](https://github.com/soueilouay-creator/uneXxxx/actions/runs/43796453632) is pending. The earlier 441-test run had one test failure and 3 skips; do not treat the PostgreSQL recovery increment as verified until the rerun and renderer E2E both pass.
 - Production durability remains blocked: no authorized/verified Neon backup and restore, no migration to the populated Neon project, and no hosted crash-recovery proof.
 - No production deployment, Render restart, provider call, user-data migration or paid resource creation occurred.
+
+
+
+### Run 6 verification update — 2026-11-16
+
+- Runtime job in [CI run 43796453632](https://github.com/soueilouay-creator/uneXxxx/actions/runs/43796453632) passed on exact head `16abeac70ce4a854ca220d38f2342b344b6269c0`: **441 tests, 0 failures, 3 skipped**. PostgreSQL migration/preservation, SHA-256 inventory, Docker build, actual-container health/UI/auth/38-agent/task smoke and CLI smoke steps all passed.
+- The PostgreSQL consumed-approval recovery test, abrupt process-exit checkpoint test and concurrent revision-winner test passed.
+- The renderer E2E job is still running its immutable worker-image build. Full CI remains pending until the offline vertical-MP4 render and image-identity checks complete.

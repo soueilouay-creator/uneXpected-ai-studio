@@ -179,3 +179,33 @@ Create a dedicated feature branch in `uneXxxx`. Add a deterministic crash-during
 ### Next
 
 Finish the renderer E2E job, then integrate checkpoint writes into the existing coordinator and add a deterministic crash/restart test that resumes only from verified completed stages and blocks ambiguous or protected work.
+
+
+## Latest status — 2026-11-16
+
+**Current phase:** Phase 3 — durable execution and approval-bound workflow recovery.  
+**Primary UI/control plane:** `uneXpected-ai-studio` main remains unchanged; integration PR #13 is still separate and unmerged.  
+**Runtime:** [`uneXxxx` PR #16](https://github.com/soueilouay-creator/uneXxxx/pull/16), draft branch `upgrade/v8-workflow-checkpoint-ledger-20261111`, current head `ecbb92b34dc292d82baac92ab86c6883ade1364a`.
+
+### Completed in the feature branch
+- SQLite and PostgreSQL workflow checkpoint ledgers and additive migrations 004–007.
+- Approval execution intents, exact execution/task/action binding, one-use consumption and fail-closed queue recovery.
+- Workflow-stage approval intents and lifecycle pause/resume integration.
+- HTTP lifecycle stage-approval parsing/validation fix; generic enqueue now preserves optional execution binding metadata in both adapters.
+- Regression tests for approval-binding mismatch, explicit checkpointed lifecycle, PostgreSQL concurrent revision winners, protected queued-task recovery in a separate process, and PostgreSQL process termination during a started stage.
+
+### Verification state
+- The PostgreSQL migration-preservation job passed in run [43795068890](https://github.com/soueilouay-creator/uneXxxx/actions/runs/43795068890), but that run did not complete the full suite because the SHA inventory was stale at that commit.
+- Final-head CI for `ecbb92b34dc292d82baac92ab86c6883ade1364a` is pending. No test/build/security or renderer E2E success is claimed until its final conclusion is green.
+- The previous full test run had 438 tests with 3 failures and 3 errors; the identified defects have been corrected and expanded tests added, but the latest results are not yet verified.
+
+### Hosted database decision
+- Render workspace `My Workspace` has no Render Postgres instance. Existing V8 web services are Free plan; command-center and unified-test services have auto-deploy disabled. The primary Studio service auto-deploys from main and was not modified.
+- Neon organization is Free and contains an existing `unexpected-v8-unified` project with 9 branches. Current table listings show a legacy workspace/task/memory schema, not the new runtime approval/checkpoint tables. All branches are unprotected and compute endpoints are idle/suspended.
+- The Neon consumption endpoint is unavailable on Free (403), so remaining quota and exact usage cost are unverified. Do not start an endpoint, add branches, or migrate this project until schema mapping, backup/export, independent restore/read-back and access hardening are complete.
+
+### Release blockers
+- The Python runtime feature branch is not yet integrated into the primary Node/PWA control plane; no shared API contract or IndexedDB export/read-back proof has been completed.
+- Production PostgreSQL durability is not connected or verified. The existing Neon project must remain read-only.
+- Multi-provider live API compatibility, memory migration, MCP scope/security audit, observability/evaluation, engineering sandbox and complete release/rollback checks remain open.
+- No production deploy, DNS change, branch merge, user-data migration or paid resource creation is authorized by this status update.

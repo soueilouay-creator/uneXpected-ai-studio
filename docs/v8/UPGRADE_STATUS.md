@@ -256,3 +256,12 @@ Finish the renderer E2E job, then integrate checkpoint writes into the existing 
 - No production migration, deployment, merge, paid infrastructure or provider request was performed in this run.
 
 **CI maintenance note:** GitHub Actions reported that `actions/checkout@v4` and `actions/setup-python@v5` target deprecated Node 20 and are being forced onto Node 24. This is non-blocking but should be resolved in a separately tested workflow update.
+
+
+## Run 7 CI maintenance update — 2026-11-17
+
+- Runtime PR #16 now pins `actions/checkout` v7.0.1 and `actions/setup-python` v7.1.0 by immutable commit SHA in `uneXxxx/.github/workflows/ci.yml`; both action setup steps succeeded on the new head. Checkout credentials are no longer persisted for later workflow steps.
+- Runtime CI run [44002008766](https://github.com/soueilouay-creator/uneXxxx/actions/runs/44002008766) stopped at the changed-file SHA inventory check because the CI workflow digest had not yet been refreshed. The manifest was corrected and read back in runtime commit `d1984e025c79bad1a937cbbb97d2d39784bedb38`.
+- Corrected-head run [44002242219](https://github.com/soueilouay-creator/uneXxxx/actions/runs/44002242219) is in progress. Action setup, compile/syntax/YAML checks, resource validation, additive PostgreSQL migration preservation and source inventory verification have passed; regression/security and renderer E2E remain pending.
+- Studio/PWA CI on `c1c8d7d2850426acd1719da152a4bb0e2bce8471` passed mobile **30/30** and TAAFT **3/3**, with Docker build success. The Studio workflows still use `actions/checkout@v4` and `actions/setup-node@v4`; Node 20 deprecation warnings remain a non-blocking maintenance item.
+- No production deployment, Render restart, Neon write, provider call, data migration or paid infrastructure was performed. GitHub Actions account billing remains unverified.

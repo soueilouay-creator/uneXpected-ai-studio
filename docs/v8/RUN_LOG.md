@@ -243,3 +243,44 @@ Create a feature branch in `uneXxxx` and implement a deterministic crash-during-
 - The formerly failing PostgreSQL recovery test now passes. The separate-process abrupt-exit test and the 20-connection revision-winner test also pass on the ephemeral PostgreSQL 16 service.
 - The PostgreSQL migration/preservation step and source SHA-256 inventory check completed successfully. The V8 Docker image built, the container smoke passed health/UI/authentication/38-agent/task-invocation checks, and CLI smoke tests completed.
 - The independent renderer E2E job in the same workflow is still building its immutable worker image. The full workflow is therefore not yet green; no renderer MP4 or full-workflow pass is claimed at this point.
+
+
+## Run 7 — 2026-11-17 — Full CI completion and evidence reconciliation
+
+**Phase:** Phase 3 — durable execution and approval-bound recovery; cross-repository release-readiness verification.
+
+### Live repository state at start of run
+- Studio default branch `main`: `6f5bc823e1ffd9284abae7dbbb6c1dae97ebf90b`.
+- Studio integration branch `upgrade/v8-foundation`: `307ced38497f6c44f04dec198e23a579ffbf9f04`; draft PR [#13](https://github.com/soueilouay-creator/uneXpected-ai-studio/pull/13), open and mergeable.
+- Studio comparison: 31 commits ahead, 0 behind; 12 changed paths, no deleted files. The one line deletion reported in PR statistics is a workflow trigger-line replacement, not a deleted file.
+- Runtime default branch `main`: `d04b651774b7699f3430dc36972c2de74c587839`.
+- Runtime feature branch `upgrade/v8-workflow-checkpoint-ledger-20261111`: `16abeac70ce4a854ca220d38f2342b344b6269c0`; draft PR [#16](https://github.com/soueilouay-creator/uneXxxx/pull/16), open and mergeable.
+
+### Completed this run
+- Reconciled the previous run's pending renderer note against the completed final-head CI evidence.
+- Confirmed runtime CI [43796453632](https://github.com/soueilouay-creator/uneXxxx/actions/runs/43796453632), run 343, completed with overall `success` on exact runtime head `16abeac70ce4a854ca220d38f2342b344b6269c0`.
+- Confirmed the runtime regression/security suite ran **441 tests, 0 failures, 3 skipped** in **84.751 seconds**. The PostgreSQL recovery-fixture failure from run 342 is resolved on this exact head.
+- Confirmed both jobs in that workflow passed:
+  - `runtime-tests`: migration-preservation check, SHA-256 inventory, regression/security suite, Docker image build, actual-container health/UI/authentication/38-role/task smoke and CLI smoke.
+  - `renderer-e2e`: immutable renderer worker image build, real vertical MP4 render with worker network disabled, and renderer image-identity verification.
+- Confirmed the PostgreSQL migration-preservation fixture retained a pre-existing task, event, memory row and legacy consumed approval across additive migrations; no populated Neon branch was touched.
+- Confirmed the 20-connection PostgreSQL revision-winner test and separate-process protected-queue recovery test passed. The abrupt-process-exit test specifically proves SQLite reopen leaves an ambiguous started stage blocked; it is not a PostgreSQL process-kill proof.
+- Confirmed Studio/PWA integration checks on branch head `307ced38497f6c44f04dec198e23a579ffbf9f04`:
+  - Mobile workflow [43796859415](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/43796859415): **30 tests passed**, asset restore/syntax/gateway checks and Docker image build succeeded.
+  - TAAFT workflow [43796859405](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/43796859405): **3 tests passed**.
+- Appended this evidence to the V8 run log and current status without rewriting earlier history. The previous branch commit `307ced38497f6c44f04dec198e23a579ffbf9f04` is the immutable rollback point for these documentation-only changes.
+
+### Verified limitations / release blockers
+- The runtime's fail-closed checkpoint behavior is verified in ephemeral CI; a stage left in `started` remains ambiguous and is not automatically replayed. This is safe refusal, not an exactly-once guarantee.
+- Production PostgreSQL durability remains blocked: no current authorized Neon backup/export plus independent restore/read-back has been verified, no production migration was run, and the populated Neon project remains read-only.
+- OpenAI, Anthropic and a third provider still lack authorized non-billable live compatibility tests.
+- Browser IndexedDB schema/export/read-back, complete Node/Python API compatibility, MCP threat/security suite, end-to-end cost/latency observability, Promptfoo-equivalent CI coverage, and isolated engineering-sandbox acceptance remain open.
+- GitHub Actions emitted a non-blocking Node 20 deprecation warning for `actions/checkout@v4` and `actions/setup-python@v5`, which the runner is forcing onto Node 24. Review compatible Node 24 action majors in a separate bounded CI-maintenance increment.
+
+### Preservation / cost
+- No changes to either `main` branch, no merge, production deployment, Render restart, DNS change, populated Neon write, provider API request, user-data migration, IndexedDB mutation or external publication.
+- Existing Studio/PWA routes, source archive, TAAFT allowlist, runtime role registry and prior commits remain intact.
+- No dependency or infrastructure was added. No provider/generation credits were consumed. GitHub Actions account-level billing is not exposed; exact usage cost remains unverified.
+
+### Next increment
+Inspect the CI action deprecation warning and upgrade only the affected workflow action versions after official release/runtime/security compatibility checks, preserving the current branch head and rerunning the full deterministic CI. Keep the populated Neon project read-only.

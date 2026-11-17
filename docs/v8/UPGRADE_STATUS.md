@@ -227,3 +227,32 @@ Finish the renderer E2E job, then integrate checkpoint writes into the existing 
 - Runtime job in [CI run 43796453632](https://github.com/soueilouay-creator/uneXxxx/actions/runs/43796453632) passed on exact head `16abeac70ce4a854ca220d38f2342b344b6269c0`: **441 tests, 0 failures, 3 skipped**. PostgreSQL migration/preservation, SHA-256 inventory, Docker build, actual-container health/UI/auth/38-agent/task smoke and CLI smoke steps all passed.
 - The PostgreSQL consumed-approval recovery test, abrupt process-exit checkpoint test and concurrent revision-winner test passed.
 - The renderer E2E job is still running its immutable worker-image build. Full CI remains pending until the offline vertical-MP4 render and image-identity checks complete.
+
+
+## Run 7 current verification — 2026-11-17
+
+**Current branches and review state**
+- Studio `main` remains `6f5bc823e1ffd9284abae7dbbb6c1dae97ebf90b`; draft integration PR [#13](https://github.com/soueilouay-creator/uneXpected-ai-studio/pull/13) is on `upgrade/v8-foundation`. At the start of this run its head was `307ced38497f6c44f04dec198e23a579ffbf9f04`, 31 commits ahead and 0 behind main, with no deleted paths.
+- Runtime `main` remains `d04b651774b7699f3430dc36972c2de74c587839`; draft runtime PR [#16](https://github.com/soueilouay-creator/uneXxxx/pull/16) is on `upgrade/v8-workflow-checkpoint-ledger-20261111` at `16abeac70ce4a854ca220d38f2342b344b6269c0`.
+
+**Newly verified CI**
+- Runtime CI [43796453632](https://github.com/soueilouay-creator/uneXxxx/actions/runs/43796453632) is fully green on the exact PR #16 head: **441 tests, 0 failures, 3 skipped**; runtime and renderer E2E jobs both succeeded. The renderer produced a real vertical MP4 with worker network access disabled and passed image-identity verification.
+- Runtime CI also passed additive PostgreSQL migration preservation, source inventory integrity, Docker build, actual-container health/UI/authentication/38-role/task smoke and CLI smoke.
+- Studio mobile CI [43796859415](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/43796859415) passed **30 tests** and built the production Docker image.
+- Studio TAAFT CI [43796859405](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/43796859405) passed **3 tests**.
+- These are feature-branch CI checks only; no production deploy or PR merge is implied.
+
+**Durability boundary**
+- SQLite and PostgreSQL checkpoint/approval adapters, revision checks, stage pause/resume and fail-closed ambiguous-stage handling are implemented on the runtime feature branch.
+- Ephemeral PostgreSQL tests prove migration preservation, checkpoint persistence, concurrent revision winner behavior and separate-process protected-queue recovery. The abrupt process-exit test currently proves SQLite reopen behavior; do not describe it as a PostgreSQL process-kill proof.
+- Production durability is still a release blocker until a current authorized backup/export, independent restore/read-back and production schema/access review are verified. Existing Neon data remains untouched.
+
+**Remaining completion gates**
+- Authorized, non-billable live compatibility for OpenAI, Anthropic and at least one additional provider.
+- Full Studio/Python API contract and backward-compatibility proof, including browser IndexedDB export/read-back without mutating existing records.
+- MCP allowlist/scope, prompt-injection, secret-isolation, approval and audit security tests.
+- Model/route/tool trajectory, latency and cost observability plus Promptfoo or equivalent deterministic evaluation in CI.
+- Isolated engineering-sandbox acceptance, dependency/license/security audit, rollback rehearsal and documented release candidate.
+- No production migration, deployment, merge, paid infrastructure or provider request was performed in this run.
+
+**CI maintenance note:** GitHub Actions reported that `actions/checkout@v4` and `actions/setup-python@v5` target deprecated Node 20 and are being forced onto Node 24. This is non-blocking but should be resolved in a separately tested workflow update.

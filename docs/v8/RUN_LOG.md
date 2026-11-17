@@ -284,3 +284,15 @@ Create a feature branch in `uneXxxx` and implement a deterministic crash-during-
 
 ### Next increment
 Inspect the CI action deprecation warning and upgrade only the affected workflow action versions after official release/runtime/security compatibility checks, preserving the current branch head and rerunning the full deterministic CI. Keep the populated Neon project read-only.
+
+
+### Run 7 CI action maintenance update — 2026-11-17
+
+- In runtime PR [#16](https://github.com/soueilouay-creator/uneXxxx/pull/16), inspected the full CI workflow and verified the current official releases: `actions/checkout` v7.0.1 and `actions/setup-python` v7.1.0. Both action manifests declare the Node 24 runtime; both repositories publish MIT licenses, and their public security pages showed no published advisories at review time. Exact release commit SHAs are pinned rather than floating major tags.
+- Updated both checkout steps and both Python setup steps in `uneXxxx/.github/workflows/ci.yml` to immutable SHAs; added `persist-credentials: false` to the read-only checkout steps. Runtime workflow commit: `25696eefc0d261ccc7cb07ac6dc7ca89bf461c57`.
+- First verification attempt [44002008766](https://github.com/soueilouay-creator/uneXxxx/actions/runs/44002008766) exposed a stale SHA-256 manifest entry for the changed CI workflow (expected `fb69ab...`, actual `d81e29...`). The workflow itself parsed and the new action setup steps succeeded. Updated the exact manifest digest in commit `d1984e025c79bad1a937cbbb97d2d39784bedb38` and read it back.
+- Corrected-head CI [44002242219](https://github.com/soueilouay-creator/uneXxxx/actions/runs/44002242219) is running on `d1984e025c79bad1a937cbbb97d2d39784bedb38`. At this log update, both Node 24 action setup steps, Python dependency setup, compilation, JavaScript syntax, workflow YAML/Bash validation, resource contracts, additive PostgreSQL migration-preservation and SHA-256 inventory steps have passed. The full runtime regression/security suite and offline renderer E2E are still in progress; no final pass is claimed.
+- Studio/PWA CI on branch head `c1c8d7d2850426acd1719da152a4bb0e2bce8471` passed again: mobile **30/30** plus Docker build, and TAAFT **3/3**. Those Studio workflows still use `actions/checkout@v4` and `actions/setup-node@v4`, so their Node 20 deprecation warnings remain open for a separate update.
+- No application runtime dependency, infrastructure, production service, database, provider key, user record or deployment was changed. GitHub Actions billing remains unexposed.
+
+**Next:** verify corrected-head runtime CI [44002242219](https://github.com/soueilouay-creator/uneXxxx/actions/runs/44002242219), then assess and pin Node 24-compatible checkout/setup-node actions in the Studio workflows.

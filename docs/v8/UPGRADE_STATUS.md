@@ -289,3 +289,10 @@ Finish the renderer E2E job, then integrate checkpoint writes into the existing 
 - Mobile CI on that exact head passed twice (push and pull-request events): **30/30**, checksum restoration, syntax, HTTP regression and Docker build. Runs [44225779441](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225779441) and [44225782982](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225782982).
 - TAAFT on that exact head passed twice, **3/3**. Runs [44225779443](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225779443) and [44225782956](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225782956).
 - Preservation inspection confirmed the browser database/core implementation remains in the preserved source archive; the tracked mobile release overlays do not include the database module. Archive extraction was not completed in this environment; IndexedDB schema/data proof remains blocked.
+
+
+### Run 8 final branch verification — 2026-11-18
+- Current tested head before this status append: `247315d9eb594eafd6b4dc42fb8aca5613c21c1e`, **42 ahead / 0 behind** `main`, **12 changed paths / 0 deleted**.
+- Mobile push and PR checks both green on this exact head: **30 passed / 0 failed / 0 skipped**. Docker build and archive/mobile checksum restoration passed. [44225909847](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225909847), [44225913675](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225913675).
+- TAAFT push and PR checks both green on exact head: **3 passed / 0 failed / 0 skipped**. [44225909874](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225909874), [44225913734](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225913734).
+- Studio production Render Auto-Deploy remains enabled and unmodified. Its setting-write action is unavailable; no verified browser sign-in profile is available.

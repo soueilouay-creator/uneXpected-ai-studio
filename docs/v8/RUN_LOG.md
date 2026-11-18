@@ -334,3 +334,12 @@ Inspect the CI action deprecation warning and upgrade only the affected workflow
 - Exact-head push-event CI [44225779441](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225779441) and PR-event CI [44225782982](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225782982) both passed mobile: **30/30 tests, 0 failed, 0 skipped**, restoration/checksum, syntax, HTTP tests and Docker build.
 - Exact-head push-event TAAFT [44225779443](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225779443) and PR-event TAAFT [44225782956](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225782956) both passed: **3/3, 0 failed, 0 skipped**.
 - Source inventory follow-up: the tracked `mobile-release/` directory contains only `app.js`, `index.html`, `providers.js`, `styles.css`, and `sw.js`; tracked `mobile/` contains only the icon, manifest and service worker. Database/core logic is still in the retained `source.tar.gz.b64` bundle. The raw bundle could not be materialized in this environment for extraction, so IndexedDB schema and data export/read-back remain **not verified**.
+
+
+### Run 8 final branch verification — head `247315d9eb594eafd6b4dc42fb8aca5613c21c1e`
+
+- Final head at the time of this entry: **42 commits ahead / 0 behind** `main`; the PR comparison contains **12 paths, 0 deleted paths**.
+- Mobile CI passed on exact head for both push and PR events: **30/30, 0 failed, 0 skipped**, including checksum restore, syntax, authenticated HTTP tests and Docker build. Runs [44225909847](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225909847) and [44225913675](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225913675).
+- TAAFT passed on exact head for both push and PR events: **3/3, 0 failed, 0 skipped**. Runs [44225909874](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225909874) and [44225913734](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225913734).
+- Render service inventory still reports the Studio service `autoDeploy=yes`, trigger `commit`. No settings change was made. The previously approved disable step remains blocked by lack of a Render settings-write tool and a verified signed-in browser profile.
+- This final verification confirms the CI workflow hardening and docs on this head only; it does not complete the product integration or production release.

@@ -326,3 +326,11 @@ Inspect the CI action deprecation warning and upgrade only the affected workflow
 - Browser IndexedDB database/schema/export/read-back and full Python-core ↔ Node/PWA contract integration remain incomplete.
 - Production durability, provider compatibility, MCP security, observability/evaluation, engineering sandbox, rollback and final release gates remain open.
 - Continue with a migration-safe IndexedDB/source inventory and safe control-plane integration contract; keep Neon read-only and production deployment separate.
+
+
+### Run 8 post-documentation verification — branch head e3564cdcd1c0209ae46d7f553e8f8ab3f581b2ef
+
+- The two append-only V8 documentation commits advanced the feature branch to `e3564cdcd1c0209ae46d7f553e8f8ab3f581b2ef`. Compare still shows **40 ahead, 0 behind** and no deleted paths.
+- Exact-head push-event CI [44225779441](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225779441) and PR-event CI [44225782982](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225782982) both passed mobile: **30/30 tests, 0 failed, 0 skipped**, restoration/checksum, syntax, HTTP tests and Docker build.
+- Exact-head push-event TAAFT [44225779443](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225779443) and PR-event TAAFT [44225782956](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225782956) both passed: **3/3, 0 failed, 0 skipped**.
+- Source inventory follow-up: the tracked `mobile-release/` directory contains only `app.js`, `index.html`, `providers.js`, `styles.css`, and `sw.js`; tracked `mobile/` contains only the icon, manifest and service worker. Database/core logic is still in the retained `source.tar.gz.b64` bundle. The raw bundle could not be materialized in this environment for extraction, so IndexedDB schema and data export/read-back remain **not verified**.

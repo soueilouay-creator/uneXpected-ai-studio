@@ -282,3 +282,10 @@ Finish the renderer E2E job, then integrate checkpoint writes into the existing 
 - Studio PR #13 is still draft and unmerged. Auto-deploy is enabled on the production Studio Render service; disabling it is blocked by unavailable Render service-setting write capability and no authenticated saved browser profile. Do not merge or deploy.
 - IndexedDB schema/data export/read-back, shared API integration, provider live compatibility, MCP/security, cost/latency observability, evaluation CI, engineering sandbox and full release/rollback audit remain unverified.
 - No production changes, user-data changes, paid infrastructure, provider API requests or deployments were performed. GitHub Actions account-level billing is not visible.
+
+
+### Run 8 post-documentation verification — 2026-11-18
+- Final tested documentation head before this status append: `e3564cdcd1c0209ae46d7f553e8f8ab3f581b2ef` (40 commits ahead, 0 behind main; no deleted paths).
+- Mobile CI on that exact head passed twice (push and pull-request events): **30/30**, checksum restoration, syntax, HTTP regression and Docker build. Runs [44225779441](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225779441) and [44225782982](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225782982).
+- TAAFT on that exact head passed twice, **3/3**. Runs [44225779443](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225779443) and [44225782956](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225782956).
+- Preservation inspection confirmed the browser database/core implementation remains in the preserved source archive; the tracked mobile release overlays do not include the database module. Archive extraction was not completed in this environment; IndexedDB schema/data proof remains blocked.

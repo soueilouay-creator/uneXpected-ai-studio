@@ -265,3 +265,20 @@ Finish the renderer E2E job, then integrate checkpoint writes into the existing 
 - Corrected-head run [44002242219](https://github.com/soueilouay-creator/uneXxxx/actions/runs/44002242219) is in progress. Action setup, compile/syntax/YAML checks, resource validation, additive PostgreSQL migration preservation and source inventory verification have passed; regression/security and renderer E2E remain pending.
 - Studio/PWA CI on `c1c8d7d2850426acd1719da152a4bb0e2bce8471` passed mobile **30/30** and TAAFT **3/3**, with Docker build success. The Studio workflows still use `actions/checkout@v4` and `actions/setup-node@v4`; Node 20 deprecation warnings remain a non-blocking maintenance item.
 - No production deployment, Render restart, Neon write, provider call, data migration or paid infrastructure was performed. GitHub Actions account billing remains unverified.
+
+
+## Run 8 — 2026-11-18 current verification
+
+**Current Studio branch head:** `cc26718fd2f065c42f65e9654da9cc3f269c21d8` (PR #13 remains draft; `main` unchanged at `6f5bc823e1ffd9284abae7dbbb6c1dae97ebf90b`).
+
+### Verified this run
+- Both existing Studio CI workflows use immutable SHA pins for checkout v7.0.1 and setup-node v7.1.0, with Node 24 action runtimes, read-only `contents` permission, non-persisted checkout credentials, and caching disabled.
+- Mobile CI run [44225409244](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225409244): **30/30 passed**; checksum-verified archive/mobile restoration, syntax checks, gateway/mobile HTTP tests and Docker build passed.
+- TAAFT CI run [44225409376](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225409376): **3/3 passed**.
+- Core PR #16 run [44002242219](https://github.com/soueilouay-creator/uneXxxx/actions/runs/44002242219): exact head `d1984e025c79bad1a937cbbb97d2d39784bedb38`, runtime **441 tests, 0 failures, 3 skipped**, renderer E2E **2 passed**; both jobs green.
+- Initial CI failure [44225337211](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225337211) was a checksum-command escaping error introduced in the workflow edit. It was diagnosed, fixed in `cc26718...`, and the corrected exact-head CI passed.
+
+### Not complete
+- Studio PR #13 is still draft and unmerged. Auto-deploy is enabled on the production Studio Render service; disabling it is blocked by unavailable Render service-setting write capability and no authenticated saved browser profile. Do not merge or deploy.
+- IndexedDB schema/data export/read-back, shared API integration, provider live compatibility, MCP/security, cost/latency observability, evaluation CI, engineering sandbox and full release/rollback audit remain unverified.
+- No production changes, user-data changes, paid infrastructure, provider API requests or deployments were performed. GitHub Actions account-level billing is not visible.

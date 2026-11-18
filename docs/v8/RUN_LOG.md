@@ -296,3 +296,33 @@ Inspect the CI action deprecation warning and upgrade only the affected workflow
 - No application runtime dependency, infrastructure, production service, database, provider key, user record or deployment was changed. GitHub Actions billing remains unexposed.
 
 **Next:** verify corrected-head runtime CI [44002242219](https://github.com/soueilouay-creator/uneXxxx/actions/runs/44002242219), then assess and pin Node 24-compatible checkout/setup-node actions in the Studio workflows.
+
+
+## Run 8 — 2026-11-18 — Studio CI supply-chain hardening and verification
+
+**Phase:** Phase 0 preservation/CI baseline; Phase 9 cross-repository release readiness.  
+**Studio repository:** `soueilouay-creator/uneXpected-ai-studio`, branch `upgrade/v8-foundation`, PR [#13](https://github.com/soueilouay-creator/uneXpected-ai-studio/pull/13), base `main` at `6f5bc823e1ffd9284abae7dbbb6c1dae97ebf90b`.  
+**Rollback point before this increment:** `e994b07fc0a45678f5edeb732683334e67376a73`.
+
+### Changes
+- Updated `.github/workflows/mobile-integration.yml` and `.github/workflows/taaft-integration.yml` to pin the official `actions/checkout` v7.0.1 and `actions/setup-node` v7.1.0 immutable SHAs.
+- Both workflows now set `permissions: contents: read`, disable checkout credential persistence, and disable setup-node's package-manager caching because these jobs do not install/cache npm dependencies.
+- Upstream manifests at the exact pins declare Node 24 runtime; both upstream LICENSE files are MIT. The tested project Node remains 22.
+- Action pins: checkout `3d3c42e5aac5ba805825da76410c181273ba90b1`; setup-node `949feb2413d6458794dcd2491c4babbbce0c15c1`.
+
+### Verification
+- Initial mobile run [44225337211](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225337211) failed in the archive checksum step: the edited shell `printf` used an escaped backslash incorrectly, causing sha256sum to treat the filename as ending with literal `\\n`. The failure was inspected; it was not a test or application regression. TAAFT on that same head passed **3/3**.
+- Corrected the single checksum-print line in commit [cc26718fd2f065c42f65e9654da9cc3f269c21d8](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/cc26718fd2f065c42f65e9654da9cc3f269c21d8).
+- Mobile workflow [44225409244](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225409244), exact head `cc26718fd2f065c42f65e9654da9cc3f269c21d8`: **30 tests passed, 0 failed, 0 skipped**; archive/mobile asset restore and checksum, syntax checks, authenticated gateway/mobile HTTP tests, and Docker image build all passed.
+- TAAFT workflow [44225409376](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225409376), same head: **3 passed, 0 failed, 0 skipped**.
+- Runtime PR #16 CI [44002242219](https://github.com/soueilouay-creator/uneXxxx/actions/runs/44002242219) is now fully green on exact head `d1984e025c79bad1a937cbbb97d2d39784bedb38`: runtime **441 tests, 0 failures, 3 skipped**; separate renderer E2E **2 tests passed**. Both jobs passed. This completes the prior run's pending renderer verification.
+
+### Preservation / cost
+- The two CI workflow files are the only application-repository files changed in this increment; existing triggers and test/build steps were preserved. No paths were deleted. The source bundle, PWA, TAAFT allowlist, user data, provider secrets, and production deployment were untouched.
+- No new dependency, provider call, paid service, migration, Render setting change, or production deployment was made. GitHub Actions runner usage occurred; account billing/quota is not exposed, so exact cost remains unverified.
+
+### Blockers / next
+- Studio PR #13 remains a draft. Production Auto-Deploy for the Studio Render service is still on; the Render connector cannot change that service setting, and the saved browser profile has no verified Render sign-in. Do not merge while that guard remains unverified.
+- Browser IndexedDB database/schema/export/read-back and full Python-core ↔ Node/PWA contract integration remain incomplete.
+- Production durability, provider compatibility, MCP security, observability/evaluation, engineering sandbox, rollback and final release gates remain open.
+- Continue with a migration-safe IndexedDB/source inventory and safe control-plane integration contract; keep Neon read-only and production deployment separate.

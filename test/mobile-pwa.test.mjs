@@ -114,15 +114,15 @@ test('archived mobile database module is inspectable without touching local reco
 
  const database = await read('mobile/db.js');
  const core = await read('mobile/core.js');
- assert.match(database,/indexedDB\\.open/, 'database module should open IndexedDB');
+ assert.match(database,/indexedDB\.open/, 'database module should open IndexedDB');
  assert.match(database,/createObjectStore/, 'database module should define object stores');
- assert.doesNotMatch(database,/deleteObjectStore|indexedDB\\.deleteDatabase/, 'schema module must not delete stores or the database');
+ assert.doesNotMatch(database,/deleteObjectStore|indexedDB\.deleteDatabase/, 'schema module must not delete stores or the database');
  assert.match(core,/createBackupPayload/, 'backup export helper should remain available');
  assert.match(core,/parseBackupPayload/, 'backup import parser should remain available');
 
  const digest = value => createHash('sha256').update(value).digest('hex');
- const dbLines = database.split('\\n').map((line,index)=>({line:index+1,text:line})).filter(x=>/indexedDB|openDatabase|createObjectStore|createIndex|onupgradeneeded|version|DB_NAME|DATABASE|objectStore|deleteObjectStore|deleteDatabase|\\.clear\\(/i.test(x.text));
- const backupLines = core.split('\\n').map((line,index)=>({line:index+1,text:line})).filter(x=>/createBackupPayload|parseBackupPayload|backup|export|import|version|stores|JSON\\.(stringify|parse)/i.test(x.text));
+ const dbLines = database.split('\n').map((line,index)=>({line:index+1,text:line})).filter(x=>/indexedDB|openDatabase|createObjectStore|createIndex|onupgradeneeded|version|DB_NAME|DATABASE|objectStore|deleteObjectStore|deleteDatabase|\.clear\(/i.test(x.text));
+ const backupLines = core.split('\n').map((line,index)=>({line:index+1,text:line})).filter(x=>/createBackupPayload|parseBackupPayload|backup|export|import|version|stores|JSON\.(stringify|parse)/i.test(x.text));
  console.log('[v8-archive-audit] source.tar.gz.b64 sha256='+digest(encoded)+' bytes='+encoded.length);
  console.log('[v8-archive-audit] mobile/db.js sha256='+digest(database)+' bytes='+Buffer.byteLength(database));
  console.log('[v8-archive-audit] IndexedDB schema source lines='+JSON.stringify(dbLines));

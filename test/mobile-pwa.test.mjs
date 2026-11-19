@@ -121,10 +121,14 @@ test('archived mobile database module is inspectable without touching local reco
  assert.match(core,/parseBackupPayload/, 'backup import parser should remain available');
 
  const digest = value => createHash('sha256').update(value).digest('hex');
+ assert.equal(digest(encoded), '02d5451e5ad6c344450a7f16607b92a8967647a75ea8b8a8f56318fffb4d5ee5', 'source archive must match the reviewed checksum');
  const dbLines = database.split('\n').map((line,index)=>({line:index+1,text:line})).filter(x=>/indexedDB|openDatabase|createObjectStore|createIndex|onupgradeneeded|version|DB_NAME|DATABASE|objectStore|deleteObjectStore|deleteDatabase|\.clear\(/i.test(x.text));
  const backupLines = core.split('\n').map((line,index)=>({line:index+1,text:line})).filter(x=>/createBackupPayload|parseBackupPayload|backup|export|import|version|stores|JSON\.(stringify|parse)/i.test(x.text));
  console.log('[v8-archive-audit] source.tar.gz.b64 sha256='+digest(encoded)+' bytes='+encoded.length);
  console.log('[v8-archive-audit] mobile/db.js sha256='+digest(database)+' bytes='+Buffer.byteLength(database));
  console.log('[v8-archive-audit] IndexedDB schema source lines='+JSON.stringify(dbLines));
  console.log('[v8-archive-audit] backup/import source lines='+JSON.stringify(backupLines));
+ console.log('[v8-archive-audit] db.js header='+JSON.stringify(database.split('\\n').slice(0,28)));
+ console.log('[v8-archive-audit] db.js import/export='+JSON.stringify(database.split('\\n').slice(55,85)));
+ console.log('[v8-archive-audit] core backup implementation='+JSON.stringify(core.split('\\n').slice(125,160)));
 });

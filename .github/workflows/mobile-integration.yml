@@ -55,7 +55,7 @@ jobs:
       - name: Restore the original static site and mobile app assets
         run: |
           set -euo pipefail
-          printf '%s  %s\\n' '02d5451e5ad6c344450a7f16607b92a8967647a75ea8b8a8f56318fffb4d5ee5' source.tar.gz.b64 | sha256sum -c -
+          echo '02d5451e5ad6c344450a7f16607b92a8967647a75ea8b8a8f56318fffb4d5ee5  source.tar.gz.b64' | sha256sum -c -
           mkdir -p /tmp/ue-source /tmp/ue-extracted
           base64 -d source.tar.gz.b64 > /tmp/ue-source/source.tar.gz
           tar -xzf /tmp/ue-source/source.tar.gz -C /tmp/ue-extracted

@@ -128,7 +128,7 @@ test('archived mobile database module is inspectable without touching local reco
  console.log('[v8-archive-audit] mobile/db.js sha256='+digest(database)+' bytes='+Buffer.byteLength(database));
  console.log('[v8-archive-audit] IndexedDB schema source lines='+JSON.stringify(dbLines));
  console.log('[v8-archive-audit] backup/import source lines='+JSON.stringify(backupLines));
- console.log('[v8-archive-audit] db.js header='+JSON.stringify(database.split('\\n').slice(0,28)));
- console.log('[v8-archive-audit] db.js import/export='+JSON.stringify(database.split('\\n').slice(55,85)));
- console.log('[v8-archive-audit] core backup implementation='+JSON.stringify(core.split('\\n').slice(125,160)));
+ console.log('[v8-archive-audit] db.js header='+JSON.stringify(database.split('\n').slice(0,28)));
+ console.log('[v8-archive-audit] db.js import/export='+JSON.stringify(database.split('\n').slice(55,85)));
+ console.log('[v8-archive-audit] core backup implementation='+JSON.stringify(core.split('\n').slice(125,160)));
 });

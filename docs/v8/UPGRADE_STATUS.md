@@ -296,3 +296,13 @@ Finish the renderer E2E job, then integrate checkpoint writes into the existing 
 - Mobile push and PR checks both green on this exact head: **30 passed / 0 failed / 0 skipped**. Docker build and archive/mobile checksum restoration passed. [44225909847](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225909847), [44225913675](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225913675).
 - TAAFT push and PR checks both green on exact head: **3 passed / 0 failed / 0 skipped**. [44225909874](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225909874), [44225913734](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225913734).
 - Studio production Render Auto-Deploy remains enabled and unmodified. Its setting-write action is unavailable; no verified browser sign-in profile is available.
+
+
+## Run 9 — 2026-11-19: archive integrity and IndexedDB source audit
+
+- Added source-bundle SHA-256 verification to the Docker build and mobile CI before extraction. The retained `source.tar.gz.b64` is 14,852 bytes with SHA-256 `02d5451e5ad6c344450a7f16607b92a8967647a75ea8b8a8f56318fffb4d5ee5`.
+- Added a source-level test and [archive/IndexedDB audit](./ARCHIVE_INTEGRITY_AND_INDEXEDDB.md). The actual archived module identifies IndexedDB `unexpected-personal-workspace` version 2 with stores `projects`, `conversations`, `memories`, `improvements`, `settings`. Backup schema is `unexpected-local-backup` version 2; parser accepts v1 and v2.
+- Important safety finding: existing `importAll` and `clearAll` methods clear all five stores. No such method was invoked or changed. Any future V8 sync/migration must use a separate additive path and must export/confirm/read back before replacement.
+- Exact-head push CI [44447209531](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44447209531) and PR CI [44447213411](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44447213411) both passed **31/31**, with source checksum, archive restore, syntax, authenticated mobile/gateway tests and Docker build success.
+- Rollback point: `backup/v8-foundation-pre-source-hash-20261119` at `a23517e07b27e463e9fd4a880d1a86ba1316d8b7`.
+- No actual user IndexedDB records were read or changed. Browser export/import round-trip, shared API integration, provider live tests, MCP security, observability/evaluation, sandbox and release/rollback gates remain open. Production Auto-Deploy is still on; PR #13 stays draft.

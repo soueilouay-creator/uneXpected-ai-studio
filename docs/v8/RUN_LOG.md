@@ -343,3 +343,50 @@ Inspect the CI action deprecation warning and upgrade only the affected workflow
 - TAAFT passed on exact head for both push and PR events: **3/3, 0 failed, 0 skipped**. Runs [44225909874](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225909874) and [44225913734](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44225913734).
 - Render service inventory still reports the Studio service `autoDeploy=yes`, trigger `commit`. No settings change was made. The previously approved disable step remains blocked by lack of a Render settings-write tool and a verified signed-in browser profile.
 - This final verification confirms the CI workflow hardening and docs on this head only; it does not complete the product integration or production release.
+
+
+## Run 9 — 2026-11-19
+
+**Phase:** Phase 0 — source/build preservation and IndexedDB source inventory; Phase 1 — evidence and migration guardrails.  
+**Repository:** [soueilouay-creator/uneXpected-ai-studio](https://github.com/soueilouay-creator/uneXpected-ai-studio)  
+**Base:** `main` at `6f5bc823e1ffd9284abae7dbbb6c1dae97ebf90b`.  
+**Working branch:** `upgrade/v8-foundation`; rollback branch `backup/v8-foundation-pre-source-hash-20261119` preserves the pre-checksum head `a23517e07b27e463e9fd4a880d1a86ba1316d8b7`. The earlier `backup/v8-foundation-pre-archive-audit-20261119` preserves the pre-audit head.
+
+### Completed
+
+- Added a SHA-256 guard for the retained `source.tar.gz.b64` before decoding in `Dockerfile`.
+- Added the same pre-extraction SHA-256 guard to `.github/workflows/mobile-integration.yml`.
+- Extended `test/mobile-pwa.test.mjs` with a deterministic source-archive and IndexedDB-source audit. It verifies gzip/base64 integrity, the exact archive checksum, the presence of the archived database and backup modules, and absence of database/store deletion APIs in the schema module.
+- Added `docs/v8/ARCHIVE_INTEGRITY_AND_INDEXEDDB.md` and linked it from this V8 README.
+- The CI-extracted source revealed the exact existing IndexedDB contract: database `unexpected-personal-workspace`, version 2, stores `projects`, `conversations`, `memories`, `improvements`, `settings`; backup schema `unexpected-local-backup`, version 2, with v1 compatibility.
+- Identified that existing `LocalStore.importAll` and `clearAll` clear all five stores. These methods were preserved and not called. The new V8 sync/migration layer must not reuse them without an export, explicit user confirmation and read-back.
+
+### Changed paths
+
+- `Dockerfile`
+- `.github/workflows/mobile-integration.yml`
+- `test/mobile-pwa.test.mjs`
+- `docs/v8/ARCHIVE_INTEGRITY_AND_INDEXEDDB.md` (new)
+- `docs/v8/README.md`
+- `docs/v8/RUN_LOG.md`
+- `docs/v8/UPGRADE_STATUS.md`
+
+### Verification
+
+- Source archive: 14,852 encoded bytes; SHA-256 `02d5451e5ad6c344450a7f16607b92a8967647a75ea8b8a8f56318fffb4d5ee5`.
+- Extracted `mobile/db.js`: SHA-256 `ca326fd8f4b37b4c69bb02acedcdb3468503631eb5d7fc6024d4b9f42a44db30`.
+- Exact-head push CI [44447209531](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44447209531): **31 passed, 0 failed, 0 skipped**; source archive checksum, mobile archive checksum, archive restoration, syntax, mobile/authenticated gateway tests and Docker build all passed.
+- Exact-head PR CI [44447213411](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44447213411): **31 passed, 0 failed, 0 skipped**; restore, syntax, tests and Docker build all passed.
+- Two earlier audit-test runs failed on malformed regex escaping; the test was corrected before the exact-head runs. This failure history is retained rather than hidden.
+- TAAFT [44446887118](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44446887118) passed 3/3 on the preceding commit; no TAAFT source or workflow path changed in this increment.
+
+### Preservation, cost and blockers
+
+- Existing archive and mobile-assets archive retained; no file or store deletion, database migration, IndexedDB access, user-data export/import, Neon write, Render change, provider API call or production deployment occurred.
+- No package or infrastructure added. GitHub Actions runner usage occurred; exact account-level billing/quota impact is not exposed.
+- Source-level IndexedDB schema is now verified, but actual browser export/import round-trip, old-record fixture read-back and cross-service API integration remain unverified.
+- Studio Render Auto-Deploy remains enabled; the setting-write path is still blocked. PR #13 remains draft and must not be merged while production auto-deploy is on.
+
+### Next increment
+
+Build an isolated, deterministic IndexedDB compatibility harness using a copied fixture and prove export/parse/restore/read-back equality without opening or mutating any live browser database. Then map the existing Node/Python API contract and preserve the current user-scoped project/skill activation rules.

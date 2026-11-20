@@ -453,3 +453,30 @@ Verify the CI run on the new test commit. Then map the existing Node/Python vers
 - No live IndexedDB, Neon data, provider API, secret, schema or user data was accessed.
 - No new package or infrastructure. GitHub Actions runners were used; exact account-level billing/quota remains unavailable.
 - The PR is still not safe to merge while Studio Auto-Deploy is enabled.
+
+
+### Run 10 exact command and final documentation-head verification
+
+**Code/test commit:** `d251bfbc1c4f73e843aa4998a186d1e55f26c67a`.  
+**Documentation-only follow-up head tested:** `64730cabb26b2e26b25d21023eb4c0e02c3ecc8c`.  
+**Final tested workflow runs on the documentation head:** mobile push [44665032380](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44665032380), mobile PR [44665037301](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44665037301), TAAFT push [44665032432](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44665032432), TAAFT PR [44665037208](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44665037208). All completed successfully.
+
+The exact mobile test command in the workflow was:
+
+```sh
+node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/openrouter-ui.test.mjs test/orchestrator.test.mjs test/phone-workspace-ui.test.mjs test/mobile-provider-results.test.mjs test/indexeddb-fixture-roundtrip.test.mjs
+```
+
+Result: **exit 0; 32 passed, 0 failed, 0 skipped** on both push and pull-request events. The new fixture test passed against the real restored modules.
+
+The exact TAAFT command was:
+
+```sh
+node --test test/taaft-integration.test.mjs
+```
+
+Result: **exit 0; 3 passed, 0 failed, 0 skipped** on both push and pull-request events.
+
+The mobile workflow's Node syntax-check step completed successfully for the server, UI, mobile assets and all listed tests. The production Docker build command `docker build --tag unexpected-ai-studio:openrouter-test .` completed successfully on both mobile runs.
+
+The tested documentation-only head `64730cabb26b2e26b25d21023eb4c0e02c3ecc8c` contains no additional application-code changes beyond code commit `d251bfbc1c4f73e843aa4998a186d1e55f26c67a`; it appends the final evidence to the run log and status.

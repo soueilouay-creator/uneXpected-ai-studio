@@ -435,3 +435,21 @@ Build an isolated, deterministic IndexedDB compatibility harness using a copied 
 ### Next
 
 Verify the CI run on the new test commit. Then map the existing Node/Python versioned API and implement a read-only contract probe before enabling any cross-service writes.
+
+
+### Run 10 CI verification — code commit `d251bfbc1c4f73e843aa4998a186d1e55f26c67a`
+
+- Mobile push [44664877162](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44664877162): **32 passed, 0 failed, 0 skipped**. The new copied-fixture round-trip test passed against the actual archive-restored modules; syntax checks, authenticated gateway/mobile regression tests and Docker build passed.
+- Mobile PR [44664883603](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44664883603): **32 passed, 0 failed, 0 skipped**; archive restoration, syntax, test suite and Docker build passed.
+- TAAFT push [44664877186](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44664877186): **3 passed, 0 failed, 0 skipped**.
+- TAAFT PR [44664883600](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44664883600): **3 passed, 0 failed, 0 skipped**.
+- All four runs completed successfully on exact code commit `d251bfbc1c4f73e843aa4998a186d1e55f26c67a`.
+- Final code-commit comparison: 54 commits ahead / 0 behind `main`; 17 changed paths, **0 removed paths**. The 6 reported line deletions in existing files are edits, not file removals.
+- PR #13 remains open and draft. No submitted reviews or unresolved review threads were returned.
+
+### Production and cost re-check
+
+- Render Studio service `unexpected-ai-studio` remains on `main`, Auto-Deploy `yes`, trigger `commit`, free plan, not suspended. Its latest live deployment still points to `6f5bc823e1ffd9284abae7dbbb6c1dae97ebf90b`. No service setting or deployment changed.
+- No live IndexedDB, Neon data, provider API, secret, schema or user data was accessed.
+- No new package or infrastructure. GitHub Actions runners were used; exact account-level billing/quota remains unavailable.
+- The PR is still not safe to merge while Studio Auto-Deploy is enabled.

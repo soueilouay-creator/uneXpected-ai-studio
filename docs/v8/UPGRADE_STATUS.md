@@ -319,3 +319,13 @@ Finish the renderer E2E job, then integrate checkpoint writes into the existing 
 - Local syntax check passed. A temporary contract-replica run passed 1/1, but CI against the actual restored modules is the acceptance gate and is pending.
 - No dependencies, infrastructure, schema changes, live data changes, provider calls or production changes.
 - Remaining: browser-engine validation, real user-directed backup rehearsal, additive conflict-safe sync design, shared Node/Python API contract, provider live compatibility, MCP/security, observability/evaluation, sandbox, production durability/recovery proof and release/rollback gates.
+
+
+### Run 10 verification — 2026-11-20
+
+- Code commit: `d251bfbc1c4f73e843aa4998a186d1e55f26c67a`.
+- Mobile integration: push and PR both **32/32**, 0 failures, 0 skips; the new actual-module fixture backup/restore/read-back test passed; archive restoration, syntax, authenticated HTTP regression and Docker image build passed. Runs [44664877162](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44664877162) and [44664883603](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44664883603).
+- TAAFT: push and PR both **3/3**, 0 failures, 0 skips. Runs [44664877186](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44664877186) and [44664883600](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44664883600).
+- The fixture test uses two independent in-memory IndexedDB-compatible factories and synthetic records. It proves backup v2 round-trip equality, v1 parser compatibility, malformed-input rejection and source-fixture preservation. It is not a browser-engine test or a real user-data rehearsal.
+- PR #13 remains draft. Render Auto-Deploy remains enabled; no merge/deployment performed. No live user data, Neon records, provider secrets or settings changed.
+- No new dependencies or infrastructure. CI runner billing remains unverified.

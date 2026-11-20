@@ -306,3 +306,16 @@ Finish the renderer E2E job, then integrate checkpoint writes into the existing 
 - Exact-head push CI [44447209531](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44447209531) and PR CI [44447213411](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44447213411) both passed **31/31**, with source checksum, archive restore, syntax, authenticated mobile/gateway tests and Docker build success.
 - Rollback point: `backup/v8-foundation-pre-source-hash-20261119` at `a23517e07b27e463e9fd4a880d1a86ba1316d8b7`.
 - No actual user IndexedDB records were read or changed. Browser export/import round-trip, shared API integration, provider live tests, MCP security, observability/evaluation, sandbox and release/rollback gates remain open. Production Auto-Deploy is still on; PR #13 stays draft.
+
+
+## Run 10 — 2026-11-20: IndexedDB fixture harness
+
+- Added an isolated Node test that imports the real archive-restored `mobile/db.js` and `mobile/core.js` modules after the existing asset restoration step.
+- The harness creates separate source and target in-memory database factories, seeds synthetic rows in all five stores, creates/parses a v2 backup, verifies v1 compatibility and malformed-input rejection, restores only to a disposable target, and asserts export/read-back equality plus unchanged source records.
+- Existing destructive `importAll` behavior is exercised only against disposable synthetic target data; no live browser data is accessed.
+- New paths: `test/indexeddb-fixture-roundtrip.test.mjs`, `docs/v8/INDEXEDDB_FIXTURE_ROUNDTRIP.md`.
+- Updated `.github/workflows/mobile-integration.yml` to run the test and include it in path filters; linked the report from `docs/v8/README.md`.
+- Rollback branch: `backup/v8-foundation-pre-idb-fixture-20261120` at starting head `00bab6c39fe5bd61964166448fa34d2a033d63a1`.
+- Local syntax check passed. A temporary contract-replica run passed 1/1, but CI against the actual restored modules is the acceptance gate and is pending.
+- No dependencies, infrastructure, schema changes, live data changes, provider calls or production changes.
+- Remaining: browser-engine validation, real user-directed backup rehearsal, additive conflict-safe sync design, shared Node/Python API contract, provider live compatibility, MCP/security, observability/evaluation, sandbox, production durability/recovery proof and release/rollback gates.

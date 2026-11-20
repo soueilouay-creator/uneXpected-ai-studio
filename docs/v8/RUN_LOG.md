@@ -390,3 +390,48 @@ Inspect the CI action deprecation warning and upgrade only the affected workflow
 ### Next increment
 
 Build an isolated, deterministic IndexedDB compatibility harness using a copied fixture and prove export/parse/restore/read-back equality without opening or mutating any live browser database. Then map the existing Node/Python API contract and preserve the current user-scoped project/skill activation rules.
+
+
+## Run 10 — 2026-11-20: isolated IndexedDB fixture round-trip harness
+
+**Phase:** Phase 0 — preservation proof; Phase 1 — migration-safe adapter boundary.  
+**Repository:** [soueilouay-creator/uneXpected-ai-studio](https://github.com/soueilouay-creator/uneXpected-ai-studio)  
+**Default branch:** `main` at `6f5bc823e1ffd9284abae7dbbb6c1dae97ebf90b`.  
+**Starting feature head:** `00bab6c39fe5bd61964166448fa34d2a033d63a1`; 53 commits ahead / 0 behind main.  
+**Rollback branch:** `backup/v8-foundation-pre-idb-fixture-20261120` at the starting head.
+
+### Added
+
+- `test/indexeddb-fixture-roundtrip.test.mjs`: isolated in-memory IndexedDB-compatible harness that loads the actual archive-restored `mobile/db.js` and `mobile/core.js` modules in CI.
+- `docs/v8/INDEXEDDB_FIXTURE_ROUNDTRIP.md`: test scope, safety boundary and limitations.
+- Wired the new test into both mobile workflow path filters, syntax checks and the Node test command.
+- Linked the new audit from `docs/v8/README.md`.
+
+### Coverage
+
+- Synthetic fixture rows in projects, conversations, memories, improvements and settings.
+- Actual backup v2 creation and parsing; legacy v1 parser compatibility; malformed collection rejection.
+- Restore through the existing `LocalStore.importAll` only into a second disposable in-memory target pre-seeded with synthetic sentinels.
+- Re-export/read-back equality and source fixture equality after target restore.
+
+### Local preliminary validation
+
+- `node --check /tmp/indexeddb-fixture-roundtrip.test.mjs`: exit 0.
+- Harness mechanics run against a temporary contract replica: `node --test`, **1/1 passed**. This is not the acceptance result; CI against the real archive-restored modules is pending at this entry.
+
+### Preservation and limitations
+
+- No live browser database, local user record, backup, settings, conversation, project, memory, Neon data, Render service or production deployment was accessed or changed.
+- No application module, schema, package dependency or database migration was changed.
+- The fake IndexedDB adapter does not prove browser-engine scheduling, quota, multi-tab behavior or crash recovery. A browser-engine smoke test and owner-directed real backup rehearsal remain release gates.
+- Existing `importAll` clears all five stores. The test confines that behavior to disposable synthetic data; it must not be reused for automatic sync.
+
+### Costs
+
+- New dependencies: none.
+- New infrastructure: none.
+- GitHub Actions runner use is expected; account-level billing/quota is not exposed and remains unverified.
+
+### Next
+
+Verify the CI run on the new test commit. Then map the existing Node/Python versioned API and implement a read-only contract probe before enabling any cross-service writes.

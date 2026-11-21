@@ -365,3 +365,13 @@ Finish the renderer E2E job, then integrate checkpoint writes into the existing 
 ### Cost
 
 No new package or infrastructure. GitHub Actions runner usage occurred; exact account-level billing/quota is not exposed. No model credits or provider API requests were used.
+
+
+### Run 11 follow-up — 2026-11-21: Chromium cleanup hardening
+
+- Fixed a test-only race found after the first browser CI success: Chrome's process could still hold files in its temporary profile when the test removed that directory.
+- The browser test now waits for SIGTERM, uses bounded SIGKILL escalation, waits for process exit before removing the profile, and retries recursive cleanup. It does not remove a profile while Chrome is still alive.
+- Final code head \`a8159cd9760a5c6be086acde8f161c0c3e605c66\` passed mobile push [44859050107](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859050107) and PR [44859055816](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859055816): **32/32** existing tests plus **1/1** real Chromium browser test, syntax checks and Docker build.
+- TAAFT PR [44859055572](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859055572): **3/3 passed**.
+- The preceding cleanup-race failures remain visible in runs [44858987373](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858987373) and [44858990032](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858990032); they were test cleanup failures, not data or application failures.
+- No production code, live user data, database, service setting, deployment, provider API or package changed. GitHub Actions billing remains unverified.

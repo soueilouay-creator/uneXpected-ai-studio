@@ -10,6 +10,9 @@ on:
       - 'mobile-assets.parts/**'
       - 'source.tar.gz.b64'
       - 'test/mobile*.test.mjs'
+      - 'test/indexeddb-fixture-roundtrip.test.mjs'
+      - 'test/indexeddb-browser-roundtrip.test.mjs'
+      - 'test/indexeddb-browser-fixture.html'
       - 'test/openrouter-ui.test.mjs'
       - 'test/orchestrator.test.mjs'
       - 'test/provider-fetch-stub.mjs'
@@ -18,9 +21,12 @@ on:
       - 'openrouter-ui.js'
       - 'README.md'
       - 'render.yaml'
+      - 'docs/v8/**'
       - '.github/workflows/mobile-integration.yml'
   push:
-    branches: [main]
+    branches:
+      - main
+      - 'upgrade/v8-*'
     paths:
       - 'server.js'
       - 'Dockerfile'
@@ -29,22 +35,33 @@ on:
       - 'mobile-assets.parts/**'
       - 'source.tar.gz.b64'
       - 'test/mobile*.test.mjs'
+      - 'test/indexeddb-fixture-roundtrip.test.mjs'
+      - 'test/indexeddb-browser-roundtrip.test.mjs'
+      - 'test/indexeddb-browser-fixture.html'
       - 'test/orchestrator.test.mjs'
       - 'test/provider-fetch-stub.mjs'
       - 'test/phone-workspace-ui.test.mjs'
       - 'test/mobile-provider-results.test.mjs'
       - '.github/workflows/mobile-integration.yml'
+      - 'docs/v8/**'
+  workflow_dispatch:
+permissions:
+  contents: read
 jobs:
   mobile-integration:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
+          package-manager-cache: false
       - name: Restore the original static site and mobile app assets
         run: |
           set -euo pipefail
+          echo '02d5451e5ad6c344450a7f16607b92a8967647a75ea8b8a8f56318fffb4d5ee5  source.tar.gz.b64' | sha256sum -c -
           mkdir -p /tmp/ue-source /tmp/ue-extracted
           base64 -d source.tar.gz.b64 > /tmp/ue-source/source.tar.gz
           tar -xzf /tmp/ue-source/source.tar.gz -C /tmp/ue-extracted
@@ -73,8 +90,17 @@ jobs:
           node --check mobile-release/app.js
           node --check mobile-release/providers.js
           node --check test/mobile-provider-results.test.mjs
+          node --check test/indexeddb-fixture-roundtrip.test.mjs
+          node --check test/indexeddb-browser-roundtrip.test.mjs
           node --check test/phone-workspace-ui.test.mjs
       - name: Mobile and authenticated gateway HTTP tests
-        run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/openrouter-ui.test.mjs test/orchestrator.test.mjs test/phone-workspace-ui.test.mjs test/mobile-provider-results.test.mjs
+        run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/openrouter-ui.test.mjs test/orchestrator.test.mjs test/phone-workspace-ui.test.mjs test/mobile-provider-results.test.mjs test/indexeddb-fixture-roundtrip.test.mjs
+      - name: Real Chromium IndexedDB backup and restore
+        run: |
+          set -euo pipefail
+          CHROME_BIN="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          test -n "$CHROME_BIN"
+          "$CHROME_BIN" --version
+          CHROME_BIN="$CHROME_BIN" node --test test/indexeddb-browser-roundtrip.test.mjs
       - name: Build the production Docker image
         run: docker build --tag unexpected-ai-studio:openrouter-test .

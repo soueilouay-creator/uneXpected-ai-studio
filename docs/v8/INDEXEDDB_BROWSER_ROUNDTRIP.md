@@ -1,8 +1,9 @@
 # Real-browser IndexedDB backup/restore verification
 
 **Date:** 2026-11-21  
-**Feature branch:** \`upgrade/v8-foundation\`  
-**Pre-test rollback point:** \`backup/v8-foundation-pre-browser-idb-docs-20261121\` at \`1fcc3afd77d3fded37c5175a7980f650bb8a1436\`
+**Feature branch:** `upgrade/v8-foundation`  
+**Rollback before cleanup fix:** `backup/v8-foundation-pre-chrome-cleanup-fix-20261121` at `c182b0eb40de233bbb6ebffa049cc46a2680e86b`  
+**Pre-documentation rollback:** `backup/v8-foundation-pre-browser-final-docs-20261121` at `a8159cd9760a5c6be086acde8f161c0c3e605c66`
 
 ## Purpose
 
@@ -10,8 +11,8 @@ Run the existing archived mobile database and backup modules inside a real headl
 
 ## Implementation
 
-- \`test/indexeddb-browser-fixture.html\` imports the restored \`/mobile/db.js\` and \`/mobile/core.js\` modules in the browser.
-- \`test/indexeddb-browser-roundtrip.test.mjs\` launches the runner's preinstalled Chrome with a newly created temporary profile and a random DevTools port.
+- `test/indexeddb-browser-fixture.html` imports the restored `/mobile/db.js` and `/mobile/core.js` modules in the browser.
+- `test/indexeddb-browser-roundtrip.test.mjs` launches the runner's preinstalled Chrome with a newly created temporary profile and a random DevTools port.
 - Two local HTTP servers bind different ephemeral ports. The source and restore target therefore have different browser origins and separate IndexedDB namespaces.
 - The Node test uses Chrome DevTools Protocol through Node 22's built-in WebSocket; no browser automation package or npm dependency is installed.
 - The test server exposes only the fixture page and the two required module paths. It binds to loopback and rejects all other paths.
@@ -19,9 +20,9 @@ Run the existing archived mobile database and backup modules inside a real headl
 
 ## Assertions
 
-- The actual database opens as \`unexpected-personal-workspace\`, schema version 2.
+- The actual database opens as `unexpected-personal-workspace`, schema version 2.
 - Synthetic project, conversation, memory, improvement and settings records are written to the source origin.
-- The real backup creator emits \`unexpected-local-backup\` version 2; the parser accepts both v2 and legacy v1 and rejects malformed collection types.
+- The real backup creator emits `unexpected-local-backup` version 2; the parser accepts both v2 and legacy v1 and rejects malformed collection types.
 - The backup is copied through JSON serialization and restored only into the second disposable origin.
 - Projects, conversations, memories and improvements are read back and compared with the source fixture.
 - Settings are compared against the backup's existing safe-settings allowlist; non-allowlisted fields are not assumed to survive export/import.
@@ -31,21 +32,21 @@ Run the existing archived mobile database and backup modules inside a real headl
 
 ## CI evidence
 
-On tested code head \`1fcc3afd77d3fded37c5175a7980f650bb8a1436\`:
+On final tested code head `a8159cd9760a5c6be086acde8f161c0c3e605c66`:
 
-- Mobile push [44858792009](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858792009): **32/32 existing tests passed**, **1/1 real Chromium browser test passed**, syntax checks and Docker image build passed.
-- Mobile pull request [44858797372](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858797372): **32/32 existing tests passed**, **1/1 real Chromium browser test passed**, syntax checks and Docker image build passed.
-- TAAFT pull request [44858797299](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858797299): **3/3 passed**.
+- Mobile push [44859050107](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859050107): **32/32 existing tests passed**, **1/1 real Chromium browser test passed**, syntax checks and Docker image build passed.
+- Mobile pull request [44859055816](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859055816): **32/32 existing tests passed**, **1/1 real Chromium browser test passed**, syntax checks and Docker image build passed.
+- TAAFT pull request [44859055572](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859055572): **3/3 passed**.
 - The push-run browser log reports Google Chrome **157.0.8103.78** and the browser test completed with exit code 0.
 
-The first two browser test attempts failed because the test initially treated the settings export as an array and then compared raw settings against the backup's sanitized allowlist. Those assumptions were corrected after inspecting the actual module behavior. The final exact-head push and pull-request runs are green. The failures are retained in the CI history.
+Initial browser attempts exposed two incorrect test assumptions: settings export is a single object, and backup restore applies the existing safe-settings allowlist. A later documentation-head run exposed a cleanup race: the test removed Chrome's temporary profile before the browser process had fully exited (`ENOTEMPTY`). The runner now waits for SIGTERM, escalates to SIGKILL only after a bounded timeout, waits for process exit, then retries temporary-profile cleanup. These test-harness defects were corrected without changing application code or user data. Earlier failed runs remain visible in CI: [44858440755](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858440755), [44858565520](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858565520), [44858683456](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858683456), [44858987373](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858987373), and [44858990032](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858990032). The final exact-head push and pull-request runs are green.
 
 ## Preservation boundary
 
 - No existing browser profile was opened.
 - No live IndexedDB database, user backup, project, conversation, memory or setting was read or modified.
 - The temporary Chrome profile and both origins contain synthetic fixture data only and are removed at test completion.
-- The existing \`LocalStore.importAll\` replacement semantics are exercised only in the disposable target origin. Do not use it for automatic synchronization or a live migration.
+- The existing `LocalStore.importAll` replacement semantics are exercised only in the disposable target origin. Do not use it for automatic synchronization or a live migration.
 - This is a browser-engine fixture test, not a rehearsal against the owner's real backup or production PWA profile.
 
 ## Cost and limitations

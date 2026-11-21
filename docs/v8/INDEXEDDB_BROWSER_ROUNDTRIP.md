@@ -32,21 +32,21 @@ Run the existing archived mobile database and backup modules inside a real headl
 
 ## CI evidence
 
-On final tested code head `a8159cd9760a5c6be086acde8f161c0c3e605c66`:
+On final additive-merge test head `1f78f17d9a5242b846779a0acec29ef8c292559b`:
 
-- Mobile push [44859050107](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859050107): **32/32 existing tests passed**, **1/1 real Chromium browser test passed**, syntax checks and Docker image build passed.
-- Mobile pull request [44859055816](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859055816): **32/32 existing tests passed**, **1/1 real Chromium browser test passed**, syntax checks and Docker image build passed.
-- TAAFT pull request [44859055572](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859055572): **3/3 passed**.
-- The push-run browser log reports Google Chrome **157.0.8103.78** and the browser test completed with exit code 0.
+- Mobile push [44859674020](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859674020): **32/32 existing tests passed**, **1/1 real Chromium browser test passed**, syntax checks and Docker image build passed.
+- Mobile pull request [44859678339](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859678339): **32/32 existing tests passed**, **1/1 real Chromium browser test passed**, syntax checks and Docker image build passed.
+- TAAFT pull request [44859678349](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859678349): **3/3 passed**.
+- The push-run browser log reports Google Chrome **157.0.8103.50** and the browser test completed with exit code 0.
 
-Initial browser attempts exposed two incorrect test assumptions: settings export is a single object, and backup restore applies the existing safe-settings allowlist. A later documentation-head run exposed a cleanup race: the test removed Chrome's temporary profile before the browser process had fully exited (`ENOTEMPTY`). The runner now waits for SIGTERM, escalates to SIGKILL only after a bounded timeout, waits for process exit, then retries temporary-profile cleanup. These test-harness defects were corrected without changing application code or user data. Earlier failed runs remain visible in CI: [44858440755](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858440755), [44858565520](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858565520), [44858683456](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858683456), [44858987373](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858987373), and [44858990032](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858990032). The final exact-head push and pull-request runs are green.
+Initial browser attempts exposed two incorrect test assumptions: settings export is a single object, and backup restore applies the existing safe-settings allowlist. A later documentation-head run exposed a cleanup race: the test removed Chrome's temporary profile before the browser process had fully exited (`ENOTEMPTY`). The runner now waits for SIGTERM, escalates to SIGKILL only after a bounded timeout, waits for process exit, then retries temporary-profile cleanup. These test-harness defects were corrected without changing application code or user data. Earlier failed runs remain visible in CI: [44858440755](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858440755), [44858565520](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858565520), [44858683456](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858683456), [44858987373](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858987373), and [44858990032](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858990032). A later additive-merge refactor briefly failed because an async settings read was placed inside a synchronous array-map callback; the final fixture now reads sentinels in an explicit async loop. The failure is retained in [44859586407](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859586407), and the final exact-head push and pull-request runs are green.
 
 ## Preservation boundary
 
 - No existing browser profile was opened.
 - No live IndexedDB database, user backup, project, conversation, memory or setting was read or modified.
 - The temporary Chrome profile and both origins contain synthetic fixture data only and are removed at test completion.
-- The existing `LocalStore.importAll` replacement semantics are exercised only in the disposable target origin. Do not use it for automatic synchronization or a live migration.
+- The final fixture uses only read-only key checks and insert-only puts. It reports a same-ID collision without overwriting it, retains unrelated sentinel rows in every store and verifies source read-back. No `LocalStore.importAll`, `clearAll` or object-store `clear` is invoked. The existing production `LocalStore.importAll` remains destructive and is not an approved live-sync path.
 - This is a browser-engine fixture test, not a rehearsal against the owner's real backup or production PWA profile.
 
 ## Cost and limitations

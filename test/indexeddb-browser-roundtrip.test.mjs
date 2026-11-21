@@ -70,6 +70,13 @@ function delay(ms) {
   return new Promise(resolveDelay => setTimeout(resolveDelay, ms));
 }
 
+async function waitForExit(processHandle, timeoutMs) {
+  if (processHandle.exitCode !== null || processHandle.signalCode !== null) return true;
+  const exited = new Promise(resolveExit => processHandle.once('exit', () => resolveExit(true)));
+  if (processHandle.exitCode !== null || processHandle.signalCode !== null) return true;
+  return await Promise.race([exited, delay(timeoutMs).then(() => false)]);
+}
+
 async function readDevToolsPort(profileDir, processHandle, startupError) {
   const activePortPath = join(profileDir, 'DevToolsActivePort');
   const deadline = Date.now() + 15000;
@@ -252,16 +259,21 @@ test('real Chromium IndexedDB backup and restore preserves an isolated source or
   } finally {
     sourceCdp?.close();
     targetCdp?.close();
-    if (chrome && chrome.exitCode === null) {
+    let chromeStopped = !chrome || !chrome.pid || chrome.exitCode !== null || chrome.signalCode !== null;
+    if (!chromeStopped) {
       chrome.kill('SIGTERM');
-      await Promise.race([
-        new Promise(resolveExit => chrome.once('exit', resolveExit)),
-        delay(3000)
-      ]);
-      if (chrome.exitCode === null) chrome.kill('SIGKILL');
+      chromeStopped = await waitForExit(chrome, 3000);
+      if (!chromeStopped) {
+        chrome.kill('SIGKILL');
+        chromeStopped = await waitForExit(chrome, 5000);
+      }
     }
     if (sourceServer.listening) await new Promise(resolveClose => sourceServer.close(resolveClose));
     if (targetServer.listening) await new Promise(resolveClose => targetServer.close(resolveClose));
-    if (profileDir) await rm(profileDir, { recursive: true, force: true });
+    if (profileDir && chromeStopped) {
+      await delay(200);
+      await rm(profileDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    }
+    if (!chromeStopped) throw new Error('Chrome did not exit; temporary profile was left untouched for runner cleanup.');
   }
 });

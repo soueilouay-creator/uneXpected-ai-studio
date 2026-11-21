@@ -543,3 +543,17 @@ Design a pure, additive, conflict-reporting import/merge contract for projects, 
 - Browser log reports Google Chrome 157.0.8103.78; browser test passed in about 11 seconds, including clean process shutdown and profile cleanup.
 - Failed documentation-head runs [44858987373](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858987373) and [44858990032](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858990032) are retained as evidence of the cleanup race and were not hidden.
 - No app runtime code, schema, user data, live browser profile, provider secret, database, production setting or deployment changed. No package or infrastructure added; Actions runner billing remains unverified.
+
+
+### Run 11 preservation follow-up — insert-only IndexedDB fixture
+
+- Tightened both IndexedDB fixture tests to comply with the no-store-clearing rule. They no longer call LocalStore.importAll or clearAll. The Node test double now throws if an object-store clear is attempted.
+- Both fixtures seed existing target sentinels and a same-ID project collision, check primary keys with read-only requests, skip/report the collision, insert only missing records, preserve target rows and read back the inserted records. The source fixture is re-read and remains unchanged.
+- Added docs/v8/ADDITIVE_INDEXEDDB_MERGE.md defining the production contract: bounded readwrite transaction, add semantics, collision reporting, settings allowlist, post-write read-back, no blind retry and no automatic nested-record merge. This contract is documented but not yet implemented as a production module or UI feature.
+- Updated docs/v8/INDEXEDDB_FIXTURE_ROUNDTRIP.md and docs/v8/INDEXEDDB_BROWSER_ROUNDTRIP.md to describe the non-destructive test behavior.
+- Final additive-fixture code head: 1f78f17d9a5242b846779a0acec29ef8c292559b.
+- Mobile push [44859674020](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859674020) and PR [44859678339](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859678339): **32/32** existing tests and **1/1** real Chromium test passed; syntax checks and Docker build passed.
+- TAAFT PR [44859678349](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859678349): **3/3 passed**.
+- Chrome version in final push log: Google Chrome 157.0.8103.50.
+- Intermediate browser attempts remain visible: [44859586407](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859586407) and [44859612993](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859612993) failed because the fixture's asynchronous settings read was inside a synchronous map callback. The final code uses an explicit async loop and both final-head push/PR runs are green.
+- No application database module, live user record, browser profile, schema, provider secret, production setting or deployment changed. No package or infrastructure added; GitHub Actions billing remains unverified.

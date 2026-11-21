@@ -27,7 +27,7 @@ Run the existing archived mobile database and backup modules inside a real headl
 - Projects, conversations, memories and improvements are read back and compared with the source fixture.
 - Settings are compared against the backup's existing safe-settings allowlist; non-allowlisted fields are not assumed to survive export/import.
 - The restored target is re-exported and compared with the parsed backup.
-- Disposable sentinel rows are absent from the target after replacement restore.
+- Existing target sentinel rows remain after additive insertion; a same-ID project collision is reported and left unchanged.
 - The source origin is re-read and remains byte-for-value equivalent at the record-object level.
 
 ## CI evidence

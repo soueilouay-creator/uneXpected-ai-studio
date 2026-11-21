@@ -5,13 +5,13 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const arrayStores = ['projects', 'conversations', 'memories', 'improvements'];
+const allStores = [...arrayStores, 'settings'];
 
 function clone(value) {
   return value === undefined ? undefined : structuredClone(value);
 }
 
-// A deliberately small, isolated IndexedDB-compatible test double. Each factory
-// owns its own database map, so the source and restore target cannot share state.
 function createIndexedDBFactory() {
   const databases = new Map();
 
@@ -116,7 +116,7 @@ function createIndexedDBFactory() {
                       return schedule(() => store.rows.delete(key));
                     },
                     clear() {
-                      return schedule(() => store.rows.clear());
+                      throw new Error('Store clearing is prohibited in the additive fixture');
                     }
                   };
                 }
@@ -156,7 +156,19 @@ function installIndexedDB(factory) {
   });
 }
 
-test('copied IndexedDB fixture exports, parses and restores with record equality', async () => {
+function requestValue(request) {
+  return new Promise((resolveRequest, rejectRequest) => {
+    request.onsuccess = () => resolveRequest(request.result);
+    request.onerror = () => rejectRequest(request.error || new Error('IndexedDB request failed'));
+  });
+}
+
+async function readStoreRecord(database, storeName, id) {
+  const transaction = database.transaction(storeName, 'readonly');
+  return await requestValue(transaction.objectStore(storeName).get(id));
+}
+
+test('copied IndexedDB backup merges additively without clearing or overwriting collisions', async () => {
   const mobileRoot = resolve(root, 'mobile');
   const [{ openDatabase, LocalStore }, { createBackupPayload, parseBackupPayload }] = await Promise.all([
     importModuleFromFile(resolve(mobileRoot, 'db.js')),
@@ -213,27 +225,60 @@ test('copied IndexedDB fixture exports, parses and restores with record equality
       /projects must be an array/
     );
 
-    // Restore only into a second, isolated in-memory database. The sentinel rows
-    // demonstrate replacement semantics on a disposable fixture, never user data.
     installIndexedDB(createIndexedDBFactory());
     targetDatabase = await openDatabase();
     const targetStore = new LocalStore(targetDatabase);
-    for (const storeName of ['projects', 'conversations', 'memories', 'improvements', 'settings']) {
-      await targetStore.put(storeName, { id: 'fixture-sentinel-' + storeName, marker: 'disposable-target-only' });
-    }
 
-    await targetStore.importAll(parsed);
+    await targetStore.put('projects', {
+      id: 'fixture-project-001',
+      name: 'Target-owned collision record',
+      marker: 'must-not-be-overwritten'
+    });
+    await targetStore.put('projects', { id: 'fixture-sentinel-projects', marker: 'preserve-target-row' });
+    await targetStore.put('conversations', { id: 'fixture-sentinel-conversations', marker: 'preserve-target-row' });
+    await targetStore.put('memories', { id: 'fixture-sentinel-memories', marker: 'preserve-target-row' });
+    await targetStore.put('improvements', { id: 'fixture-sentinel-improvements', marker: 'preserve-target-row' });
+    await targetStore.put('settings', { id: 'fixture-sentinel-settings', marker: 'preserve-target-row' });
+
+    const collisions = [];
+    for (const storeName of arrayStores) {
+      for (const record of parsed[storeName]) {
+        const existing = await readStoreRecord(targetDatabase, storeName, record.id);
+        if (existing) collisions.push({ store: storeName, id: record.id });
+        else await targetStore.put(storeName, record);
+      }
+    }
+    const existingSettings = await readStoreRecord(targetDatabase, 'settings', 'main');
+    if (existingSettings) collisions.push({ store: 'settings', id: 'main' });
+    else await targetStore.put('settings', { id: 'main', ...parsed.settings });
+
     const targetAfter = await targetStore.exportAll();
     const targetBackup = createBackupPayload(targetAfter, '2026-11-20T03:00:00.000Z');
 
-    assert.deepEqual(targetBackup.data, parsed, 'restored fixture is equal after export/read-back');
-    assert.ok(!targetAfter.projects.some(row => row.id === 'fixture-sentinel-projects'));
-    assert.ok(!targetAfter.conversations.some(row => row.id === 'fixture-sentinel-conversations'));
-    assert.ok(!targetAfter.memories.some(row => row.id === 'fixture-sentinel-memories'));
-    assert.ok(!targetAfter.improvements.some(row => row.id === 'fixture-sentinel-improvements'));
+    assert.deepEqual(collisions, [{ store: 'projects', id: 'fixture-project-001' }], 'ID collisions are reported and skipped');
+    assert.equal(
+      targetAfter.projects.find(row => row.id === 'fixture-project-001').name,
+      'Target-owned collision record',
+      'existing colliding target row must not be overwritten'
+    );
+    for (const storeName of allStores) {
+      if (storeName === 'settings') {
+        const sentinel = await readStoreRecord(targetDatabase, 'settings', 'fixture-sentinel-settings');
+        assert.equal(sentinel.marker, 'preserve-target-row');
+      } else {
+        assert.ok(
+          targetAfter[storeName].some(row => row.id === 'fixture-sentinel-' + storeName),
+          'existing ' + storeName + ' sentinel must remain'
+        );
+      }
+    }
+    assert.deepEqual(targetAfter.conversations.filter(row => row.id === 'fixture-conversation-001'), parsed.conversations);
+    assert.deepEqual(targetAfter.memories.filter(row => row.id === 'fixture-memory-001'), parsed.memories);
+    assert.deepEqual(targetAfter.improvements.filter(row => row.id === 'fixture-improvement-001'), parsed.improvements);
+    assert.deepEqual(targetBackup.data.settings, parsed.settings, 'settings are restored only when the target key is absent');
 
     const sourceAfter = await sourceStore.exportAll();
-    assert.deepEqual(sourceAfter, sourceBefore, 'restoring the copy does not mutate the source fixture');
+    assert.deepEqual(sourceAfter, sourceBefore, 'additive restore never mutates the source fixture');
     assert.equal(sourceAfter.projects.length, 1);
     assert.equal(sourceAfter.conversations.length, 1);
     assert.equal(sourceAfter.memories.length, 1);

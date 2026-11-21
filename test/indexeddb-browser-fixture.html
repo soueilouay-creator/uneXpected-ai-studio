@@ -1,0 +1,109 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>uneXpected V8 IndexedDB browser fixture</title>
+<pre id="status">loading</pre>
+<script type="module">
+  (async () => {
+    try {
+      const [{ openDatabase, LocalStore }, { createBackupPayload, parseBackupPayload }] = await Promise.all([
+        import('/mobile/db.js'),
+        import('/mobile/core.js')
+      ]);
+
+      const sample = {
+        projects: [{
+          id: 'browser-fixture-project-001',
+          name: 'Synthetic browser preservation fixture',
+          status: 'active',
+          createdAt: '2026-11-21T00:00:00.000Z'
+        }],
+        conversations: [{
+          id: 'browser-fixture-conversation-001',
+          projectId: 'browser-fixture-project-001',
+          messages: [{ id: 'browser-fixture-message-001', role: 'user', content: 'synthetic fixture only' }]
+        }],
+        memories: [{
+          id: 'browser-fixture-memory-001',
+          content: 'synthetic browser memory fixture',
+          provenance: 'test-only'
+        }],
+        improvements: [{
+          id: 'browser-fixture-improvement-001',
+          status: 'proposed',
+          source: 'test-only'
+        }],
+        settings: [{
+          id: 'main',
+          gatewayUrl: '',
+          theme: 'dark',
+          locale: 'en'
+        }]
+      };
+      const storeNames = ['projects', 'conversations', 'memories', 'improvements', 'settings'];
+
+      window.runSourceFixture = async () => {
+        const database = await openDatabase();
+        const store = new LocalStore(database);
+        for (const storeName of Object.keys(sample)) {
+          for (const record of sample[storeName]) await store.put(storeName, record);
+        }
+        const before = await store.exportAll();
+        const payload = createBackupPayload(before, '2026-11-21T03:00:00.000Z');
+        const copied = JSON.parse(JSON.stringify(payload));
+        const parsed = parseBackupPayload(copied);
+        const legacy = parseBackupPayload({ ...copied, version: 1 });
+        let malformedRejected = false;
+        try {
+          parseBackupPayload({ ...copied, data: { ...copied.data, projects: {} } });
+        } catch {
+          malformedRejected = true;
+        }
+        return {
+          before,
+          backup: copied,
+          parsed,
+          legacy,
+          malformedRejected,
+          schema: database.version,
+          databaseName: database.name
+        };
+      };
+
+      window.runTargetFixture = async backup => {
+        const database = await openDatabase();
+        const store = new LocalStore(database);
+        for (const storeName of storeNames) {
+          await store.put(storeName, {
+            id: 'browser-fixture-sentinel-' + storeName,
+            marker: 'disposable-target-only'
+          });
+        }
+        const parsed = parseBackupPayload(backup);
+        await store.importAll(parsed);
+        const after = await store.exportAll();
+        const reExported = createBackupPayload(after, '2026-11-21T03:00:00.000Z');
+        return {
+          after,
+          reExported: reExported.data,
+          sentinelIds: Object.fromEntries(storeNames.map(name => [
+            name,
+            after[name].some(row => row.id === 'browser-fixture-sentinel-' + name)
+          ])),
+          schema: database.version,
+          databaseName: database.name
+        };
+      };
+
+      window.readSourceFixture = async () => {
+        const database = await openDatabase();
+        const store = new LocalStore(database);
+        return await store.exportAll();
+      };
+
+      document.getElementById('status').textContent = 'ready';
+    } catch (error) {
+      window.__v8FixtureError = String(error && (error.stack || error.message) || error);
+      document.getElementById('status').textContent = 'error';
+    }
+  })();
+</script>

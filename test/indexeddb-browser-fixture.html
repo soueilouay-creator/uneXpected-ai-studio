@@ -110,12 +110,12 @@
 
         const after = await store.exportAll();
         const reExported = createBackupPayload(after, '2026-11-21T03:00:00.000Z');
-        const sentinelIds = Object.fromEntries(allStores.map(name => [
-          name,
-          name === 'settings'
+        const sentinelIds = {};
+        for (const name of allStores) {
+          sentinelIds[name] = name === 'settings'
             ? (await readRecord(database, 'settings', 'browser-fixture-sentinel-settings'))?.marker === 'preserve-target-row'
-            : after[name].some(row => row.id === 'browser-fixture-sentinel-' + name)
-        ]));
+            : after[name].some(row => row.id === 'browser-fixture-sentinel-' + name);
+        }
         return {
           after,
           reExported: reExported.data,

@@ -218,7 +218,8 @@ test('real Chromium IndexedDB backup and restore preserves an isolated source or
     assert.equal(sourceResult.before.conversations.length, 1);
     assert.equal(sourceResult.before.memories.length, 1);
     assert.equal(sourceResult.before.improvements.length, 1);
-    assert.equal(sourceResult.before.settings.length, 1);
+    assert.equal(sourceResult.before.settings.id, 'main');
+    assert.equal(sourceResult.before.settings.theme, 'dark');
 
     const targetTarget = await createPage(devToolsPort, targetUrl);
     targetCdp = connectCdp(targetTarget.webSocketDebuggerUrl);

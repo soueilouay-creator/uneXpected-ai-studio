@@ -39,7 +39,17 @@
           locale: 'en'
         }]
       };
-      const storeNames = ['projects', 'conversations', 'memories', 'improvements', 'settings'];
+      const arrayStores = ['projects', 'conversations', 'memories', 'improvements'];
+      const allStores = [...arrayStores, 'settings'];
+
+      function readRecord(database, storeName, id) {
+        return new Promise((resolveRecord, rejectRecord) => {
+          const transaction = database.transaction(storeName, 'readonly');
+          const request = transaction.objectStore(storeName).get(id);
+          request.onsuccess = () => resolveRecord(request.result);
+          request.onerror = () => rejectRecord(request.error || new Error('IndexedDB read failed'));
+        });
+      }
 
       window.runSourceFixture = async () => {
         const database = await openDatabase();
@@ -72,25 +82,46 @@
       window.runTargetFixture = async backup => {
         const database = await openDatabase();
         const store = new LocalStore(database);
-        for (const storeName of storeNames) {
-          const sentinel = storeName === 'settings'
-            ? { id: 'main', marker: 'disposable-target-only' }
-            : { id: 'browser-fixture-sentinel-' + storeName, marker: 'disposable-target-only' };
-          await store.put(storeName, sentinel);
+        await store.put('projects', {
+          id: 'browser-fixture-project-001',
+          name: 'Target-owned collision record',
+          marker: 'must-not-be-overwritten'
+        });
+        for (const storeName of allStores) {
+          if (storeName === 'projects') {
+            await store.put(storeName, { id: 'browser-fixture-sentinel-projects', marker: 'preserve-target-row' });
+          } else {
+            await store.put(storeName, { id: 'browser-fixture-sentinel-' + storeName, marker: 'preserve-target-row' });
+          }
         }
+
         const parsed = parseBackupPayload(backup);
-        await store.importAll(parsed);
+        const collisions = [];
+        for (const storeName of arrayStores) {
+          for (const record of parsed[storeName]) {
+            const existing = await readRecord(database, storeName, record.id);
+            if (existing) collisions.push({ store: storeName, id: record.id });
+            else await store.put(storeName, record);
+          }
+        }
+        const existingSettings = await readRecord(database, 'settings', 'main');
+        if (existingSettings) collisions.push({ store: 'settings', id: 'main' });
+        else await store.put('settings', { id: 'main', ...parsed.settings });
+
         const after = await store.exportAll();
         const reExported = createBackupPayload(after, '2026-11-21T03:00:00.000Z');
+        const sentinelIds = Object.fromEntries(allStores.map(name => [
+          name,
+          name === 'settings'
+            ? (await readRecord(database, 'settings', 'browser-fixture-sentinel-settings'))?.marker === 'preserve-target-row'
+            : after[name].some(row => row.id === 'browser-fixture-sentinel-' + name)
+        ]));
         return {
           after,
           reExported: reExported.data,
-          sentinelIds: Object.fromEntries(storeNames.map(name => [
-            name,
-            name === 'settings'
-              ? after.settings.marker === 'disposable-target-only'
-              : after[name].some(row => row.id === 'browser-fixture-sentinel-' + name)
-          ])),
+          collisions,
+          sentinelIds,
+          settings: await readRecord(database, 'settings', 'main'),
           schema: database.version,
           databaseName: database.name
         };

@@ -486,38 +486,38 @@ The tested documentation-only head `64730cabb26b2e26b25d21023eb4c0e02c3ecc8c` co
 
 **Phase:** Phase 0 — preservation proof; Phase 1 — migration-safe compatibility boundary.  
 **Repository:** [soueilouay-creator/uneXpected-ai-studio](https://github.com/soueilouay-creator/uneXpected-ai-studio)  
-**Default branch:** \`main\` at \`6f5bc823e1ffd9284abae7dbbb6c1dae97ebf90b\`.  
-**Feature branch code head tested:** \`1fcc3afd77d3fded37c5175a7980f650bb8a1436\`.  
+**Default branch:** `main` at `6f5bc823e1ffd9284abae7dbbb6c1dae97ebf90b`.  
+**Feature branch code head tested:** `1fcc3afd77d3fded37c5175a7980f650bb8a1436`.  
 **Branch comparison at code head:** 62 commits ahead / 0 behind; 19 changed paths, no removed paths.  
-**Pre-increment rollback branch:** \`backup/v8-foundation-pre-browser-idb-20261121\` at \`84ab188eb58f718a55fa81e429d197015f5f0b40\`. Additional rollback refs were created before each follow-up test correction.
+**Pre-increment rollback branch:** `backup/v8-foundation-pre-browser-idb-20261121` at `84ab188eb58f718a55fa81e429d197015f5f0b40`. Additional rollback refs were created before each follow-up test correction.
 
 ### Added
 
-- \`test/indexeddb-browser-fixture.html\`: browser-side fixture using the actual restored \`mobile/db.js\` and \`mobile/core.js\` modules.
-- \`test/indexeddb-browser-roundtrip.test.mjs\`: dependency-free Node 22 runner using preinstalled headless Chrome and Chrome DevTools Protocol.
-- \`docs/v8/INDEXEDDB_BROWSER_ROUNDTRIP.md\`: design, safety boundary, test coverage and evidence.
-- Updated \`.github/workflows/mobile-integration.yml\` to include the fixture/test in path filters, syntax validation and a dedicated real-Chromium CI step.
-- Linked the new report from \`docs/v8/README.md\`.
+- `test/indexeddb-browser-fixture.html`: browser-side fixture using the actual restored `mobile/db.js` and `mobile/core.js` modules.
+- `test/indexeddb-browser-roundtrip.test.mjs`: dependency-free Node 22 runner using preinstalled headless Chrome and Chrome DevTools Protocol.
+- `docs/v8/INDEXEDDB_BROWSER_ROUNDTRIP.md`: design, safety boundary, test coverage and evidence.
+- Updated `.github/workflows/mobile-integration.yml` to include the fixture/test in path filters, syntax validation and a dedicated real-Chromium CI step.
+- Linked the new report from `docs/v8/README.md`.
 
 ### Browser test design
 
 - Chrome runs with a newly created temporary profile, an ephemeral remote-debugging port, background networking disabled and no external fixture dependencies.
 - Two loopback HTTP servers bind different ephemeral ports, giving source and target separate browser origins and isolated IndexedDB databases.
 - Synthetic records exercise all five existing stores. The test creates and parses a v2 backup, checks legacy v1 parser compatibility and malformed-input rejection, restores only into the disposable target origin, verifies the backup allowlist, re-exports and compares records, and proves the source origin is unchanged.
-- Target sentinel rows are used only to verify the existing replacement semantics inside the disposable target. The live app's \`importAll\` behavior is not used against user data.
+- Target sentinel rows are used only to verify the existing replacement semantics inside the disposable target. The live app's `importAll` behavior is not used against user data.
 
 ### Test-driven corrections (retained)
 
-- First browser attempts exposed that \`settings\` is exported as a single object, not an array. Assertions were corrected after inspecting the archived module.
+- First browser attempts exposed that `settings` is exported as a single object, not an array. Assertions were corrected after inspecting the archived module.
 - The next attempt exposed the backup's existing safe-settings allowlist: raw source-only settings fields are intentionally not guaranteed to survive export/import. Assertions now compare the restored settings against the parsed allowlist and compare all four record-array stores directly.
 - Earlier failed CI runs remain visible: [44858440755](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858440755), [44858565520](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858565520), [44858683456](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858683456). These were test-assumption defects, not production data failures. They were corrected before the final accepted head.
 
 ### Final exact-head verification
 
-- Mobile push [44858792009](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858792009), code head \`1fcc3afd77d3fded37c5175a7980f650bb8a1436\`: existing suite **32 passed, 0 failed, 0 skipped**; real Chromium IndexedDB test **1 passed, 0 failed**; syntax checks and production Docker image build passed.
+- Mobile push [44858792009](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858792009), code head `1fcc3afd77d3fded37c5175a7980f650bb8a1436`: existing suite **32 passed, 0 failed, 0 skipped**; real Chromium IndexedDB test **1 passed, 0 failed**; syntax checks and production Docker image build passed.
 - Mobile PR [44858797372](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858797372), same head: **32/32** existing tests and **1/1** real Chromium test passed; Docker image build passed.
 - TAAFT PR [44858797299](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858797299), same head: **3/3 passed**.
-- Browser runner log reports Google Chrome \`157.0.8103.78\`; browser test exit code 0 and duration about 6.0 seconds.
+- Browser runner log reports Google Chrome `157.0.8103.78`; browser test exit code 0 and duration about 6.0 seconds.
 
 ### Preservation, cost and blockers
 
@@ -529,15 +529,15 @@ The tested documentation-only head `64730cabb26b2e26b25d21023eb4c0e02c3ecc8c` co
 
 ### Next
 
-Design a pure, additive, conflict-reporting import/merge contract for projects, conversations, memories, improvements and settings. It must not call \`importAll\`, clear any store, or overwrite a colliding ID; prove behavior with fixtures before connecting it to the UI. Continue the read-only Node/Python control-plane contract audit in parallel only where it does not touch user data or production resources.
+Design a pure, additive, conflict-reporting import/merge contract for projects, conversations, memories, improvements and settings. It must not call `importAll`, clear any store, or overwrite a colliding ID; prove behavior with fixtures before connecting it to the UI. Continue the read-only Node/Python control-plane contract audit in parallel only where it does not touch user data or production resources.
 
 
 ### Run 11 follow-up — Chromium process cleanup hardening and final code-head CI
 
-- The first documentation-head CI after the successful browser proof exposed a temporary-profile cleanup race: Chrome was still closing a profile file when the test removed its temporary directory, producing \`ENOTEMPTY\`. The IndexedDB assertions themselves had passed up to cleanup.
-- Updated \`test/indexeddb-browser-roundtrip.test.mjs\` to wait for process exit after SIGTERM, escalate to SIGKILL only after a bounded 3-second grace period, wait up to 5 seconds for forced exit, pause briefly after exit, and use bounded recursive-removal retries. The profile is not removed while Chrome is still running.
-- Rollback branch before this code fix: \`backup/v8-foundation-pre-chrome-cleanup-fix-20261121\` at \`c182b0eb40de233bbb6ebffa049cc46a2680e86b\`.
-- Final tested code head: \`a8159cd9760a5c6be086acde8f161c0c3e605c66\`.
+- The first documentation-head CI after the successful browser proof exposed a temporary-profile cleanup race: Chrome was still closing a profile file when the test removed its temporary directory, producing `ENOTEMPTY`. The IndexedDB assertions themselves had passed up to cleanup.
+- Updated `test/indexeddb-browser-roundtrip.test.mjs` to wait for process exit after SIGTERM, escalate to SIGKILL only after a bounded 3-second grace period, wait up to 5 seconds for forced exit, pause briefly after exit, and use bounded recursive-removal retries. The profile is not removed while Chrome is still running.
+- Rollback branch before this code fix: `backup/v8-foundation-pre-chrome-cleanup-fix-20261121` at `c182b0eb40de233bbb6ebffa049cc46a2680e86b`.
+- Final tested code head: `a8159cd9760a5c6be086acde8f161c0c3e605c66`.
 - Mobile push [44859050107](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859050107) and PR [44859055816](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859055816): existing suite **32/32 passed**, real Chromium browser test **1/1 passed**, syntax checks and Docker build passed.
 - TAAFT PR [44859055572](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859055572): **3/3 passed**. TAAFT push did not run for the test-only code commit; the TAAFT PR event did run and pass.
 - Browser log reports Google Chrome 157.0.8103.78; browser test passed in about 11 seconds, including clean process shutdown and profile cleanup.

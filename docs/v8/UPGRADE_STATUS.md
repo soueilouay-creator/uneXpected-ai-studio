@@ -329,3 +329,39 @@ Finish the renderer E2E job, then integrate checkpoint writes into the existing 
 - The fixture test uses two independent in-memory IndexedDB-compatible factories and synthetic records. It proves backup v2 round-trip equality, v1 parser compatibility, malformed-input rejection and source-fixture preservation. It is not a browser-engine test or a real user-data rehearsal.
 - PR #13 remains draft. Render Auto-Deploy remains enabled; no merge/deployment performed. No live user data, Neon records, provider secrets or settings changed.
 - No new dependencies or infrastructure. CI runner billing remains unverified.
+
+
+## Run 11 — 2026-11-21: real browser IndexedDB verification
+
+**Latest verified code head:** \`1fcc3afd77d3fded37c5175a7980f650bb8a1436\` on \`upgrade/v8-foundation\`.
+
+### Completed and verified
+
+- Added a real headless Chromium test using the actual archive-restored IndexedDB and backup modules.
+- The source and restore target use separate loopback origins and an isolated temporary browser profile. Only synthetic fixture rows are used.
+- Verified v2 backup creation, v1 parser compatibility, malformed-input rejection, read-back equality for projects/conversations/memories/improvements, safe-settings allowlist behavior, target-only replacement semantics and unchanged source-origin records.
+- Mobile push [44858792009](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858792009): 32 existing tests passed and the real-browser test passed 1/1; syntax and Docker build passed.
+- Mobile PR [44858797372](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858797372): same 32/32 plus 1/1 browser test; Docker build passed.
+- TAAFT PR [44858797299](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858797299): 3/3 passed.
+- No npm dependency, production code change, database migration, provider API call or infrastructure addition was made.
+
+### Preservation status
+
+- Existing source bundle, mobile asset bundle, PWA, Node server, TAAFT connector, routes and IndexedDB schema are retained.
+- No owner browser profile or live user IndexedDB data was opened, exported, imported or changed.
+- The existing \`LocalStore.importAll\` remains destructive across all five stores. It was exercised only in the isolated target origin. Do not use it for live sync.
+- A user-directed real backup export and independent restore/read-back remain a separate gate.
+
+### Remaining blockers
+
+- Design and test a separate additive, collision-aware merge contract before any UI wiring.
+- Read-only Node/Python API contract integration remains unimplemented.
+- Production PostgreSQL durability and recovery are not connected to Studio.
+- Live API compatibility for OpenAI, Anthropic and one additional provider remains unverified under authorized non-billable or explicitly budgeted conditions.
+- MCP scope/prompt-injection/secret-isolation security tests, observability/evaluation, engineering sandbox, dependency/license/security audit and rollback/release candidate remain open.
+- Studio Render Auto-Deploy remains enabled; the previously approved setting change still lacks a supported write path and verified authenticated browser session. PR #13 remains draft; no merge or deployment.
+- No critical/high severity audit is claimed complete because the full security/release audit has not yet been performed.
+
+### Cost
+
+No new package or infrastructure. GitHub Actions runner usage occurred; exact account-level billing/quota is not exposed. No model credits or provider API requests were used.

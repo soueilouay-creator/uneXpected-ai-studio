@@ -73,10 +73,10 @@
         const database = await openDatabase();
         const store = new LocalStore(database);
         for (const storeName of storeNames) {
-          await store.put(storeName, {
-            id: 'browser-fixture-sentinel-' + storeName,
-            marker: 'disposable-target-only'
-          });
+          const sentinel = storeName === 'settings'
+            ? { id: 'main', marker: 'disposable-target-only' }
+            : { id: 'browser-fixture-sentinel-' + storeName, marker: 'disposable-target-only' };
+          await store.put(storeName, sentinel);
         }
         const parsed = parseBackupPayload(backup);
         await store.importAll(parsed);
@@ -87,7 +87,9 @@
           reExported: reExported.data,
           sentinelIds: Object.fromEntries(storeNames.map(name => [
             name,
-            after[name].some(row => row.id === 'browser-fixture-sentinel-' + name)
+            name === 'settings'
+              ? after.settings.marker === 'disposable-target-only'
+              : after[name].some(row => row.id === 'browser-fixture-sentinel-' + name)
           ])),
           schema: database.version,
           databaseName: database.name

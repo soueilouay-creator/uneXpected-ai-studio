@@ -8,7 +8,8 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const storeNames = ['projects', 'conversations', 'memories', 'improvements', 'settings'];
+const arrayStores = ['projects', 'conversations', 'memories', 'improvements'];
+const storeNames = [...arrayStores, 'settings'];
 
 function makeServer() {
   const fixtureHtmlPath = join(root, 'test', 'indexeddb-browser-fixture.html');
@@ -237,19 +238,34 @@ test('real Chromium IndexedDB backup and restore preserves an isolated source or
       targetCdp,
       'window.runTargetFixture(' + JSON.stringify(sourceResult.backup) + ')'
     );
-    for (const storeName of storeNames.slice(0, -1)) {
-      assert.deepEqual(targetResult.after[storeName], sourceResult.before[storeName], 'restored ' + storeName + ' records must match');
+    assert.deepEqual(
+      targetResult.collisions,
+      [{ store: 'projects', id: 'browser-fixture-project-001' }],
+      'colliding IDs must be reported and skipped'
+    );
+    assert.equal(
+      targetResult.after.projects.find(row => row.id === 'browser-fixture-project-001').name,
+      'Target-owned collision record',
+      'existing target record must not be overwritten'
+    );
+    for (const storeName of arrayStores.slice(1)) {
+      const fixtureId = sourceResult.parsed[storeName][0].id;
+      assert.deepEqual(
+        targetResult.after[storeName].filter(row => row.id === fixtureId),
+        sourceResult.parsed[storeName],
+        'new ' + storeName + ' records must be added'
+      );
     }
     assert.deepEqual(
-      targetResult.after.settings,
+      targetResult.settings,
       { id: 'main', ...sourceResult.parsed.settings },
-      'restored settings must match the backup allowlist'
+      'settings must be added only when the target key is absent'
     );
-    assert.deepEqual(targetResult.reExported, sourceResult.parsed, 're-exported browser records must match parsed backup data');
+    assert.deepEqual(targetResult.reExported.settings, sourceResult.parsed.settings);
     assert.deepEqual(
       targetResult.sentinelIds,
-      Object.fromEntries(storeNames.map(name => [name, false])),
-      'replacement semantics are confined to the disposable target origin'
+      Object.fromEntries(storeNames.map(name => [name, true])),
+      'all pre-existing target sentinel records must remain'
     );
 
     const sourceAfter = await evaluate(sourceCdp, 'window.readSourceFixture()');

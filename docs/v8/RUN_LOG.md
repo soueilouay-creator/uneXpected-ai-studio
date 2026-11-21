@@ -530,3 +530,16 @@ The tested documentation-only head `64730cabb26b2e26b25d21023eb4c0e02c3ecc8c` co
 ### Next
 
 Design a pure, additive, conflict-reporting import/merge contract for projects, conversations, memories, improvements and settings. It must not call \`importAll\`, clear any store, or overwrite a colliding ID; prove behavior with fixtures before connecting it to the UI. Continue the read-only Node/Python control-plane contract audit in parallel only where it does not touch user data or production resources.
+
+
+### Run 11 follow-up — Chromium process cleanup hardening and final code-head CI
+
+- The first documentation-head CI after the successful browser proof exposed a temporary-profile cleanup race: Chrome was still closing a profile file when the test removed its temporary directory, producing \`ENOTEMPTY\`. The IndexedDB assertions themselves had passed up to cleanup.
+- Updated \`test/indexeddb-browser-roundtrip.test.mjs\` to wait for process exit after SIGTERM, escalate to SIGKILL only after a bounded 3-second grace period, wait up to 5 seconds for forced exit, pause briefly after exit, and use bounded recursive-removal retries. The profile is not removed while Chrome is still running.
+- Rollback branch before this code fix: \`backup/v8-foundation-pre-chrome-cleanup-fix-20261121\` at \`c182b0eb40de233bbb6ebffa049cc46a2680e86b\`.
+- Final tested code head: \`a8159cd9760a5c6be086acde8f161c0c3e605c66\`.
+- Mobile push [44859050107](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859050107) and PR [44859055816](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859055816): existing suite **32/32 passed**, real Chromium browser test **1/1 passed**, syntax checks and Docker build passed.
+- TAAFT PR [44859055572](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859055572): **3/3 passed**. TAAFT push did not run for the test-only code commit; the TAAFT PR event did run and pass.
+- Browser log reports Google Chrome 157.0.8103.78; browser test passed in about 11 seconds, including clean process shutdown and profile cleanup.
+- Failed documentation-head runs [44858987373](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858987373) and [44858990032](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858990032) are retained as evidence of the cleanup race and were not hidden.
+- No app runtime code, schema, user data, live browser profile, provider secret, database, production setting or deployment changed. No package or infrastructure added; Actions runner billing remains unverified.

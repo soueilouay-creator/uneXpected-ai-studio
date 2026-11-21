@@ -480,3 +480,53 @@ Result: **exit 0; 3 passed, 0 failed, 0 skipped** on both push and pull-request 
 The mobile workflow's Node syntax-check step completed successfully for the server, UI, mobile assets and all listed tests. The production Docker build command `docker build --tag unexpected-ai-studio:openrouter-test .` completed successfully on both mobile runs.
 
 The tested documentation-only head `64730cabb26b2e26b25d21023eb4c0e02c3ecc8c` contains no additional application-code changes beyond code commit `d251bfbc1c4f73e843aa4998a186d1e55f26c67a`; it appends the final evidence to the run log and status.
+
+
+## Run 11 — 2026-11-21: real Chromium IndexedDB backup/restore test
+
+**Phase:** Phase 0 — preservation proof; Phase 1 — migration-safe compatibility boundary.  
+**Repository:** [soueilouay-creator/uneXpected-ai-studio](https://github.com/soueilouay-creator/uneXpected-ai-studio)  
+**Default branch:** \`main\` at \`6f5bc823e1ffd9284abae7dbbb6c1dae97ebf90b\`.  
+**Feature branch code head tested:** \`1fcc3afd77d3fded37c5175a7980f650bb8a1436\`.  
+**Branch comparison at code head:** 62 commits ahead / 0 behind; 19 changed paths, no removed paths.  
+**Pre-increment rollback branch:** \`backup/v8-foundation-pre-browser-idb-20261121\` at \`84ab188eb58f718a55fa81e429d197015f5f0b40\`. Additional rollback refs were created before each follow-up test correction.
+
+### Added
+
+- \`test/indexeddb-browser-fixture.html\`: browser-side fixture using the actual restored \`mobile/db.js\` and \`mobile/core.js\` modules.
+- \`test/indexeddb-browser-roundtrip.test.mjs\`: dependency-free Node 22 runner using preinstalled headless Chrome and Chrome DevTools Protocol.
+- \`docs/v8/INDEXEDDB_BROWSER_ROUNDTRIP.md\`: design, safety boundary, test coverage and evidence.
+- Updated \`.github/workflows/mobile-integration.yml\` to include the fixture/test in path filters, syntax validation and a dedicated real-Chromium CI step.
+- Linked the new report from \`docs/v8/README.md\`.
+
+### Browser test design
+
+- Chrome runs with a newly created temporary profile, an ephemeral remote-debugging port, background networking disabled and no external fixture dependencies.
+- Two loopback HTTP servers bind different ephemeral ports, giving source and target separate browser origins and isolated IndexedDB databases.
+- Synthetic records exercise all five existing stores. The test creates and parses a v2 backup, checks legacy v1 parser compatibility and malformed-input rejection, restores only into the disposable target origin, verifies the backup allowlist, re-exports and compares records, and proves the source origin is unchanged.
+- Target sentinel rows are used only to verify the existing replacement semantics inside the disposable target. The live app's \`importAll\` behavior is not used against user data.
+
+### Test-driven corrections (retained)
+
+- First browser attempts exposed that \`settings\` is exported as a single object, not an array. Assertions were corrected after inspecting the archived module.
+- The next attempt exposed the backup's existing safe-settings allowlist: raw source-only settings fields are intentionally not guaranteed to survive export/import. Assertions now compare the restored settings against the parsed allowlist and compare all four record-array stores directly.
+- Earlier failed CI runs remain visible: [44858440755](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858440755), [44858565520](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858565520), [44858683456](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858683456). These were test-assumption defects, not production data failures. They were corrected before the final accepted head.
+
+### Final exact-head verification
+
+- Mobile push [44858792009](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858792009), code head \`1fcc3afd77d3fded37c5175a7980f650bb8a1436\`: existing suite **32 passed, 0 failed, 0 skipped**; real Chromium IndexedDB test **1 passed, 0 failed**; syntax checks and production Docker image build passed.
+- Mobile PR [44858797372](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858797372), same head: **32/32** existing tests and **1/1** real Chromium test passed; Docker image build passed.
+- TAAFT PR [44858797299](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858797299), same head: **3/3 passed**.
+- Browser runner log reports Google Chrome \`157.0.8103.78\`; browser test exit code 0 and duration about 6.0 seconds.
+
+### Preservation, cost and blockers
+
+- No browser profile belonging to the owner was opened. No live IndexedDB record, backup, project, conversation, memory, setting, Neon row, provider secret or production service was read or changed.
+- No application database module, schema, user-facing endpoint or UI was modified. No package or infrastructure was added. Existing source and mobile asset archives remain unchanged and checksum-verified by the existing CI restore step.
+- GitHub Actions runner usage occurred; account-level billing/quota remains unavailable. The browser was preinstalled on the runner; no browser download or API credit was used.
+- This is now a real browser-engine fixture proof, **not** a user-directed backup rehearsal. Live data migration remains prohibited until a user-owned export and independent read-back are performed.
+- Studio PR #13 remains draft. Render Studio Auto-Deploy is still a separate production guard; no merge or deployment was performed.
+
+### Next
+
+Design a pure, additive, conflict-reporting import/merge contract for projects, conversations, memories, improvements and settings. It must not call \`importAll\`, clear any store, or overwrite a colliding ID; prove behavior with fixtures before connecting it to the UI. Continue the read-only Node/Python control-plane contract audit in parallel only where it does not touch user data or production resources.

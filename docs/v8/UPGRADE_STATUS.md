@@ -375,3 +375,13 @@ No new package or infrastructure. GitHub Actions runner usage occurred; exact ac
 - TAAFT PR [44859055572](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859055572): **3/3 passed**.
 - The preceding cleanup-race failures remain visible in runs [44858987373](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858987373) and [44858990032](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858990032); they were test cleanup failures, not data or application failures.
 - No production code, live user data, database, service setting, deployment, provider API or package changed. GitHub Actions billing remains unverified.
+
+
+### Run 11 preservation follow-up — non-destructive IndexedDB fixture
+
+- Removed all test calls to LocalStore.importAll and clearAll. The Node fixture's clear operation now throws if invoked.
+- Both the Node and real-Chromium fixtures use read-only key checks and insert-only puts, report/skip a same-ID collision, retain existing target sentinels in all five stores and verify source read-back.
+- Added docs/v8/ADDITIVE_INDEXEDDB_MERGE.md. It defines the future production adapter contract, but the production module and UI wiring are still blocked/not implemented.
+- Final code head 1f78f17d9a5242b846779a0acec29ef8c292559b: mobile push [44859674020](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859674020) and PR [44859678339](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859678339) passed **32/32** existing tests plus **1/1** browser test, syntax and Docker build. TAAFT PR [44859678349](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859678349) passed **3/3**.
+- Earlier intermediate failure [44859586407](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859586407) and [44859612993](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859612993) was a test-only async callback syntax/initialization error, corrected in the final browser fixture.
+- No live IndexedDB, user backup, project, conversation, memory, setting, database, production service or deployment was touched. No dependencies or infrastructure added; Actions billing remains unverified.

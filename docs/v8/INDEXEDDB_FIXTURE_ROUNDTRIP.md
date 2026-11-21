@@ -15,15 +15,16 @@ Exercise the actual archive-restored `mobile/db.js` and `mobile/core.js` modules
 - Seeds synthetic project, conversation, memory, improvement and settings records.
 - Runs the real `createBackupPayload` and `parseBackupPayload` functions from the restored source modules.
 - Serializes and parses a copied version-2 backup; verifies legacy version-1 parsing and rejects malformed collection types.
-- Restores only into a second disposable target database through the existing `LocalStore.importAll` implementation.
-- Reads the target back, re-exports it, and checks equality with the parsed backup.
+- Copies records into a second disposable target database using insert-only `LocalStore.put` calls after read-only primary-key checks.
+- Reports and skips an ID collision; verifies that the existing target-owned row is not overwritten.
+- Verifies that unrelated target sentinel rows remain in every store, including the non-singleton settings record.
 - Verifies the source fixture remains equivalent at the record-object level after the target restore.
 
 ## Safety boundary
 
 The test replaces the global `indexedDB` reference only inside the Node test process with an in-memory adapter. Source and target factories own separate maps. All records are synthetic and prefixed with `fixture-`; no browser profile, live IndexedDB database, user backup, Neon branch or production service is accessed.
 
-The target is deliberately seeded with disposable sentinel records before calling `importAll`. This confirms the existing method has replacement semantics in the test fixture. The existing implementation is not modified. **Do not use `importAll` as an automatic V8 sync or merge operation against live data:** it clears all five stores. A future live migration/synchronization path must be separately additive, conflict-aware, explicitly approved and backed up/read-back validated.
+The target is seeded with synthetic sentinel records and one same-ID collision. The fixture checks the primary key with read-only requests, inserts only absent records, reports the collision and leaves all pre-existing target rows unchanged. The test double throws if any code attempts a store clear. Neither LocalStore.importAll, clearAll nor an object-store clear operation is invoked. The existing production importAll implementation remains unchanged and destructive across all five stores; it is not an approved sync/merge path.
 
 ## Test-double limitation
 
@@ -37,3 +38,12 @@ Local syntax check: `node --check test/indexeddb-fixture-roundtrip.test.mjs` —
 Local harness mechanics check against a temporary contract replica: `node --test` — 1/1 passed. This is preliminary harness validation only; the CI run against the real restored modules is the acceptance evidence.
 
 No dependency, schema migration, application runtime code, UI, API contract or production setting is changed in this increment.
+
+
+## Current additive-merge verification
+
+On the current fixture implementation, source and target remain separate IndexedDB factories. The target keeps an existing project with the same ID as the backup; the merge reports that collision and does not overwrite it. Existing sentinel rows in projects, conversations, memories, improvements and settings remain. Missing backup records are inserted and read back. The source database remains unchanged.
+
+- The test double's clear operation throws, making any accidental store clearing a test failure.
+- The current fixture does not call importAll or clearAll.
+- This is a tested contract fixture, not a production merge implementation or UI feature.

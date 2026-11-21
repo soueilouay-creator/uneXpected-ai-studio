@@ -333,7 +333,7 @@ Finish the renderer E2E job, then integrate checkpoint writes into the existing 
 
 ## Run 11 — 2026-11-21: real browser IndexedDB verification
 
-**Latest verified code head:** \`1fcc3afd77d3fded37c5175a7980f650bb8a1436\` on \`upgrade/v8-foundation\`.
+**Latest verified code head:** `1fcc3afd77d3fded37c5175a7980f650bb8a1436` on `upgrade/v8-foundation`.
 
 ### Completed and verified
 
@@ -349,7 +349,7 @@ Finish the renderer E2E job, then integrate checkpoint writes into the existing 
 
 - Existing source bundle, mobile asset bundle, PWA, Node server, TAAFT connector, routes and IndexedDB schema are retained.
 - No owner browser profile or live user IndexedDB data was opened, exported, imported or changed.
-- The existing \`LocalStore.importAll\` remains destructive across all five stores. It was exercised only in the isolated target origin. Do not use it for live sync.
+- The existing `LocalStore.importAll` remains destructive across all five stores. It was exercised only in the isolated target origin. Do not use it for live sync.
 - A user-directed real backup export and independent restore/read-back remain a separate gate.
 
 ### Remaining blockers
@@ -371,7 +371,7 @@ No new package or infrastructure. GitHub Actions runner usage occurred; exact ac
 
 - Fixed a test-only race found after the first browser CI success: Chrome's process could still hold files in its temporary profile when the test removed that directory.
 - The browser test now waits for SIGTERM, uses bounded SIGKILL escalation, waits for process exit before removing the profile, and retries recursive cleanup. It does not remove a profile while Chrome is still alive.
-- Final code head \`a8159cd9760a5c6be086acde8f161c0c3e605c66\` passed mobile push [44859050107](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859050107) and PR [44859055816](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859055816): **32/32** existing tests plus **1/1** real Chromium browser test, syntax checks and Docker build.
+- Final code head `a8159cd9760a5c6be086acde8f161c0c3e605c66` passed mobile push [44859050107](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859050107) and PR [44859055816](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859055816): **32/32** existing tests plus **1/1** real Chromium browser test, syntax checks and Docker build.
 - TAAFT PR [44859055572](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859055572): **3/3 passed**.
 - The preceding cleanup-race failures remain visible in runs [44858987373](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858987373) and [44858990032](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44858990032); they were test cleanup failures, not data or application failures.
 - No production code, live user data, database, service setting, deployment, provider API or package changed. GitHub Actions billing remains unverified.

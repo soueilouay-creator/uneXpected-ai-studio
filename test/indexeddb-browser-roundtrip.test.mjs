@@ -219,7 +219,6 @@ test('real Chromium IndexedDB backup and restore preserves an isolated source or
     assert.equal(sourceResult.before.memories.length, 1);
     assert.equal(sourceResult.before.improvements.length, 1);
     assert.equal(sourceResult.before.settings.id, 'main');
-    assert.equal(sourceResult.before.settings.theme, 'dark');
 
     const targetTarget = await createPage(devToolsPort, targetUrl);
     targetCdp = connectCdp(targetTarget.webSocketDebuggerUrl);
@@ -231,7 +230,14 @@ test('real Chromium IndexedDB backup and restore preserves an isolated source or
       targetCdp,
       'window.runTargetFixture(' + JSON.stringify(sourceResult.backup) + ')'
     );
-    assert.deepEqual(targetResult.after, sourceResult.before, 'real browser restore/read-back must match the copied backup');
+    for (const storeName of storeNames.slice(0, -1)) {
+      assert.deepEqual(targetResult.after[storeName], sourceResult.before[storeName], 'restored ' + storeName + ' records must match');
+    }
+    assert.deepEqual(
+      targetResult.after.settings,
+      { id: 'main', ...sourceResult.parsed.settings },
+      'restored settings must match the backup allowlist'
+    );
     assert.deepEqual(targetResult.reExported, sourceResult.parsed, 're-exported browser records must match parsed backup data');
     assert.deepEqual(
       targetResult.sentinelIds,

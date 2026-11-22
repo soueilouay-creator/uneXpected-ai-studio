@@ -77,3 +77,13 @@ This document defines the production contract but does not implement or enable a
 - After commit, a separate readonly transaction checks exact read-back of inserted JSON records and existence of collision records. A verification failure is explicitly returned with `committed: true`; callers must inspect rather than blindly retry.
 - This is an adapter module only. Existing Restore backup UI still uses its existing explicit replacement behavior; the new merge module is not yet exposed in the UI and has not been run against owner data.
 - No IndexedDB version bump or schema change is required.
+
+
+### Exact-head CI evidence — 2026-11-22
+
+Code commit `da8724ca249e4cfce0c432e2208eef43bb4269b9`:
+
+- Mobile push [44977219977](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44977219977) and PR [44977223646](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44977223646): 32/32 Node tests and 1/1 real Chromium test passed; syntax checks and Docker image build passed.
+- TAAFT push [44977219872](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44977219872) and PR [44977223754](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44977223754): 3/3 passed each.
+- Browser engine: Google Chrome 157.0.8103.78.
+- All four runs completed with success; no skipped tests in these suites.

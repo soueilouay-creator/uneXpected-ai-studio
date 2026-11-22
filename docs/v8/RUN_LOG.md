@@ -577,6 +577,8 @@ Design a pure, additive, conflict-reporting import/merge contract for projects, 
 - Expected CI commands remain those in `.github/workflows/mobile-integration.yml`: syntax checks; `node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/openrouter-ui.test.mjs test/orchestrator.test.mjs test/phone-workspace-ui.test.mjs test/mobile-provider-results.test.mjs test/indexeddb-fixture-roundtrip.test.mjs`; `CHROME_BIN=... node --test test/indexeddb-browser-roundtrip.test.mjs`; Docker build; TAAFT integration test.
 
 ### Verification status
-- GitHub Actions result pending at commit creation. Exact run IDs, browser version, test counts and final tested SHA will be appended after the exact branch head finishes.
+- Mobile push [44977219977](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44977219977) and PR [44977223646](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44977223646): **32/32 Node tests passed**, **1/1 real Chromium test passed**, syntax checks and Docker image build passed. Chrome: **157.0.8103.78**.
+- TAAFT push [44977219872](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44977219872) and PR [44977223754](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44977223754): **3/3 passed**, 0 failures, 0 skips.
+- Exact code commit tested: `da8724ca249e4cfce0c432e2208eef43bb4269b9`. All four workflow runs completed successfully.
 - No user browser, user backup, local record, Neon row, provider key, production service, deployment or DNS was accessed or modified.
 - No new package or infrastructure. GitHub Actions runner billing remains unverified.

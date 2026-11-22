@@ -55,3 +55,15 @@ Initial browser attempts exposed two incorrect test assumptions: settings export
 - The test uses Chrome already installed on the GitHub-hosted Ubuntu runner; no browser download was added.
 - GitHub Actions runner usage occurred; account-level billing/quota is not exposed.
 - A user-directed backup export and independent read-back is still required before any live data migration.
+
+
+## Atomic merge adapter follow-up — 2026-11-22
+
+The browser fixture now imports the actual production adapter from `mobile-release/merge.js` and invokes it twice concurrently against one disposable target origin. It verifies that one transaction inserts the four missing records exactly once, the second reports the resulting collisions, the pre-existing project collision is retained, every target sentinel survives, and the source database remains unchanged.
+
+Exact code commit `da8724ca249e4cfce0c432e2208eef43bb4269b9` passed:
+- Mobile push [44977219977](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44977219977) and PR [44977223646](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44977223646): 32/32 Node tests, 1/1 real Chromium test, syntax and Docker build all passed.
+- TAAFT push [44977219872](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44977219872) and PR [44977223754](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44977223754): 3/3 passed each.
+- Chrome version: 157.0.8103.78.
+
+Only synthetic records and a temporary browser profile were used. No owner browser profile or user data was opened.

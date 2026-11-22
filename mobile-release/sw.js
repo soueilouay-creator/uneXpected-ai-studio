@@ -6,6 +6,7 @@ const SHELL = [
   '/mobile/app.js',
   '/mobile/providers.js',
   '/mobile/core.js',
+  '/mobile/merge.js',
   '/mobile/db.js',
   '/mobile/voice.js',
   '/mobile/agents.json',

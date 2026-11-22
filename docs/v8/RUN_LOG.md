@@ -557,3 +557,26 @@ Design a pure, additive, conflict-reporting import/merge contract for projects, 
 - Chrome version in final push log: Google Chrome 157.0.8103.50.
 - Intermediate browser attempts remain visible: [44859586407](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859586407) and [44859612993](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859612993) failed because the fixture's asynchronous settings read was inside a synchronous map callback. The final code uses an explicit async loop and both final-head push/PR runs are green.
 - No application database module, live user record, browser profile, schema, provider secret, production setting or deployment changed. No package or infrastructure added; GitHub Actions billing remains unverified.
+
+
+## Run 12 — 2026-11-22 — atomic additive IndexedDB adapter
+
+**Pre-change head:** `8f1c20af2cb0d9dfa9566dcb8fde4188fb7d4612`.  
+**Rollback checkpoint:** `backup/v8-foundation-pre-atomic-idb-adapter-20261122`.
+
+### Changed paths
+- Added `mobile-release/merge.js`.
+- Updated `mobile-release/sw.js` to precache the new module.
+- Updated `test/indexeddb-fixture-roundtrip.test.mjs`, `test/indexeddb-browser-fixture.html` and `test/indexeddb-browser-roundtrip.test.mjs` to exercise the production adapter.
+- Updated `.github/workflows/mobile-integration.yml` with an explicit syntax check for the adapter.
+- Updated `docs/v8/ADDITIVE_INDEXEDDB_MERGE.md` and `docs/v8/UPGRADE_STATUS.md`.
+
+### Test design
+- Node fixture: validated backup, duplicate-input rejection, insert-only behavior, collision reporting, source immutability, and read-back equality using a test double whose `clear()` always throws.
+- Real Chromium fixture: two concurrent adapter calls against one disposable target origin; assert one transaction inserts the four missing records, the other reports those collisions, the pre-existing project collision is never overwritten, all sentinels survive, and source-origin records remain unchanged.
+- Expected CI commands remain those in `.github/workflows/mobile-integration.yml`: syntax checks; `node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/openrouter-ui.test.mjs test/orchestrator.test.mjs test/phone-workspace-ui.test.mjs test/mobile-provider-results.test.mjs test/indexeddb-fixture-roundtrip.test.mjs`; `CHROME_BIN=... node --test test/indexeddb-browser-roundtrip.test.mjs`; Docker build; TAAFT integration test.
+
+### Verification status
+- GitHub Actions result pending at commit creation. Exact run IDs, browser version, test counts and final tested SHA will be appended after the exact branch head finishes.
+- No user browser, user backup, local record, Neon row, provider key, production service, deployment or DNS was accessed or modified.
+- No new package or infrastructure. GitHub Actions runner billing remains unverified.

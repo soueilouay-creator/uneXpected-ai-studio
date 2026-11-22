@@ -385,3 +385,33 @@ No new package or infrastructure. GitHub Actions runner usage occurred; exact ac
 - Final code head 1f78f17d9a5242b846779a0acec29ef8c292559b: mobile push [44859674020](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859674020) and PR [44859678339](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859678339) passed **32/32** existing tests plus **1/1** browser test, syntax and Docker build. TAAFT PR [44859678349](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859678349) passed **3/3**.
 - Earlier intermediate failure [44859586407](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859586407) and [44859612993](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/44859612993) was a test-only async callback syntax/initialization error, corrected in the final browser fixture.
 - No live IndexedDB, user backup, project, conversation, memory, setting, database, production service or deployment was touched. No dependencies or infrastructure added; Actions billing remains unverified.
+
+
+## Run 12 — 2026-11-22: transaction-scoped additive IndexedDB adapter
+
+**Phase:** Phase 0 preservation / Phase 1 compatibility foundation.  
+**Pre-change Studio head:** `8f1c20af2cb0d9dfa9566dcb8fde4188fb7d4612`.  
+**Rollback branch:** `backup/v8-foundation-pre-atomic-idb-adapter-20261122`.
+
+### Implemented
+
+- Added `mobile-release/merge.js`, an uneXpected-owned, dependency-free adapter for the existing five IndexedDB stores.
+- It accepts the validated output of the existing `parseBackupPayload()`; it rejects malformed store collections, empty/non-string IDs and duplicate IDs within an incoming store before opening a write transaction.
+- It performs insert-only `IDBObjectStore.add()` operations in one readwrite transaction across the five existing stores. It does not call `put`, `delete`, `clear`, `LocalStore.importAll` or `clearAll`.
+- Duplicate-key ConstraintErrors are reported as collisions without overwriting the existing row. Other request errors abort the transaction.
+- A separate readonly transaction verifies inserted-record equality and confirms collision keys still exist. Read-back failures are reported as committed/uncertain and must not be blindly retried.
+- Added the module to the existing service-worker shell cache and an explicit Node syntax check.
+- Updated the Node fixture to exercise the module with a clear-prohibited IndexedDB test double.
+- Updated the real Chromium fixture to run two overlapping imports against the same isolated synthetic database and verify only one insert per missing key.
+
+### Safety boundary
+
+- No IndexedDB version bump, schema change, user-data migration, live-browser access, PWA UI wiring, production setting change or deployment.
+- Existing Restore backup still retains its explicit replacement behavior. The new merge adapter is not exposed in the UI yet.
+- The browser test uses a temporary Chrome profile and synthetic records only.
+
+### Verification
+
+- GitHub Actions result pending at commit creation. Exact run IDs, browser version, test counts and final tested SHA will be appended after the exact branch head finishes.
+- No user browser, user backup, local record, Neon row, provider key, production service, deployment or DNS was accessed or modified.
+- No new package or infrastructure. GitHub Actions runner billing remains unverified.

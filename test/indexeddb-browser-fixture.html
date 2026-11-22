@@ -5,9 +5,10 @@
 <script type="module">
   (async () => {
     try {
-      const [{ openDatabase, LocalStore }, { createBackupPayload, parseBackupPayload }] = await Promise.all([
+      const [{ openDatabase, LocalStore }, { createBackupPayload, parseBackupPayload }, { mergeBackupAdditively }] = await Promise.all([
         import('/mobile/db.js'),
-        import('/mobile/core.js')
+        import('/mobile/core.js'),
+        import('/mobile/merge.js')
       ]);
 
       const sample = {
@@ -96,18 +97,10 @@
         }
 
         const parsed = parseBackupPayload(backup);
-        const collisions = [];
-        for (const storeName of arrayStores) {
-          for (const record of parsed[storeName]) {
-            const existing = await readRecord(database, storeName, record.id);
-            if (existing) collisions.push({ store: storeName, id: record.id });
-            else await store.put(storeName, record);
-          }
-        }
-        const existingSettings = await readRecord(database, 'settings', 'main');
-        if (existingSettings) collisions.push({ store: 'settings', id: 'main' });
-        else await store.put('settings', { id: 'main', ...parsed.settings });
-
+        const mergeResults = await Promise.all([
+          mergeBackupAdditively(database, parsed),
+          mergeBackupAdditively(database, parsed)
+        ]);
         const after = await store.exportAll();
         const reExported = createBackupPayload(after, '2026-11-21T03:00:00.000Z');
         const sentinelIds = {};
@@ -119,7 +112,7 @@
         return {
           after,
           reExported: reExported.data,
-          collisions,
+          mergeResults,
           sentinelIds,
           settings: await readRecord(database, 'settings', 'main'),
           schema: database.version,

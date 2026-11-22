@@ -1,6 +1,6 @@
 # Additive IndexedDB merge contract
 
-**Status:** Test contract verified; production adapter and UI wiring not implemented.  
+**Status:** Additive production adapter implemented and CI-tested; UI wiring and owner-directed live rehearsal remain pending.  
 **Date:** 2026-11-21  
 **Owner:** uneXpected workspace/control plane
 
@@ -56,7 +56,7 @@ The current test fixture is sequential and does not claim cross-tab atomicity. A
 
 ## Verified fixture behavior
 
-Both the Node IndexedDB-compatible fixture and the real Chromium fixture now use read-only key checks followed by insert-only puts. They seed existing target rows, preserve a same-ID project collision, insert non-colliding backup records, retain sentinel rows in every store and verify source read-back. The Node test double throws if a store clear is attempted. Neither fixture calls LocalStore.importAll or clearAll.
+The production module `mobile-release/merge.js` uses one readwrite transaction across the existing five stores and `IDBObjectStore.add()` rather than put/upsert. Duplicate primary keys become reported collisions without aborting the transaction; non-constraint failures abort the whole transaction. After commit, a separate readonly transaction verifies every inserted record and confirms each collision key still exists. Duplicate IDs within the incoming backup are rejected before opening a write transaction. The Node fixture exercises the module with a clear-prohibited test double; the Chromium fixture exercises it with two concurrent imports against the same isolated target database.
 
 Final fixture code head: 1f78f17d9a5242b846779a0acec29ef8c292559b.
 
@@ -67,3 +67,13 @@ Final fixture code head: 1f78f17d9a5242b846779a0acec29ef8c292559b.
 ## Explicit limitations
 
 This document defines the production contract but does not implement or enable a production merge module. No user profile, live IndexedDB data, browser backup, PWA setting, conversation, project or memory has been read or changed. The current production LocalStore.importAll method remains unchanged and destructive. Do not wire it to an automatic sync path.
+
+
+## Adapter implementation — 2026-11-22
+
+- Added `mobile-release/merge.js`; the existing Dockerfile overlays all `mobile-release/` files into the production PWA directory. The module is also included in the existing service-worker shell cache.
+- The module accepts only the validated object returned by `parseBackupPayload()`. It never calls `put`, `delete`, `clear`, `importAll` or `clearAll`.
+- All five existing stores are included in one readwrite transaction. Atomic `add()` operations make concurrent imports safe against primary-key overwrite. Constraint errors are converted to collision results; other request errors abort the transaction.
+- After commit, a separate readonly transaction checks exact read-back of inserted JSON records and existence of collision records. A verification failure is explicitly returned with `committed: true`; callers must inspect rather than blindly retry.
+- This is an adapter module only. Existing Restore backup UI still uses its existing explicit replacement behavior; the new merge module is not yet exposed in the UI and has not been run against owner data.
+- No IndexedDB version bump or schema change is required.

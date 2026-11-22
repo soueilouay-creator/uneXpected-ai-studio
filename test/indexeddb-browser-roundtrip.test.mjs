@@ -15,7 +15,8 @@ function makeServer() {
   const fixtureHtmlPath = join(root, 'test', 'indexeddb-browser-fixture.html');
   const allowedModules = new Map([
     ['/mobile/db.js', join(root, 'mobile', 'db.js')],
-    ['/mobile/core.js', join(root, 'mobile', 'core.js')]
+    ['/mobile/core.js', join(root, 'mobile', 'core.js')],
+    ['/mobile/merge.js', join(root, 'mobile-release', 'merge.js')]
   ]);
 
   return createServer(async (request, response) => {
@@ -238,10 +239,27 @@ test('real Chromium IndexedDB backup and restore preserves an isolated source or
       targetCdp,
       'window.runTargetFixture(' + JSON.stringify(sourceResult.backup) + ')'
     );
+    assert.equal(targetResult.mergeResults.length, 2, 'two concurrent merge attempts are exercised');
+    assert.ok(targetResult.mergeResults.every(result => result.ok && result.committed), 'both merge attempts complete and verify');
+    const inserted = targetResult.mergeResults.flatMap(result => result.inserted);
+    const collisions = targetResult.mergeResults.flatMap(result => result.collisions);
     assert.deepEqual(
-      targetResult.collisions,
-      [{ store: 'projects', id: 'browser-fixture-project-001' }],
-      'colliding IDs must be reported and skipped'
+      targetResult.mergeResults.map(result => result.inserted.length).sort((a, b) => a - b),
+      [0, 4],
+      'overlapping readwrite transactions insert each missing record exactly once'
+    );
+    assert.equal(new Set(inserted.map(item => item.store + ':' + item.id)).size, 4);
+    assert.equal(collisions.length, 6, 'the pre-existing collision and second import collisions are reported');
+    assert.deepEqual(
+      [...new Set(collisions.map(item => item.store + ':' + item.id))].sort(),
+      [
+        'conversations:browser-fixture-conversation-001',
+        'improvements:browser-fixture-improvement-001',
+        'memories:browser-fixture-memory-001',
+        'projects:browser-fixture-project-001',
+        'settings:main'
+      ].sort(),
+      'all primary-key collisions are reported'
     );
     assert.equal(
       targetResult.after.projects.find(row => row.id === 'browser-fixture-project-001').name,

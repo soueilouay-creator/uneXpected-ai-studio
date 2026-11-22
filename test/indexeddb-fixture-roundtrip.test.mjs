@@ -75,9 +75,18 @@ function createIndexedDBFactory() {
                         result.onsuccess?.({ target: result });
                       } catch (error) {
                         result.error = error;
-                        tx.error = error;
-                        result.onerror?.({ target: result });
-                        tx.onerror?.({ target: tx });
+                        const event = {
+                          target: result,
+                          defaultPrevented: false,
+                          propagationStopped: false,
+                          preventDefault() { this.defaultPrevented = true; },
+                          stopPropagation() { this.propagationStopped = true; }
+                        };
+                        result.onerror?.(event);
+                        if (!event.defaultPrevented) {
+                          tx.error = error;
+                          if (!event.propagationStopped) tx.onerror?.({ target: tx });
+                        }
                       } finally {
                         pending -= 1;
                         if (pending === 0 && !completionQueued && !completed) {
@@ -86,7 +95,8 @@ function createIndexedDBFactory() {
                             completionQueued = false;
                             if (pending === 0 && !completed) {
                               completed = true;
-                              tx.oncomplete?.({ target: tx });
+                              if (tx.error) tx.onabort?.({ target: tx });
+                              else tx.oncomplete?.({ target: tx });
                             }
                           });
                         }
@@ -96,6 +106,7 @@ function createIndexedDBFactory() {
                   };
 
                   return {
+                    keyPath: store.keyPath,
                     get(key) {
                       return schedule(() => clone(store.rows.get(key)));
                     },
@@ -108,6 +119,21 @@ function createIndexedDBFactory() {
                           throw new Error('Record requires keyPath ' + store.keyPath);
                         }
                         const key = record[store.keyPath];
+                        store.rows.set(key, clone(record));
+                        return key;
+                      });
+                    },
+                    add(record) {
+                      return schedule(() => {
+                        if (!record || typeof record !== 'object' || !(store.keyPath in record)) {
+                          throw new Error('Record requires keyPath ' + store.keyPath);
+                        }
+                        const key = record[store.keyPath];
+                        if (store.rows.has(key)) {
+                          const error = new Error('A record with this key already exists.');
+                          error.name = 'ConstraintError';
+                          throw error;
+                        }
                         store.rows.set(key, clone(record));
                         return key;
                       });
@@ -170,9 +196,10 @@ async function readStoreRecord(database, storeName, id) {
 
 test('copied IndexedDB backup merges additively without clearing or overwriting collisions', async () => {
   const mobileRoot = resolve(root, 'mobile');
-  const [{ openDatabase, LocalStore }, { createBackupPayload, parseBackupPayload }] = await Promise.all([
+  const [{ openDatabase, LocalStore }, { createBackupPayload, parseBackupPayload }, { mergeBackupAdditively }] = await Promise.all([
     importModuleFromFile(resolve(mobileRoot, 'db.js')),
-    importModuleFromFile(resolve(mobileRoot, 'core.js'))
+    importModuleFromFile(resolve(mobileRoot, 'core.js')),
+    importModuleFromFile(resolve(root, 'mobile-release/merge.js'))
   ]);
 
   const originalDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'indexedDB');
@@ -240,22 +267,22 @@ test('copied IndexedDB backup merges additively without clearing or overwriting 
     await targetStore.put('improvements', { id: 'fixture-sentinel-improvements', marker: 'preserve-target-row' });
     await targetStore.put('settings', { id: 'fixture-sentinel-settings', marker: 'preserve-target-row' });
 
-    const collisions = [];
-    for (const storeName of arrayStores) {
-      for (const record of parsed[storeName]) {
-        const existing = await readStoreRecord(targetDatabase, storeName, record.id);
-        if (existing) collisions.push({ store: storeName, id: record.id });
-        else await targetStore.put(storeName, record);
-      }
-    }
-    const existingSettings = await readStoreRecord(targetDatabase, 'settings', 'main');
-    if (existingSettings) collisions.push({ store: 'settings', id: 'main' });
-    else await targetStore.put('settings', { id: 'main', ...parsed.settings });
-
+    await assert.rejects(
+      mergeBackupAdditively(targetDatabase, { ...parsed, projects: [...parsed.projects, structuredClone(parsed.projects[0])] }),
+      /duplicate ID in projects/
+    );
+    const mergeResult = await mergeBackupAdditively(targetDatabase, parsed);
     const targetAfter = await targetStore.exportAll();
     const targetBackup = createBackupPayload(targetAfter, '2026-11-20T03:00:00.000Z');
 
-    assert.deepEqual(collisions, [{ store: 'projects', id: 'fixture-project-001' }], 'ID collisions are reported and skipped');
+    assert.equal(mergeResult.ok, true, 'inserted records pass read-back verification');
+    assert.equal(mergeResult.committed, true);
+    assert.deepEqual(mergeResult.collisions, [{ store: 'projects', id: 'fixture-project-001' }], 'ID collisions are reported and skipped');
+    assert.deepEqual(mergeResult.verificationFailures, []);
+    assert.deepEqual(
+      mergeResult.inserted.map(item => item.store + ':' + item.id).sort(),
+      ['conversations:fixture-conversation-001', 'improvements:fixture-improvement-001', 'memories:fixture-memory-001', 'settings:main'].sort()
+    );
     assert.equal(
       targetAfter.projects.find(row => row.id === 'fixture-project-001').name,
       'Target-owned collision record',

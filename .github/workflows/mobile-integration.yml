@@ -89,6 +89,7 @@ jobs:
           node --check mobile-assets.mjs
           node --check mobile-release/app.js
           node --check mobile-release/providers.js
+          node --check mobile-release/merge.js
           node --check test/mobile-provider-results.test.mjs
           node --check test/indexeddb-fixture-roundtrip.test.mjs
           node --check test/indexeddb-browser-roundtrip.test.mjs

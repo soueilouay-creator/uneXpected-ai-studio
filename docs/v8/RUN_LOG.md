@@ -582,3 +582,41 @@ Design a pure, additive, conflict-reporting import/merge contract for projects, 
 - Exact code commit tested: `da8724ca249e4cfce0c432e2208eef43bb4269b9`. All four workflow runs completed successfully.
 - No user browser, user backup, local record, Neon row, provider key, production service, deployment or DNS was accessed or modified.
 - No new package or infrastructure. GitHub Actions runner billing remains unverified.
+
+
+## Run 13 — 2026-11-23 02:22 UTC — PostgreSQL schema-version guard
+
+**Phase:** Phase 3 — durable execution hardening; Studio/core integration remains separate.  
+**Studio baseline:** `upgrade/v8-foundation` at `5f87f289e08126780be7abf61aa4f309b0a7bacc`; `main` at `6f5bc823e1ffd9284abae7dbbb6c1dae97ebf90b`.  
+**Core baseline:** `soueilouay-creator/uneXxxx/main` at `2828fe281b60ea0a343b24973b411bbad650e93e`; checkpoint/approval ledger PR #16 is merged.
+
+### Finding and increment
+
+The core runtime now depends on PostgreSQL migrations 003–007 (Creator Studio, workflow checkpoints, approval execution intents, exact execution bindings, and stage approval intents), but its startup guard and README still accepted schema version 2. A partially migrated database could therefore pass the initial version check and fail later when newer tables were accessed.
+
+Created rollback branch `backup/v8-schema-guard-pre-20261123` and feature branch `upgrade/v8-schema-version-guard-20261123` in the core repository. Core code commit: [e13689e1168dfef655791881d1d7befb93c2ff59](https://github.com/soueilouay-creator/uneXxxx/commit/e13689e1168dfef655791881d1d7befb93c2ff59). Draft PR: [#18 — require complete V8 PostgreSQL schema](https://github.com/soueilouay-creator/uneXxxx/pull/18).
+
+Changed only:
+- `unexpected_runtime/postgres_storage.py`: require `schema_migrations.version >= 7` at startup; no schema writes or fallback.
+- `tests/test_postgres_storage.py`: versions 1–6 fail closed; version 7 passes readiness.
+- `README.md`: document migrations 001–007 and safe fresh/existing database sequences.
+- `FILE_INVENTORY_SHA256.txt`: refresh exact SHA-256 entries.
+
+### Verification on core commit e13689e
+
+- PostgreSQL 16 runtime/regression job: **443 tests passed, 3 skipped, 0 failed**.
+- PostgreSQL 17 targeted proof: **6/6 passed**, including independent-connection approval concurrency, abrupt-process recovery, pause/resume, consumed-approval restart blocking and logical backup/restore.
+- Runtime job also passed Python compilation, JavaScript/workflow syntax, additive migration-preservation checks, changed-file SHA-256 inventory, Docker image build, actual container health/UI/auth/38-role/task-invocation smoke and CLI smoke.
+- The separate renderer E2E job was still running when this log entry was written; its final result is not claimed here. [CI run 45099384548](https://github.com/soueilouay-creator/uneXxxx/actions/runs/45099384548).
+
+### Preservation, costs and blockers
+
+- No Neon migration/query write, production service change, provider request, user-data access, Render setting change or deployment was performed.
+- Read-only Neon inventory: project `unexpected-v8-unified`, PostgreSQL 17, **10/10 branches**, all currently reported `archived`; branch logical-size limit 1 GiB and history retention 6 hours. No new branch or snapshot was created.
+- Render read-only inventory: `unexpected-v8-command-center` remains on `main` with Auto-Deploy off; the Studio service `unexpected-ai-studio` remains on `main` with Auto-Deploy on. Keep Studio PR #13 draft and do not merge/deploy while that guard remains enabled.
+- No new package or infrastructure was added. No provider/API credits were used. GitHub Actions account billing was not independently visible.
+- Production backup scheduling, encrypted off-site retention and an approved production restore rehearsal remain unverified; CI backup/restore uses disposable databases only.
+
+### Next
+
+Finish and inspect the remaining renderer CI result, then update the Studio runtime-integration status without connecting the hosted endpoint until transport and authentication are independently verified. Keep both PRs in draft; production rollout remains a separate approval.

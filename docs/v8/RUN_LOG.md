@@ -620,3 +620,54 @@ Changed only:
 ### Next
 
 Finish and inspect the remaining renderer CI result, then update the Studio runtime-integration status without connecting the hosted endpoint until transport and authentication are independently verified. Keep both PRs in draft; production rollout remains a separate approval.
+
+
+## Run 14 — 2026-11-24 02:10 UTC — authenticated read-only runtime status bridge
+
+**Phase:** Phase 3 — durable execution / cross-service integration hardening.  
+**Studio baseline:** \`upgrade/v8-foundation\` at \`d938314a588fd4c6a8ce7d05ab781633ca93cfe7\`; \`main\` at \`6f5bc823e1ffd9284abae7dbbb6c1dae97ebf90b\`.  
+**Rollback checkpoint:** \`backup/v8-foundation-pre-runtime-status-adapter-20261124\` at the pre-change head.  
+**Run-log rollback:** \`backup/v8-foundation-pre-run14-log-20261124\` at code head \`edc754d8054f24720d2e013cbcd614a840801ea0\`.
+
+### Finding and increment
+
+The Node Studio/PWA and the existing Python V8 runtime have separate HTTP and authentication boundaries. The Node Studio exposes the existing PWA and provider routes, protected by \`UNEXPECTED_ACCESS_TOKEN\`. The Python core exposes \`GET /v1/status\`, protected by \`UNEXPECTED_RUNTIME_API_TOKEN\` (minimum 32 ASCII characters). Neither credential is interchangeable, and the runtime token must remain server-side.
+
+Added a read-only status bridge without changing legacy routes or enabling a hosted connection:
+
+- Added \`runtime-client.mjs\`, which accepts only a server-configured HTTPS origin, exact hostname allowlist and server-side token; fixes the upstream path to \`/v1/status\`; rejects IP literals, non-default ports, userinfo, path/query/fragment and non-allowlisted hosts; refuses redirects; uses a five-second default timeout and 16 KiB response cap; returns only a validated field projection; and never retries or forwards upstream response bodies.
+- Added authenticated \`GET /v1/runtime/status\` to the Node server. It uses the existing Studio bearer check and rate limiter. No URL or upstream credential is accepted from the browser.
+- Missing endpoint/token configuration returns \`not_configured\` without a network request. The bridge does not proxy task invocation, lifecycle, approvals, MCP or any write-capable route.
+- Added Docker image inclusion and CI path/syntax/test coverage.
+- Added \`docs/v8/INTEGRATION_CONTRACT_AUDIT.md\` documenting the two service boundaries and the remaining architecture decision.
+
+### Commits and changed paths
+
+- Runtime client: [bbf2a019c9ac4c8720d18fa510d156c66fd0b68a](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/bbf2a019c9ac4c8720d18fa510d156c66fd0b68a).
+- Client security tests: [cbc5738397a4bebd2f08c7b2e214a77a9141b9f3](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/cbc5738397a4bebd2f08c7b2e214a77a9141b9f3).
+- Authenticated route smoke test: [c555df4cb464ec0f42989bea9f50c50eed4275c8](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/c555df4cb464ec0f42989bea9f50c50eed4275c8).
+- Docker copy: [619a7884bcf67b18f2c83180c05b421f476f3108](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/619a7884bcf67b18f2c83180c05b421f476f3108).
+- Node route: [87ebca12b85b5f0496d17b2e2c195b4f365a2d3f](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/87ebca12b85b5f0496d17b2e2c195b4f365a2d3f).
+- CI wiring: [edc754d8054f24720d2e013cbcd614a840801ea0](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/edc754d8054f24720d2e013cbcd614a840801ea0).
+- Integration contract audit: [811b784600050beab951a794b1b17ed787256b0f](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/811b784600050beab951a794b1b17ed787256b0f).
+- Final code head before this log append: \`edc754d8054f24720d2e013cbcd614a840801ea0\`.
+
+### Verification
+
+- Studio mobile integration run [45310119676](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/45310119676): completed successfully. Syntax checks passed; **40/40 Node tests passed, 0 failed**; **1/1 real Chromium IndexedDB test passed**; production Docker image build passed.
+- TAAFT run [45310119778](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/45310119778): **3/3 passed, 0 failed**.
+- The 40 Node tests include seven runtime-client tests and one authenticated route smoke test. They use injected fake HTTP responses and a local Node server with runtime configuration explicitly empty; no remote runtime endpoint is contacted.
+- Rechecked core PR #18 run [45099384548](https://github.com/soueilouay-creator/uneXxxx/actions/runs/45099384548): renderer E2E, PostgreSQL 17 release proof and runtime/regression jobs all completed successfully. The recorded suite results are 443 passed / 3 skipped on PostgreSQL 16 and 6/6 targeted PostgreSQL 17 proof tests.
+
+### Preservation, cost and blockers
+
+- Studio branch comparison before this log append: **93 commits ahead / 0 behind** \`main\`; **28 changed paths, 0 removed paths**. Existing source archive and mobile asset checksum checks passed in CI.
+- Existing PWA, chat/provider routes, IndexedDB stores, TAAFT allowlist, source archive and backup files remain present. No live IndexedDB, user backup, Neon row, production service, Render setting, provider key or DNS record was accessed or changed.
+- No provider API request, schema migration, user-data migration, package install, paid infrastructure or generation credit was used. GitHub Actions account-level billing was not independently visible.
+- The hosted runtime endpoint, DNS target and credentials remain unverified. The new route is opt-in and is not wired into the PWA UI. No task/write API is bridged.
+- The requested TypeScript target (Mastra + one durable workflow engine such as DBOS Transact) and the substantial existing Python runtime still require a formal architecture decision. This status-only bridge does not resolve that choice and does not create a second coordinator.
+- Studio PR #13 remains draft. Studio Render Auto-Deploy was last observed enabled on 2026-11-23; it was not changed or rechecked in this run. Do not merge or deploy until that guard is independently disabled and verified.
+
+### Next
+
+Create a reviewed runtime architecture decision comparing the existing Python core with the requested TypeScript/Mastra + DBOS direction, including role/Skill preservation, state ownership, API compatibility, dependency licenses/security, hosting requirements, cost and rollback. Do not connect a hosted endpoint or bridge write-capable routes until that decision and endpoint/auth verification pass.

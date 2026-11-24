@@ -11,6 +11,7 @@ RUN echo '02d5451e5ad6c344450a7f16607b92a8967647a75ea8b8a8f56318fffb4d5ee5  /tmp
 WORKDIR /app
 COPY app.js /app/public/app.js
 COPY server.js /app/server.js
+COPY runtime-client.mjs /app/runtime-client.mjs
 COPY openrouter-ui.js /app/openrouter-ui.js
 COPY taaft-integration.mjs /app/taaft-integration.mjs
 COPY mobile-assets.mjs /app/mobile-assets.mjs

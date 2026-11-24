@@ -625,21 +625,21 @@ Finish and inspect the remaining renderer CI result, then update the Studio runt
 ## Run 14 — 2026-11-24 02:10 UTC — authenticated read-only runtime status bridge
 
 **Phase:** Phase 3 — durable execution / cross-service integration hardening.  
-**Studio baseline:** \`upgrade/v8-foundation\` at \`d938314a588fd4c6a8ce7d05ab781633ca93cfe7\`; \`main\` at \`6f5bc823e1ffd9284abae7dbbb6c1dae97ebf90b\`.  
-**Rollback checkpoint:** \`backup/v8-foundation-pre-runtime-status-adapter-20261124\` at the pre-change head.  
-**Run-log rollback:** \`backup/v8-foundation-pre-run14-log-20261124\` at code head \`edc754d8054f24720d2e013cbcd614a840801ea0\`.
+**Studio baseline:** `upgrade/v8-foundation` at `d938314a588fd4c6a8ce7d05ab781633ca93cfe7`; `main` at `6f5bc823e1ffd9284abae7dbbb6c1dae97ebf90b`.  
+**Rollback checkpoint:** `backup/v8-foundation-pre-runtime-status-adapter-20261124` at the pre-change head.  
+**Run-log rollback:** `backup/v8-foundation-pre-run14-log-20261124` at code head `edc754d8054f24720d2e013cbcd614a840801ea0`.
 
 ### Finding and increment
 
-The Node Studio/PWA and the existing Python V8 runtime have separate HTTP and authentication boundaries. The Node Studio exposes the existing PWA and provider routes, protected by \`UNEXPECTED_ACCESS_TOKEN\`. The Python core exposes \`GET /v1/status\`, protected by \`UNEXPECTED_RUNTIME_API_TOKEN\` (minimum 32 ASCII characters). Neither credential is interchangeable, and the runtime token must remain server-side.
+The Node Studio/PWA and the existing Python V8 runtime have separate HTTP and authentication boundaries. The Node Studio exposes the existing PWA and provider routes, protected by `UNEXPECTED_ACCESS_TOKEN`. The Python core exposes `GET /v1/status`, protected by `UNEXPECTED_RUNTIME_API_TOKEN` (minimum 32 ASCII characters). Neither credential is interchangeable, and the runtime token must remain server-side.
 
 Added a read-only status bridge without changing legacy routes or enabling a hosted connection:
 
-- Added \`runtime-client.mjs\`, which accepts only a server-configured HTTPS origin, exact hostname allowlist and server-side token; fixes the upstream path to \`/v1/status\`; rejects IP literals, non-default ports, userinfo, path/query/fragment and non-allowlisted hosts; refuses redirects; uses a five-second default timeout and 16 KiB response cap; returns only a validated field projection; and never retries or forwards upstream response bodies.
-- Added authenticated \`GET /v1/runtime/status\` to the Node server. It uses the existing Studio bearer check and rate limiter. No URL or upstream credential is accepted from the browser.
-- Missing endpoint/token configuration returns \`not_configured\` without a network request. The bridge does not proxy task invocation, lifecycle, approvals, MCP or any write-capable route.
+- Added `runtime-client.mjs`, which accepts only a server-configured HTTPS origin, exact hostname allowlist and server-side token; fixes the upstream path to `/v1/status`; rejects IP literals, non-default ports, userinfo, path/query/fragment and non-allowlisted hosts; refuses redirects; uses a five-second default timeout and 16 KiB response cap; returns only a validated field projection; and never retries or forwards upstream response bodies.
+- Added authenticated `GET /v1/runtime/status` to the Node server. It uses the existing Studio bearer check and rate limiter. No URL or upstream credential is accepted from the browser.
+- Missing endpoint/token configuration returns `not_configured` without a network request. The bridge does not proxy task invocation, lifecycle, approvals, MCP or any write-capable route.
 - Added Docker image inclusion and CI path/syntax/test coverage.
-- Added \`docs/v8/INTEGRATION_CONTRACT_AUDIT.md\` documenting the two service boundaries and the remaining architecture decision.
+- Added `docs/v8/INTEGRATION_CONTRACT_AUDIT.md` documenting the two service boundaries and the remaining architecture decision.
 
 ### Commits and changed paths
 
@@ -650,7 +650,7 @@ Added a read-only status bridge without changing legacy routes or enabling a hos
 - Node route: [87ebca12b85b5f0496d17b2e2c195b4f365a2d3f](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/87ebca12b85b5f0496d17b2e2c195b4f365a2d3f).
 - CI wiring: [edc754d8054f24720d2e013cbcd614a840801ea0](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/edc754d8054f24720d2e013cbcd614a840801ea0).
 - Integration contract audit: [811b784600050beab951a794b1b17ed787256b0f](https://github.com/soueilouay-creator/uneXpected-ai-studio/commit/811b784600050beab951a794b1b17ed787256b0f).
-- Final code head before this log append: \`edc754d8054f24720d2e013cbcd614a840801ea0\`.
+- Final code head before this log append: `edc754d8054f24720d2e013cbcd614a840801ea0`.
 
 ### Verification
 
@@ -661,7 +661,7 @@ Added a read-only status bridge without changing legacy routes or enabling a hos
 
 ### Preservation, cost and blockers
 
-- Studio branch comparison before this log append: **93 commits ahead / 0 behind** \`main\`; **28 changed paths, 0 removed paths**. Existing source archive and mobile asset checksum checks passed in CI.
+- Studio branch comparison before this log append: **93 commits ahead / 0 behind** `main`; **28 changed paths, 0 removed paths**. Existing source archive and mobile asset checksum checks passed in CI.
 - Existing PWA, chat/provider routes, IndexedDB stores, TAAFT allowlist, source archive and backup files remain present. No live IndexedDB, user backup, Neon row, production service, Render setting, provider key or DNS record was accessed or changed.
 - No provider API request, schema migration, user-data migration, package install, paid infrastructure or generation credit was used. GitHub Actions account-level billing was not independently visible.
 - The hosted runtime endpoint, DNS target and credentials remain unverified. The new route is opt-in and is not wired into the PWA UI. No task/write API is bridged.

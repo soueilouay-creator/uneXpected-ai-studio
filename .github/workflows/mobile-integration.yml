@@ -4,6 +4,9 @@ on:
     branches: [main]
     paths:
       - 'server.js'
+      - 'runtime-client.mjs'
+      - 'test/runtime-client.test.mjs'
+      - 'test/runtime-route-smoke.test.mjs'
       - 'Dockerfile'
       - 'mobile-release/**'
       - 'mobile-assets.mjs'
@@ -29,6 +32,9 @@ on:
       - 'upgrade/v8-*'
     paths:
       - 'server.js'
+      - 'runtime-client.mjs'
+      - 'test/runtime-client.test.mjs'
+      - 'test/runtime-route-smoke.test.mjs'
       - 'Dockerfile'
       - 'mobile-release/**'
       - 'mobile-assets.mjs'
@@ -81,10 +87,13 @@ jobs:
       - name: Syntax checks
         run: |
           node --check server.js
+          node --check runtime-client.mjs
           node --check app.js
           node --check openrouter-ui.js
           node --check test/openrouter-ui.test.mjs
           node --check test/orchestrator.test.mjs
+          node --check test/runtime-client.test.mjs
+          node --check test/runtime-route-smoke.test.mjs
           node --check test/provider-fetch-stub.mjs
           node --check mobile-assets.mjs
           node --check mobile-release/app.js
@@ -95,7 +104,7 @@ jobs:
           node --check test/indexeddb-browser-roundtrip.test.mjs
           node --check test/phone-workspace-ui.test.mjs
       - name: Mobile and authenticated gateway HTTP tests
-        run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/openrouter-ui.test.mjs test/orchestrator.test.mjs test/phone-workspace-ui.test.mjs test/mobile-provider-results.test.mjs test/indexeddb-fixture-roundtrip.test.mjs
+        run: node --test test/mobile-assets.test.mjs test/mobile-pwa.test.mjs test/mobile-route-smoke.test.mjs test/openrouter-ui.test.mjs test/orchestrator.test.mjs test/phone-workspace-ui.test.mjs test/mobile-provider-results.test.mjs test/indexeddb-fixture-roundtrip.test.mjs test/runtime-client.test.mjs test/runtime-route-smoke.test.mjs
       - name: Real Chromium IndexedDB backup and restore
         run: |
           set -euo pipefail

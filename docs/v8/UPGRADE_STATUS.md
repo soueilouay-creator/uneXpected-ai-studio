@@ -417,3 +417,41 @@ No new package or infrastructure. GitHub Actions runner usage occurred; exact ac
 - Exact code commit tested: `da8724ca249e4cfce0c432e2208eef43bb4269b9`. All four workflow runs completed successfully.
 - No user browser, user backup, local record, Neon row, provider key, production service, deployment or DNS was accessed or modified.
 - No new package or infrastructure. GitHub Actions runner billing remains unverified.
+
+
+
+## Run 15 — 2026-11-25: runtime and durable-workflow architecture decision
+
+**Phase:** Phase 2 / Phase 3 architecture freeze.  
+**Decision:** [ADR-001](./ADR-001-RUNTIME-AND-DURABILITY.md) selects the existing Python V8 Coordinator and its StateStore/PostgresStateStore + WorkflowRunner checkpoint ledger as the single runtime and durable-workflow implementation. The Node Studio/PWA remains the preserved user-facing client and compatibility facade.
+
+### Completed
+
+- Compared the owned Python runtime against Mastra `@mastra/core` and DBOS Transact TypeScript using current repository code, package manifests, licenses and CI evidence.
+- Confirmed the core Coordinator constructs the 38-role AgentRegistry, SkillRegistry, ProviderRouter, policy/approval services, capability registry, MCPToolGateway and bounded SubagentRunner.
+- Confirmed the current core has durable workflow and stage checkpoints, attempt-token-bound stage claims, revision-checked state updates, approval intents and idempotency.
+- Added the accepted architecture decision, updated the component decision register and linked the ADR from this index.
+- Created rollback branch `backup/v8-foundation-pre-architecture-decision-20261125` at pre-run Studio head `9f29b6da004b91cd60fc1505124e5482b5f09117`.
+
+### Verification
+
+- Core CI [45099384548](https://github.com/soueilouay-creator/uneXxxx/actions/runs/45099384548): runtime, PostgreSQL 17 release-proof and renderer-E2E jobs completed successfully. Recorded test results: PostgreSQL 16 **443 passed / 3 skipped**; PostgreSQL 17 recovery/concurrency/approval/backup proof **6/6 passed**; renderer E2E passed.
+- The process-recovery test proves an abruptly interrupted `started` stage is recovered as an explicit blocked state without callback replay. This is fail-closed recovery protection, not automatic replay; operator-directed reconciliation remains open.
+- Studio exact pre-run head `9f29b6da004b91cd60fc1505124e5482b5f09117`: mobile integration [45310281272](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/45310281272) passed all steps (40/40 Node tests, 1/1 real Chromium IndexedDB test, Docker build); TAAFT [45310281333](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/45310281333) passed 3/3. These are pre-run exact-head results; this documentation increment requires its own final-head CI check.
+
+### Blockers and safety boundary
+
+- Core PR #18 remains draft at `e13689e1168dfef655791881d1d7befb93c2ff59`. It raises the startup schema guard to version 7 and has successful CI, but current core main still contains the older version-2 startup guard. Do not treat the draft change as merged.
+- An ambiguous interrupted stage remains blocked for human reconciliation; no automatic replay is permitted.
+- Production PostgreSQL backup/export and independent restore/read-back remain unverified for the populated database. The earlier Neon audit reported 10/10 branches and no scheduled snapshots; recheck before any operational change.
+- Hosted runtime endpoint, DNS and authentication remain unverified; the Studio bridge is read-only and not connected to the PWA.
+- Live non-billable or specifically approved provider compatibility, security/observability evaluation, sandbox and full release/rollback gates remain open.
+- Studio PR #13 remains draft. No merge, database migration, provider call, Render setting change, restart or deployment occurred. The remote GitHub connector does not expose a local working-tree status, so this run verified remote refs/files only.
+
+### Cost
+
+No package or infrastructure was added, no paid plan or trial was started, and no provider API or generation credits were used. GitHub Actions account-level billing remains unverified.
+
+### Next
+
+Review and close the core schema-version-7 startup-guard gap, then design a human-approved, idempotent reconciliation procedure for interrupted workflow stages. Keep the populated hosted database read-only until a current backup/export and independent restore/read-back are verified.

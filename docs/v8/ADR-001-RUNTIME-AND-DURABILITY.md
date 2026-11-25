@@ -33,7 +33,7 @@ The owned core contains:
 
 The main-branch `WorkflowRunner` deliberately fails closed when an interrupted stage is ambiguous. The process-recovery test terminates a child process after a stage has been claimed, reopens the store, and proves that a second run is blocked without invoking the stage callback or changing the original attempt token. This is **safe recovery protection, not automatic replay of an ambiguous in-flight side effect**. Completed-stage reconciliation and approval pause/resume have separate tests.
 
-CI run [45099384548](https://github.com/soueilouay-creator/uneXxxx/actions/runs/45099384548) was rechecked during this decision. Its runtime, PostgreSQL 17 release-proof and renderer-E2E jobs all completed successfully. The recorded results are:
+CI run [45099384548](https://github.com/soueilouay-creator/uneXxxx/actions/runs/45099384548), attached to draft PR #18 head `e13689e1168dfef655791881d1d7befb93c2ff59` based on core main `2828fe281b60ea0a343b24973b411bbad650e93e`, was rechecked during this decision. Its runtime, PostgreSQL 17 release-proof and renderer-E2E jobs all completed successfully. The recorded results are:
 - PostgreSQL 16 regression: 443 passed, 3 skipped.
 - PostgreSQL 17 targeted release proof: 6/6 passed, including independent-connection approval concurrency, abrupt-process recovery, approval pause/resume, consumed-approval restart protection and separate-target backup/restore.
 - Renderer E2E: passed.

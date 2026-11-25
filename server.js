@@ -2,6 +2,7 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { resolveMobileAsset } from './mobile-assets.mjs';
+import { getRuntimeStatus } from './runtime-client.mjs';
 import { fileURLToPath } from 'node:url';
 import { timingSafeEqual } from 'node:crypto';
 import { TAAFT_MCP_URL, TAAFT_MCP_BETA, TAAFT_ALLOWED_TOOLS, buildOpenAITaaftTool, buildAnthropicTaaftConfig, withTaaftGuidance } from './taaft-integration.mjs';
@@ -307,6 +308,17 @@ const server = http.createServer(async (req, res) => {
           }
         }
       });
+    }
+    if (req.method === 'GET' && url.pathname === '/v1/runtime/status') {
+      if (rateLimited(req)) return json(res, 429, { error: 'Rate limit exceeded. Wait one minute and try again.' });
+      if (!authorized(req)) return json(res, 401, { error: ACCESS_TOKEN ? 'Unauthorized. Provide the configured bearer token.' : 'Server is locked: set UNEXPECTED_ACCESS_TOKEN (32+ random characters) before using authenticated endpoints.' });
+      const runtime = await getRuntimeStatus();
+      const statusCode = runtime.status === 'connected' || runtime.status === 'not_configured'
+        ? 200
+        : runtime.status === 'degraded' || runtime.status === 'misconfigured'
+          ? 503
+          : 502;
+      return json(res, statusCode, runtime);
     }
     if (req.method === 'GET' && url.pathname === '/mobile') {
       res.writeHead(308, { location: '/mobile/', 'cache-control': 'no-store' });

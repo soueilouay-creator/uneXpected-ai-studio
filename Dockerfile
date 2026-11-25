@@ -2,7 +2,8 @@ FROM node:22-alpine
 ENV NODE_ENV=production PORT=10000
 WORKDIR /tmp/ue-source
 COPY source.tar.gz.b64 /tmp/source.tar.gz.b64
-RUN base64 -d /tmp/source.tar.gz.b64 > /tmp/source.tar.gz \
+RUN echo '02d5451e5ad6c344450a7f16607b92a8967647a75ea8b8a8f56318fffb4d5ee5  /tmp/source.tar.gz.b64' | sha256sum -c - \
+ && base64 -d /tmp/source.tar.gz.b64 > /tmp/source.tar.gz \
  && mkdir -p /tmp/ue-extracted /app \
  && tar -xzf /tmp/source.tar.gz -C /tmp/ue-extracted \
  && cp -R /tmp/ue-extracted/uneXpected-ai-studio-v1.0.1/. /app/ \
@@ -10,6 +11,7 @@ RUN base64 -d /tmp/source.tar.gz.b64 > /tmp/source.tar.gz \
 WORKDIR /app
 COPY app.js /app/public/app.js
 COPY server.js /app/server.js
+COPY runtime-client.mjs /app/runtime-client.mjs
 COPY openrouter-ui.js /app/openrouter-ui.js
 COPY taaft-integration.mjs /app/taaft-integration.mjs
 COPY mobile-assets.mjs /app/mobile-assets.mjs

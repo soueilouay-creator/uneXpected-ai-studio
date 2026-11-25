@@ -671,3 +671,62 @@ Added a read-only status bridge without changing legacy routes or enabling a hos
 ### Next
 
 Create a reviewed runtime architecture decision comparing the existing Python core with the requested TypeScript/Mastra + DBOS direction, including role/Skill preservation, state ownership, API compatibility, dependency licenses/security, hosting requirements, cost and rollback. Do not connect a hosted endpoint or bridge write-capable routes until that decision and endpoint/auth verification pass.
+
+
+## Run 15 — 2026-11-25 — accepted runtime and durability architecture
+
+**Phase:** Phase 2 / Phase 3 architecture freeze.  
+**Pre-run Studio head:** `9f29b6da004b91cd60fc1505124e5482b5f09117`.  
+**Rollback branch:** `backup/v8-foundation-pre-architecture-decision-20261125` at the pre-run head.  
+**Core main:** `2828fe281b60ea0a343b24973b411bbad650e93e`.  
+**Core schema-guard PR:** [#18](https://github.com/soueilouay-creator/uneXxxx/pull/18), draft head `e13689e1168dfef655791881d1d7befb93c2ff59`.
+
+### Completed
+
+- Added [ADR-001 — Runtime and durability](./ADR-001-RUNTIME-AND-DURABILITY.md).
+- Updated [COMPONENT_DECISIONS.md](./COMPONENT_DECISIONS.md) from provisional to accepted architecture direction.
+- Linked the ADR from [docs/v8/README.md](./README.md).
+- Appended this run to the chronological log and appended the same status to [UPGRADE_STATUS.md](./UPGRADE_STATUS.md).
+- Clarified that the Python core is the only primary coordinator and that its existing StateStore/PostgresStateStore + WorkflowRunner is the only durable-workflow implementation for V8.
+- Did not install Mastra, DBOS, MCP TypeScript SDK or any other package. No runtime or data migration was performed.
+
+### Architecture decision
+
+- Retain the Python 3.12 V8 Coordinator, canonical 38-role registry, SkillRegistry, existing provider router, permission/approval policy, MCP gateway and bounded subagents.
+- Retain existing PostgreSQL workflow/stage checkpoints, attempt tokens, revision checks, idempotency and approval intents.
+- Keep the Node.js 22 Studio/PWA as the existing user-facing client and compatibility facade.
+- Do not add Mastra or DBOS Transact TypeScript: the current runtime already owns these responsibilities and the new checkpoint/recovery tests pass. Adding another framework would duplicate coordination or require a larger migration without a measured gap.
+- Mastra `@mastra/core` package manifest declares v1.86.0, Apache-2.0 and Node >=22.13.0. Its repository license places `ee/` directories under a separate Enterprise Edition License that is not open source and prohibits production use.
+- DBOS Transact TypeScript is MIT and Postgres-backed, but is not selected while the Python checkpoint engine meets the verified contract.
+- The decision and reconsideration triggers are recorded in ADR-001.
+
+### Verification
+
+- Core CI [45099384548](https://github.com/soueilouay-creator/uneXxxx/actions/runs/45099384548): all three jobs completed successfully — runtime/regression, PostgreSQL 17 release proof, and renderer E2E.
+- Recorded core results: PostgreSQL 16 **443 passed / 3 skipped**; PostgreSQL 17 targeted concurrency, abrupt-process recovery, pause/resume, approval replay protection and backup/restore **6/6 passed**; renderer E2E passed.
+- Process-recovery behavior is deliberately fail-closed: an interrupted `started` stage is not replayed automatically. It remains blocked pending a human reconciliation procedure. Do not describe this as automatic recovery.
+- Studio exact pre-run head: [mobile CI #45310281272](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/45310281272) passed 40/40 Node tests, 1/1 real Chromium IndexedDB test and Docker build; [TAAFT CI #45310281333](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/45310281333) passed 3/3.
+- Read-back confirmed the ADR, decision register and status/index documents on the feature branch. Final-head CI for this documentation batch is to be checked after this commit.
+
+### Changed paths
+
+- Added `docs/v8/ADR-001-RUNTIME-AND-DURABILITY.md`.
+- Updated `docs/v8/COMPONENT_DECISIONS.md`.
+- Updated `docs/v8/README.md`.
+- Updated `docs/v8/UPGRADE_STATUS.md`.
+- Updated `docs/v8/RUN_LOG.md`.
+
+### Preservation, costs and blockers
+
+- No existing file or branch was deleted; no line in application code, PWA code, source archive, mobile data adapter or TAAFT implementation was changed.
+- No user IndexedDB, projects, chats, memories, settings, backups, Neon records, provider credentials or production services were accessed or modified.
+- No database migration, provider API request, runtime request, Render setting change, restart, merge or deployment occurred.
+- No new dependency, infrastructure, paid trial, subscription or API credit was used. GitHub Actions account-level billing remains unverified.
+- Remote GitHub refs/files were verified; the connector does not expose a local working-tree status.
+- Core PR #18 remains draft; current core main still has the older schema-version-2 startup guard. The version-7 guard is not yet merged.
+- Production database backup/export and independent restore/read-back, interrupted-stage human reconciliation, hosted endpoint/auth, live provider compatibility, tool security, observability/evaluation, sandbox and release/rollback gates remain open.
+- Studio PR #13 remains draft; the Render blueprint still declares `autoDeploy: true`. No merge/deploy was attempted.
+
+### Next
+
+Review the core schema-version-7 startup guard PR and define an explicit, human-approved, idempotent reconciliation path for an interrupted workflow stage. Keep the populated hosted database read-only until current backup/export and independent restore/read-back are verified.

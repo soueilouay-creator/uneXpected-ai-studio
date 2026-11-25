@@ -706,7 +706,7 @@ Create a reviewed runtime architecture decision comparing the existing Python co
 - Recorded core results: PostgreSQL 16 **443 passed / 3 skipped**; PostgreSQL 17 targeted concurrency, abrupt-process recovery, pause/resume, approval replay protection and backup/restore **6/6 passed**; renderer E2E passed.
 - Process-recovery behavior is deliberately fail-closed: an interrupted `started` stage is not replayed automatically. It remains blocked pending a human reconciliation procedure. Do not describe this as automatic recovery.
 - Studio exact pre-run head: [mobile CI #45310281272](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/45310281272) passed 40/40 Node tests, 1/1 real Chromium IndexedDB test and Docker build; [TAAFT CI #45310281333](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/45310281333) passed 3/3.
-- Read-back confirmed the ADR, decision register and status/index documents on the feature branch. Final-head CI for this documentation batch is to be checked after this commit.
+- Read-back confirmed the ADR, decision register and status/index documents on the feature branch. Final-head CI on documentation head `85a6a8ca4577e5f7f31e9c091f5af8c17e32b491` completed successfully: mobile integration [45535902850](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/45535902850) passed **40/40 Node tests**, **1/1 real Chromium IndexedDB test**, syntax checks and Docker image build; TAAFT [45535902886](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/45535902886) passed **3/3**. This run-log-only follow-up does not change application or test code; its new branch head is documentation-only and will be checked separately.
 
 ### Changed paths
 

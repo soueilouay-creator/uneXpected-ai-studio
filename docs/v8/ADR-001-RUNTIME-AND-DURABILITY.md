@@ -48,7 +48,7 @@ Core PR [#18](https://github.com/soueilouay-creator/uneXxxx/pull/18) remains ope
 
 ### Existing Studio integration boundary
 
-Studio PR [#13](https://github.com/soueilouay-creator/uneXpected-ai-studio/pull/13) remains open and draft at `9f29b6da004b91cd60fc1505124e5482b5f09117`, 95 commits ahead and 0 behind main. The comparison contains 28 changed paths and no removed files (7 line deletions are edits inside existing files).
+At the start of this decision, Studio PR [#13](https://github.com/soueilouay-creator/uneXpected-ai-studio/pull/13) was open and draft at `9f29b6da004b91cd60fc1505124e5482b5f09117`, 95 commits ahead and 0 behind main. The pre-decision comparison contained 28 changed paths and no removed files (7 line deletions were edits inside existing files). This ADR and the accompanying decision-register/status updates are additional documentation-only commits on that same draft branch.
 
 Exact-head CI was rechecked:
 - [Studio mobile integration #45310281272](https://github.com/soueilouay-creator/uneXpected-ai-studio/actions/runs/45310281272): all job steps passed, including source/mobile restoration, syntax, authenticated HTTP regression, real Chromium IndexedDB round-trip and Docker image build. The associated test record is 40/40 Node tests and 1/1 Chromium test.
